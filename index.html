@@ -178,6 +178,11 @@ footer{position:relative;z-index:2;padding:34px 6vw 40px;display:flex;justify-co
 .tome-content .arabic-inline{font-family:"Amiri","Noto Naskh Arabic",serif;font-size:1.24em;direction:rtl;color:#821c25;padding:0 3px;display:inline-block;}
 .tome-content p{margin:0 0 14px;text-indent:1.8em;text-align:justify;}
 .tome-content p:first-of-type::first-letter{font-size:2.8em;float:left;line-height:0.85;padding:4px 8px 0 0;color:#821c25;font-weight:bold;font-family:"Fraunces",serif;}
+/* PDF görüntülü sayfalar – padding ve overflow düzeni */
+.tome-content .pdf-canvas-wrap{display:block;margin:0;padding:2px 0;}
+.tome-content .pdf-page-render{max-width:100%;width:100%;height:auto;display:block;border-radius:4px;border:1px solid rgba(212,175,55,0.2);box-shadow:0 2px 10px rgba(0,0,0,0.25);}
+/* PDF sayfası olan tome-paper'da ekstra padding kaldır */
+.tome-paper:has(.pdf-canvas-wrap){padding-top:10px;padding-bottom:10px;}
 .tome-footer{display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid rgba(184,139,42,0.18);font-size:0.78rem;color:#735b2a;margin-top:10px;}
 .tome-turn-hint{font-size:0.74rem;font-style:italic;color:#a17822;opacity:0.8;}
 .tome-page-num{font-weight:bold;font-family:"Fraunces",serif;font-size:0.9rem;}
@@ -655,6 +660,6 @@ footer{position:relative;z-index:2;padding:34px 6vw 40px;display:flex;justify-co
 </main>
 <footer><span>Nur Koridoru &copy; 2026</span><span>tasarim kavrami &#8212; Sesli Risale-i Nur deneyimi</span></footer>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="nur_main.js?v=2.3"></script>
+<script src="nur_main.js?v=2.4"></script>
 </body>
 </html>

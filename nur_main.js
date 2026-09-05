@@ -2032,13 +2032,24 @@ function getBookPages(title){
 function formatTomeHTML(page){
   if(!page)return "";
   var html="";
+
+  // PDF görüntüsü varsa SADECE onu göster – bozuk metin görünmez
   if(page.imageData){
-    html += "<div class='pdf-canvas-wrap' style='margin-bottom:14px;text-align:center;'><img src='" + page.imageData + "' class='pdf-page-render' style='max-width:100%;max-height:480px;height:auto;border-radius:3px;border:1px solid rgba(212,175,55,0.3);box-shadow:0 4px 15px rgba(0,0,0,0.35);' alt='PDF Sayfası'></div>";
+    html += "<div class='pdf-canvas-wrap' style='margin:0;text-align:center;padding:4px 0;'>";
+    html += "<img src='" + page.imageData + "' class='pdf-page-render' ";
+    html += "style='max-width:100%;width:100%;height:auto;display:block;border-radius:4px;";
+    html += "border:1px solid rgba(212,175,55,0.25);box-shadow:0 2px 12px rgba(0,0,0,0.28);";
+    html += "image-rendering:crisp-edges;' alt='PDF Sayfası " + (page.pageNumber||'') + "'>";
+    html += "</div>";
+    // Görüntü varsa başlık ve metin gösterme – sayfa görüntünün içindedir
+    return html;
   }
+
+  // Görüntüsüz risale sayfaları (standart metin tabanlı sayfalar)
   if(page.title){
     html+="<h4>"+escHTML(page.title)+"</h4>";
   }
-  if(page.pageType==="mukaddime" || page.bismillah !== false && (page.arabicVerse || page.pageType==="mukaddime")){
+  if(page.pageType==="mukaddime" || (page.arabicVerse || page.pageType==="mukaddime")){
     html+="<div class='bismillah-art' dir='rtl' lang='ar'>بِسْمِ اللَّهِ الرَّحْمٰنِ الرَّحِيمِ</div>";
   }
   if(page.arabicVerse){
@@ -2049,13 +2060,13 @@ function formatTomeHTML(page){
     html += paragraphs.map(function(p){
       var clean = p.trim();
       if(!clean) return "";
-      // Detect if whole paragraph is Arabic
+      // Paragrafın tamamı Arapça mı?
       var arabicChars = (clean.match(/[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]/g) || []).length;
       var nonSpaceChars = clean.replace(/\s+/g, "").length;
-      if(arabicChars > 6 && arabicChars / nonSpaceChars > 0.45){
+      if(nonSpaceChars > 0 && arabicChars > 5 && arabicChars / nonSpaceChars > 0.45){
         return "<div class='arabic-block' dir='rtl' lang='ar'>" + escHTML(clean).replace(/\n/g, "<br>") + "</div>";
       }
-      // Wrap inline Arabic text in arabic-inline span
+      // Satır içi Arapçayı <span> ile sar
       var formatted = escHTML(clean).replace(/[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF][\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF\s\u064B-\u065F\u0670]*/g, function(arMatch){
         if(arMatch.trim().length > 2){
           return "<span class='arabic-inline' dir='rtl' lang='ar'>" + arMatch + "</span>";
@@ -2623,45 +2634,54 @@ if(pdfQuickDemoBtn){
   });
 }
 
-// 11.9. PDF.js ile Yüksek Performanslı Ayrıştırma
+// 11.9. PDF.js ile Yüksek Kaliteli Görüntü Tabanlı Ayrıştırma
+// Not: Ham metin çıkartma Arapça/Osmanlıca PDF'lerde her zaman bozuk karakter üretir.
+// Bu nedenle her sayfa yüksek çözünürlüklü canvas görüntüsü olarak render edilir.
 async function extractPdfDocument(file, onProgress){
   if(!window.pdfjsLib){
     throw new Error("pdfjs-missing");
   }
   var buf = await file.arrayBuffer();
-  var doc = await window.pdfjsLib.getDocument({ data: buf }).promise;
+  var doc = await window.pdfjsLib.getDocument({ data: buf, cMapUrl: "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/cmaps/", cMapPacked: true }).promise;
   var pages = [];
-  var total = Math.min(doc.numPages, 100);
+  var total = Math.min(doc.numPages, 120);
+
+  // Cihaz piksel yoğunluğunu hesaba kat (retina için 1.5, max 2.0)
+  var deviceScale = Math.min(window.devicePixelRatio || 1, 2);
+  var renderScale = Math.max(1.5, deviceScale);
 
   for(var i=1; i<=total; i++){
     if(onProgress) onProgress(i, total);
     try{
       var page = await doc.getPage(i);
-      var textContent = await page.getTextContent();
-      var rawLines = textContent.items.map(function(it){ return it.str; }).join(" ").replace(/\s+/g, " ").trim();
 
-      var pageObj = {
-        pageNumber: i,
-        title: "Sayfa " + i,
-        text: rawLines || "",
-        imageData: null
-      };
-
-      if(!rawLines || rawLines.length < 50 || i === 1){
-        try{
-          var viewport = page.getViewport({ scale: 1.0 });
-          var offCanvas = document.createElement("canvas");
-          offCanvas.width = viewport.width;
-          offCanvas.height = viewport.height;
-          var offCtx = offCanvas.getContext("2d");
-          await page.render({ canvasContext: offCtx, viewport: viewport }).promise;
-          pageObj.imageData = offCanvas.toDataURL("image/jpeg", 0.75);
-        }catch(renderErr){}
+      // Her sayfayı daima yüksek kalite görüntü olarak render et
+      var imageData = null;
+      try{
+        var viewport = page.getViewport({ scale: renderScale });
+        var offCanvas = document.createElement("canvas");
+        offCanvas.width = viewport.width;
+        offCanvas.height = viewport.height;
+        var offCtx = offCanvas.getContext("2d");
+        offCtx.fillStyle = "#f8f4e8";
+        offCtx.fillRect(0, 0, offCanvas.width, offCanvas.height);
+        await page.render({ canvasContext: offCtx, viewport: viewport, background: "rgba(248,244,232,1)" }).promise;
+        imageData = offCanvas.toDataURL("image/jpeg", 0.88);
+        // Bellekten temizle
+        offCanvas.width = 1; offCanvas.height = 1;
+      }catch(renderErr){
+        console.warn("PDF sayfa render hatası:", i, renderErr);
       }
 
-      pages.push(pageObj);
+      pages.push({
+        pageNumber: i,
+        title: "Sayfa " + i,
+        text: "",         // Ham metin gösterilmez – her zaman görüntü kullanılır
+        imageData: imageData
+      });
     }catch(pageErr){
-      pages.push({ pageNumber: i, title: "Sayfa " + i, text: "Sayfa içeriği okunamadı." });
+      console.warn("PDF sayfa hatası:", i, pageErr);
+      pages.push({ pageNumber: i, title: "Sayfa " + i, text: "Bu sayfa görüntülenemedi.", imageData: null });
     }
   }
   return pages;
