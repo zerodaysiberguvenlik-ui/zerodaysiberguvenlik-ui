@@ -2471,7 +2471,9 @@ var pdfModal = document.getElementById("pdf-modal"),
     shelfAddPdfBtn = document.getElementById("shelfAddPdfBtn");
 
 var selectedFile = null,
-    selectedColor = "ruby";
+    selectedColor = "ruby"; // Renk sabit kirmizi - degistirilemez
+
+var pdfShelfSelect = document.getElementById("pdfShelfSelect");
 
 var COLOR_PALETTES = {
   ruby: { start: "#7a1620", end: "#400a11" },
@@ -2518,17 +2520,8 @@ function updateLivePreview(title, colorKey){
   if(liveCoverPreview) liveCoverPreview.style.background = "linear-gradient(135deg, " + pal.start + " 0%, " + pal.end + " 100%)";
 }
 
-// 11.4. Renk Seçimi
-if(pdfColorPicker){
-  pdfColorPicker.addEventListener("click", function(e){
-    var dot = e.target.closest(".color-dot");
-    if(!dot) return;
-    pdfColorPicker.querySelectorAll(".color-dot").forEach(function(d){ d.classList.remove("active"); });
-    dot.classList.add("active");
-    selectedColor = dot.getAttribute("data-color") || "ruby";
-    updateLivePreview(pdfBookTitleInput.value, selectedColor);
-  });
-}
+// 11.4. Renk Secımı – Renk devre dışı (sadece ruby/kirmizi kullanılır)
+// pdfColorPicker olayları artık dinlenmiyor; renk daima ruby.
 
 // 11.5. Başlık Canlı Girişi
 if(pdfBookTitleInput){
@@ -2727,11 +2720,14 @@ if(pdfSubmitBtn){
       if(pdfProgressPercent) pdfProgressPercent.textContent = "100%";
       if(pdfProgressText) pdfProgressText.textContent = "Kitap kaydediliyor...";
 
+      var shelfId = (pdfShelfSelect ? pdfShelfSelect.value : "ch4") || "ch4";
+
       var newBook = {
         id: "b_" + Date.now() + "_" + Math.floor(Math.random()*1000),
         title: title,
         desc: desc || "Hazine-i Evrak · Özel PDF Eseri",
-        color: selectedColor || "ruby",
+        color: "ruby",
+        shelfId: shelfId,
         pages: pages,
         pageCount: pages.length,
         createdAt: Date.now()
@@ -2750,8 +2746,8 @@ if(pdfSubmitBtn){
 
       setTimeout(function(){
         closePdfModal();
-        var ch4 = document.getElementById("ch4");
-        if(ch4) ch4.scrollIntoView({ behavior: "smooth" });
+        var targetSection = document.getElementById(shelfId) || document.getElementById("ch4");
+        if(targetSection) targetSection.scrollIntoView({ behavior: "smooth" });
       }, 550);
 
     }catch(err){
@@ -2821,12 +2817,61 @@ function renderPdfCustomGrid(){
   });
 }
 
-function renderAddedShelf(){
-  var stage4 = document.getElementById("stage4") || (document.getElementById("ch4") ? document.getElementById("ch4").querySelector(".chapter-stage") : null);
+// Raf sayı sayacını güncelle
+function updateShelfCounts(){
+  var counts = { ch1:0, ch2:0, ch3:0, ch4:0 };
+  customBooks.forEach(function(b){ var sid = b.shelfId || "ch4"; if(counts[sid] !== undefined) counts[sid]++; else counts.ch4++; });
+  ["ch1","ch2","ch3","ch4"].forEach(function(id){
+    var el = document.getElementById(id+"Count");
+    if(el) el.textContent = counts[id] + " eser";
+  });
+}
+
+// Tüm rafları render et (ch1-ch4)
+function renderShelvesAll(){
+  var shelfIds = ["ch1","ch2","ch3","ch4"];
+  shelfIds.forEach(function(sid){
+    var shelfEl = document.getElementById("shelf" + sid.replace("ch",""));
+    if(!shelfEl) return;
+    shelfEl.innerHTML = "";
+    var booksForShelf = customBooks.filter(function(b){ return (b.shelfId || "ch4") === sid; });
+    booksForShelf.forEach(function(bk){
+      var div = document.createElement("div");
+      div.className = "book";
+      div.setAttribute("data-title", bk.title);
+      div.setAttribute("data-desc", bk.desc || "");
+      div.setAttribute("data-book-id", bk.id);
+      div.innerHTML = [
+        "<div class='cover'>",
+        "<span class='spine-kulliyat'>Risale-i Nur</span>",
+        "<span class='spine-title'>" + escHTML(bk.title) + "</span>",
+        "<span class='spine-author'>PDF</span>",
+        "<div class='wave'><i></i><i></i><i></i><i></i></div>",
+        "</div>",
+        "<div class='glow'></div>"
+      ].join("");
+      // Kitaba tıklayarak okuyucu açılsın
+      div.addEventListener("click", function(){
+        var found = customBooks.find(function(cb){ return cb.id === bk.id; });
+        if(found) openTomeReader(found);
+      });
+      shelfEl.appendChild(div);
+    });
+  });
+  // Stage'leri yeniden başlat
+  [["ch1","stage1"],["ch2","stage2"],["ch3","stage3"]].forEach(function(pair){
+    var chEl = document.getElementById(pair[0]);
+    var stEl = document.getElementById(pair[1]);
+    if(chEl && stEl) init3DStage(stEl, chEl);
+  });
   var ch4 = document.getElementById("ch4");
-  if(stage4 && ch4){
-    init3DStage(stage4, ch4);
-  }
+  var stage4 = document.getElementById("stage4") || (ch4 ? ch4.querySelector(".chapter-stage") : null);
+  if(stage4 && ch4) init3DStage(stage4, ch4);
+  updateShelfCounts();
+}
+
+function renderAddedShelf(){
+  renderShelvesAll();
 }
 
 // 11.12. Buton Olay Dinleyicileri
