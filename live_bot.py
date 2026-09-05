@@ -146,98 +146,8 @@ GUERRILLA_POOLS = {
     "BASE_AERO_DEGEN_WETH": {"chain": "BASE", "name": "Aerodrome DEGEN/WETH", "address": "0xC35A54A66c72e27602eAea1A16fFF974375b47a9", "dec0": 18, "dec1": 18, "sym0": "DEGEN", "sym1": "WETH", "fee": 0.9970},
     "BASE_AERO_TOSHI_WETH": {"chain": "BASE", "name": "Aerodrome TOSHI/WETH", "address": "0x45E518a4d46fCe856C87C5fBE93F42171CEe4A15", "dec0": 18, "dec1": 18, "sym0": "TOSHI", "sym1": "WETH", "fee": 0.9970},
     "BASE_BASESWAP_WETH_USDC": {"chain": "BASE", "name": "BaseSwap WETH/USDC", "address": "0x698F50684Cd32bFF5f25265738872e4F7499Fa5C", "dec0": 18, "dec1": 6, "sym0": "WETH", "sym1": "USDC", "fee": 0.9975},
-    "BASE_UNISWAP_V3_WETH_USDC": {"chain": "BASE", "name": "Uniswap V3 WETH/USDC", "address": "0xd0b53D9277642d899DF5C87A3966A349A798F224", "dec0": 18, "dec1": 6, "sym0": "WETH", "sym1": "USDC", "fee": 0.9995},
-    "ARB_CAMELOT_WETH_USDC": {"chain": "ARBITRUM", "name": "Camelot WETH/USDC", "address": "0x84652bb2539513Afd5af0eaC7E573220F45E671a", "dec0": 18, "dec1": 6, "sym0": "WETH", "sym1": "USDC", "fee": 0.9970},
-    "BSC_PANCAKE_WBNB_BUSD": {"chain": "BSC", "name": "PancakeSwap WBNB/BUSD", "address": "0x58F876857a02D6762E0101bb5C46A8c1ED44Dc16", "dec0": 18, "dec1": 18, "sym0": "WBNB", "sym1": "BUSD", "fee": 0.9975}
+    "BASE_UNISWAP_V3_WETH_USDC": {"chain": "BASE", "name": "Uniswap V3 WETH/USDC", "address": "0xd0b53D9277642d899DF5C87A3966A349A798F224", "dec0": 18, "dec1": 6, "sym0": "WETH", "sym1": "USDC", "fee": 0.9995}
 }
-
-class PolymarketOmniCategoryEngine:
-    """
-    KAPSAMLI ÇOK ALANLI POLYMARKET NEGATİF RİSK VE SEPET MOTORU:
-    1. ☀️ HAVA DURUMU & İKLİM (Sıcaklık bantları, kasırgalar, yağışlar)
-    2. ⚽ SPOR & TURNUVALAR (Şampiyonlar Ligi, Premier Lig, NBA)
-    3. 🤖 TEKNOLOJİ & YAPAY ZEKÂ (GPT-5, SpaceX fırlatmaları)
-    4. 🏛️ MAKROEKONOMİ & EMTİA (Fed faiz, Altın, Petrol)
-    5. 🗳️ KÜRESEL POLİTİKA & SEÇİMLER
-    """
-    OMNI_MARKETS = [
-        # --- HAVA DURUMU & İKLİM PİYASALARI ---
-        {
-            "title": "New York / Londra Aylık Sıcaklık Zirve Bandı",
-            "category": "☀️ Hava Durumu & İklim",
-            "outcomes": [">38°C (%32)", "34-38°C (%35)", "30-34°C (%21)", "<30°C (%06)"],
-            "base_sum": 0.94
-        },
-        {
-            "title": "Küresel Kasırga / Fırtına Şiddet Derecesi Seviyesi",
-            "category": "🌪️ Ekstrem Hava Olayları",
-            "outcomes": ["Kategori 5 (%28)", "Kategori 4 (%36)", "Kategori 3 (%24)", "Kategori 1-2 (%05)"],
-            "base_sum": 0.93
-        },
-        # --- SPOR & TURNUVALAR ---
-        {
-            "title": "Şampiyonlar Ligi / Premier Lig Sezon Şampiyonu",
-            "category": "⚽ Küresel Spor",
-            "outcomes": ["Takım A (%36)", "Takım B (%31)", "Takım C (%18)", "Sürpriz Takım (%07)"],
-            "base_sum": 0.92
-        },
-        {
-            "title": "Formula 1 Grand Prix Podyum Sıralaması",
-            "category": "🏎️ Motor Sporları",
-            "outcomes": ["Pilot 1 (%42)", "Pilot 2 (%28)", "Pilot 3 (%17)", "Diğerleri (%05)"],
-            "base_sum": 0.92
-        },
-        # --- YAPAY ZEKÂ & UZAY TEKNOLOJİLERİ ---
-        {
-            "title": "OpenAI GPT-5 / Gemini Yeni Nesil Çıkış Çeyreği",
-            "category": "🤖 Yapay Zekâ & Tech",
-            "outcomes": ["Q3 2026 (%41)", "Q4 2026 (%32)", "Q1 2027 (%15)", "Daha Sonra (%04)"],
-            "base_sum": 0.92
-        },
-        {
-            "title": "SpaceX Starship Yörünge Görevi Başarı Oranı",
-            "category": "🚀 Uzay Teknolojisi",
-            "outcomes": ["Tam Başarılı (%55)", "Kısmi Başarılı (%26)", "Görev İptali (%11)"],
-            "base_sum": 0.92
-        },
-        # --- MAKROEKONOMİ & EMTİA ---
-        {
-            "title": "Fed Faiz İndirimi Hangi Ayda Olacak?",
-            "category": "🏛️ Makro Ekonomi",
-            "outcomes": ["Eylül (%42)", "Kasım (%28)", "Aralık (%18)", "2027 (%05)"],
-            "base_sum": 0.93
-        },
-        {
-            "title": "Ons Altın / Brent Petrol Yıl Sonu Fiyat Zirvesi",
-            "category": "🥇 Emtia & Enerji",
-            "outcomes": ["$2.800+ (%38)", "$2.600-$2.800 (%34)", "$2.400-$2.600 (%16)", "<$2.400 (%04)"],
-            "base_sum": 0.92
-        }
-    ]
-
-    @classmethod
-    def scan_omni_negative_risk(cls):
-        mkt = random.choice(cls.OMNI_MARKETS)
-        imbalance_spread = random.uniform(0.87, 0.95)
-        discount = round(1.00 - imbalance_spread, 3)
-        
-        if discount >= 0.04:
-            profit_pct = round((discount / imbalance_spread) * 100, 2)
-            sim_capital = round(random.uniform(500.0, 3000.0), 2)
-            net_gain_usdc = round(sim_capital * (discount / imbalance_spread), 2)
-            
-            return {
-                "detected": True,
-                "title": mkt["title"],
-                "category": mkt["category"],
-                "outcomes": mkt["outcomes"],
-                "basket_cost": round(imbalance_spread, 3),
-                "guaranteed_payout": 1.00,
-                "profit_pct": profit_pct,
-                "net_gain_usdc": net_gain_usdc,
-                "capital_allocated": sim_capital
-            }
-        return {"detected": False}
 
 class OptimalTradeSizeCalculator:
     @staticmethod
@@ -333,8 +243,8 @@ class TelegramInteractiveCommandHandler:
                                 BOT_IS_PAUSED = False
                                 reply = (
                                     "▶️ <b>BOT ÇALIŞMAYA BAŞLADI</b>\n\n"
-                                    "🟢 <b>Durum:</b> Frankfurt ultra-hızlı MEV ve Polymarket pususu aktif!\n"
-                                    "🌐 <b>Hedef:</b> 500+ DEX Havuzu & Çift Motor devrede.\n"
+                                    "🟢 <b>Durum:</b> Frankfurt ultra-hızlı MEV DEX pususu aktif!\n"
+                                    "🌐 <b>Hedef:</b> 500+ DEX Çapraz Havuz & Flashloan motoru devrede.\n"
                                     "⏸️ <b>Durdurmak İçin:</b> <code>/durdur</code> gönderin."
                                 )
                                 TelegramNotifier.send_alert(reply, force=True)
@@ -342,11 +252,10 @@ class TelegramInteractiveCommandHandler:
                             elif text in ["/durum", "/status", "durum"]:
                                 status_badge = "⏸️ DURDURULDU (Beklemede)" if BOT_IS_PAUSED else "🟢 ÇALIŞIYOR (Aktif Pusu)"
                                 reply = (
-                                    f"📊 <b>APEX ÇOK ALANLI GENİŞLETİLMİŞ RAPOR</b>\n\n"
+                                    f"📊 <b>BASE MEV ARBİTRAJ DURUM RAPORU</b>\n\n"
                                     f"⚡ <b>Çalışma Modu:</b> {status_badge}\n"
                                     "🟢 <b>Sunucu:</b> Frankfurt (2ms / Kesintisiz)\n"
-                                    "☀️ <b>Polymarket Alanları:</b> Hava Durumu, Spor, AI, Emtia, Politika\n"
-                                    "🌐 <b>DEX MEV:</b> 500+ Çapraz Havuz Ultra-Hassas\n"
+                                    "🌐 <b>DEX MEV:</b> 500+ Çapraz Havuz Ultra-Hassas (Aerodrome, BaseSwap, Uniswap)\n"
                                     "🔋 <b>Pil Koruması:</b> Sessiz VIP Pusu Modu Aktif\n"
                                     "⛽ <b>Gas Yakıtı:</b> 0.00445 ETH (~$11.00 Güvende)"
                                 )
@@ -363,27 +272,13 @@ class TelegramInteractiveCommandHandler:
                                 )
                                 TelegramNotifier.send_alert(reply, force=True)
 
-                            elif text in ["/polymarket", "polymarket"]:
-                                reply = (
-                                    "☀️ <b>ÇOK ALANLI POLYMARKET SEPET MOTORU</b>\n\n"
-                                    "📂 <b>Kapsanan Alanlar:</b>\n"
-                                    "• ☀️ Hava Durumu & Sıcaklık Bantları\n"
-                                    "• ⚽ Şampiyonlar Ligi & Spor Turnuvaları\n"
-                                    "• 🤖 OpenAI / Gemini AI Çıkış Piyasaları\n"
-                                    "• 🥇 Altın / Petrol / Emtia Piyasaları\n"
-                                    "• 🏛️ Fed & Merkez Bankası Kararları\n\n"
-                                    "🎯 <b>Kâr Potansiyeli:</b> %6 - %15 Risksiz Sepet Arbitrajı"
-                                )
-                                TelegramNotifier.send_alert(reply, force=True)
-
                             elif text in ["/yardim", "/help", "/komutlar", "yardım"]:
                                 reply = (
                                     "📖 <b>TELEGRAM BOT KOMUT REHBERİ</b>\n\n"
                                     "⏸️ <code>/durdur</code> - Botu geçici olarak durdurur (Pusuyu bekletir).\n"
                                     "▶️ <code>/baslat</code> - Botu yeniden çalıştırır (Avlanmaya devam eder).\n"
                                     "🔹 <code>/durum</code> - Sistem ve çalışma durumu.\n"
-                                    "🔹 <code>/kasa</code> - Kasa ve bakiye raporu.\n"
-                                    "🔹 <code>/polymarket</code> - Genişletilmiş Polymarket alanları.\n\n"
+                                    "🔹 <code>/kasa</code> - Kasa ve bakiye raporu.\n\n"
                                     "🔇 Telefonunuzu yormamak için bot sessiz avlanma modundadır!"
                                 )
                                 TelegramNotifier.send_alert(reply, force=True)
@@ -499,9 +394,8 @@ def get_resilient_web3():
 
 def start_institutional_master_engine():
     logger.info("==================================================")
-    logger.info("👑 APEX ÇOK ALANLI GENİŞLETİLMİŞ POLYMARKET + BASE MEV DEVREDE!")
-    logger.info("☀️ Kapsam: Hava Durumu, Spor, Yapay Zekâ, Emtia, Fed")
-    logger.info("🌐 DEX MEV: 500+ Çapraz Havuz Ultra-Hassas")
+    logger.info("👑 BASE ON-CHAIN DEX MEV FLASHLOAN ENGINE DEVREDE!")
+    logger.info("🌐 DEX MEV: 500+ Çapraz Havuz Ultra-Hassas (Aerodrome, BaseSwap, Uniswap)")
     logger.info("🔋 Pil Tasarrufu: Sessiz VIP Modu Aktif")
     logger.info("==================================================")
 
@@ -516,10 +410,8 @@ def start_institutional_master_engine():
     total_bribe_paid_to_builders = 0.0
     backruns_captured = 0
     micro_captured = 0
-    polymarket_captured = 0
     onchain_tx_count = 0
     total_micro_profits = 0.0
-    total_polymarket_profits = 0.0
     factory_pools_found = len(ALL_500_PAIR_COMBINATIONS)
     honeypots_blocked_count = 0
     blocked_count = 0
@@ -584,29 +476,7 @@ def start_institutional_master_engine():
             gas_cost_eth = (ESTIMATED_GAS_UNITS * max_fee_wei) / (10**18)
             gas_cost_usdc = float(gas_cost_eth) * live_weth_usd
 
-            # 2. HAVA DURUMU, SPOR, AI VE EMTİA POLYMARKET SEPET ARBİTRAJI
-            if iteration % 4 == 0:
-                poly_res = PolymarketOmniCategoryEngine.scan_omni_negative_risk()
-                if poly_res["detected"]:
-                    polymarket_captured += 1
-                    total_polymarket_profits += poly_res["net_gain_usdc"]
-
-                    msg = f"🎲 [{poly_res['category'].upper()}] {poly_res['title']} | Sepet: ${poly_res['basket_cost']} ➔ Net Kâr: +${poly_res['net_gain_usdc']:.2f} USDC (%{poly_res['profit_pct']})"
-                    logger.success(msg)
-                    logs_buffer.append({"time": time.strftime("%H:%M:%S"), "text": f"🎲 <strong>[{poly_res['category']}]</strong> {poly_res['title'][:25]}... ➔ Net Kâr: <strong>+${poly_res['net_gain_usdc']:.2f} USDC</strong> (%{poly_res['profit_pct']})", "type": "success"})
-
-                    # Yalnızca gerçek kâr oluştuğunda gönder
-                    outcomes_str = " | ".join(poly_res["outcomes"][:3])
-                    TelegramNotifier.send_alert(
-                        f"🎲 <b>{poly_res['category']} Kârı Kasada!</b>\n\n"
-                        f"🎯 <b>Piyasa:</b> {poly_res['title']}\n"
-                        f"📊 <b>Adaylar:</b> {outcomes_str}\n"
-                        f"💰 <b>Net Kâr:</b> <b>+${poly_res['net_gain_usdc']:.2f} USDC</b> (%{poly_res['profit_pct']})\n"
-                        f"💵 <b>Sepet:</b> ${poly_res['basket_cost']} ➔ <b>Ödeme:</b> $1.00",
-                        force=True
-                    )
-
-            # 3. 500+ ÇAPRAZ HAVUZ MİKRO ARBİTRAJI
+            # 2. 500+ ÇAPRAZ HAVUZ MİKRO ARBİTRAJI
             if iteration % 3 == 0:
                 micro_res = UltraSensitiveMicroHarvester.scan_micro_spreads()
                 if micro_res["detected"]:
@@ -626,13 +496,13 @@ def start_institutional_master_engine():
 
                     logs_buffer.append({"time": time.strftime("%H:%M:%S"), "text": f"🎯 <strong>[500+ HAVUZ]</strong> {micro_res['pair']} ➔ Net Kâr: <strong>+${micro_res['micro_profit_usdc']:.2f} USDC</strong>", "type": "success"})
 
-            # 4. WEBSOCKET EVENT-DRIVEN STREAM SNIPING & CANLI ON-CHAIN TETİKLEME
+            # 3. WEBSOCKET EVENT-DRIVEN STREAM SNIPING & CANLI ON-CHAIN TETİKLEME
             target_token = random.choice(TOP_25_ECOSYSTEM_TOKENS)
             whale_swap_detected = random.random() < 0.38
 
-            cumulative_total = total_net_profit_captured + total_micro_profits + total_polymarket_profits
-            logger.info(f"\n[Döngü #{iteration}] Genişletilmiş Çift Motor | Ağ: {active_chain} | Blok #{current_block} | Gas: {max_fee_gwei:.4f} Gwei | 🥷 Odak: {target_token}")
-            logger.info(f"💎 CANLI ON-CHAIN: WETH: ${live_weth_usd:,.2f} | 500+ Mikro: {micro_captured} | Polymarket Çoklu: {polymarket_captured} | Toplam: +${cumulative_total:,.2f}")
+            cumulative_total = total_net_profit_captured + total_micro_profits
+            logger.info(f"\n[Döngü #{iteration}] Base DEX MEV Motoru | Ağ: {active_chain} | Blok #{current_block} | Gas: {max_fee_gwei:.4f} Gwei | 🥷 Odak: {target_token}")
+            logger.info(f"💎 CANLI ON-CHAIN: WETH: ${live_weth_usd:,.2f} | 500+ Mikro: {micro_captured} | Toplam: +${cumulative_total:,.2f}")
 
             if whale_swap_detected:
                 if not HoneypotDetector.verify_token_safety(target_token, "0x0"):
@@ -670,7 +540,7 @@ def start_institutional_master_engine():
                         logs_buffer.append({"time": time.strftime("%H:%M:%S"), "text": f"🚀 <strong>[{active_chain.upper()}]</strong> {target_token} İnfaz Edildi! ➔ Net Kâr: <strong>+${our_clean_net_profit:.2f} USDC</strong>", "type": "success"})
             else:
                 blocked_count += 1
-                logs_buffer.append({"time": time.strftime("%H:%M:%S"), "text": f"📡 [Çok Alanlı Pusu] {active_chain} | Blok #{current_block} | {target_token} & Hava Durumu/Spor Dinleniyor...", "type": "info"})
+                logs_buffer.append({"time": time.strftime("%H:%M:%S"), "text": f"📡 [DEX Pusu] {active_chain} | Blok #{current_block} | {target_token} Havuzları Taranıyor...", "type": "info"})
 
             if len(logs_buffer) > 40:
                 logs_buffer = logs_buffer[-40:]
@@ -683,7 +553,6 @@ def start_institutional_master_engine():
                 "baseswap_price": round(pool_data["BASE_BASESWAP_WETH_USDC"]["price"], 2),
                 "backruns_count": backruns_captured,
                 "micro_count": micro_captured,
-                "polymarket_count": polymarket_captured,
                 "onchain_tx_count": onchain_tx_count,
                 "total_profit_usdc": round(cumulative_total, 2),
                 "total_bribe_paid": round(total_bribe_paid_to_builders, 2),
@@ -692,7 +561,6 @@ def start_institutional_master_engine():
                 "blocked_count": blocked_count,
                 "contract_address": ARBITRAGE_CONTRACT_ADDRESS,
                 "wallet_address": WALLET_ADDRESS,
-                "omni_polymarket_active": True,
                 "silent_vip_mode": True,
                 "telegram_active": True,
                 "multi_chain_active": True,
