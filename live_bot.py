@@ -290,12 +290,15 @@ class TelegramNotifier:
         except Exception:
             pass
 
+BOT_IS_PAUSED = False
+
 class TelegramInteractiveCommandHandler:
     _last_update_id = 0
 
     @classmethod
     def start_polling(cls):
         def poll_loop():
+            global BOT_IS_PAUSED
             while True:
                 try:
                     if not TELEGRAM_BOT_TOKEN:
@@ -316,9 +319,31 @@ class TelegramInteractiveCommandHandler:
                             if chat_id != TELEGRAM_CHAT_ID:
                                 continue
 
-                            if text in ["/durum", "/status", "durum"]:
+                            if text in ["/durdur", "/pause", "/stop", "durdur", "dur"]:
+                                BOT_IS_PAUSED = True
                                 reply = (
-                                    "📊 <b>APEX ÇOK ALANLI GENİŞLETİLMİŞ RAPOR</b>\n\n"
+                                    "⏸️ <b>BOT GEÇİCİ OLARAK DURDURULDU</b>\n\n"
+                                    "🛑 <b>Durum:</b> Pusu ve tarama duraklatıldı.\n"
+                                    "🛡️ <b>Güvenlik:</b> Sıfır işlem, Gas ve bakiye harcaması yapılmaz.\n"
+                                    "▶️ <b>Tekrar Başlatmak İçin:</b> <code>/baslat</code> gönderin."
+                                )
+                                TelegramNotifier.send_alert(reply, force=True)
+
+                            elif text in ["/baslat", "/start", "/resume", "/devam", "baslat", "başlat"]:
+                                BOT_IS_PAUSED = False
+                                reply = (
+                                    "▶️ <b>BOT ÇALIŞMAYA BAŞLADI</b>\n\n"
+                                    "🟢 <b>Durum:</b> Frankfurt ultra-hızlı MEV ve Polymarket pususu aktif!\n"
+                                    "🌐 <b>Hedef:</b> 500+ DEX Havuzu & Çift Motor devrede.\n"
+                                    "⏸️ <b>Durdurmak İçin:</b> <code>/durdur</code> gönderin."
+                                )
+                                TelegramNotifier.send_alert(reply, force=True)
+
+                            elif text in ["/durum", "/status", "durum"]:
+                                status_badge = "⏸️ DURDURULDU (Beklemede)" if BOT_IS_PAUSED else "🟢 ÇALIŞIYOR (Aktif Pusu)"
+                                reply = (
+                                    f"📊 <b>APEX ÇOK ALANLI GENİŞLETİLMİŞ RAPOR</b>\n\n"
+                                    f"⚡ <b>Çalışma Modu:</b> {status_badge}\n"
                                     "🟢 <b>Sunucu:</b> Frankfurt (2ms / Kesintisiz)\n"
                                     "☀️ <b>Polymarket Alanları:</b> Hava Durumu, Spor, AI, Emtia, Politika\n"
                                     "🌐 <b>DEX MEV:</b> 500+ Çapraz Havuz Ultra-Hassas\n"
@@ -354,9 +379,11 @@ class TelegramInteractiveCommandHandler:
                             elif text in ["/yardim", "/help", "/komutlar", "yardım"]:
                                 reply = (
                                     "📖 <b>TELEGRAM BOT KOMUT REHBERİ</b>\n\n"
-                                    "🔹 <code>/durum</code> - Sistem genel durumu.\n"
-                                    "🔹 <code>/polymarket</code> - Genişletilmiş Polymarket alanları.\n"
-                                    "🔹 <code>/kasa</code> - Kasa ve bakiye raporu.\n\n"
+                                    "⏸️ <code>/durdur</code> - Botu geçici olarak durdurur (Pusuyu bekletir).\n"
+                                    "▶️ <code>/baslat</code> - Botu yeniden çalıştırır (Avlanmaya devam eder).\n"
+                                    "🔹 <code>/durum</code> - Sistem ve çalışma durumu.\n"
+                                    "🔹 <code>/kasa</code> - Kasa ve bakiye raporu.\n"
+                                    "🔹 <code>/polymarket</code> - Genişletilmiş Polymarket alanları.\n\n"
                                     "🔇 Telefonunuzu yormamak için bot sessiz avlanma modundadır!"
                                 )
                                 TelegramNotifier.send_alert(reply, force=True)
@@ -501,6 +528,10 @@ def start_institutional_master_engine():
 
     while True:
         try:
+            if BOT_IS_PAUSED:
+                time.sleep(1.5)
+                continue
+
             current_block = w3.eth.block_number
             if current_block == last_block:
                 time.sleep(0.35)
