@@ -1224,199 +1224,777 @@ if(window.pdfjsLib){
   try{ window.pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"; }catch(e){}
 }
 
+function normalizeBookTitle(title){
+  if(!title) return "";
+  var t = String(title).trim();
+  var low = t.toLowerCase()
+    .replace(/['’`\-]/g, "")
+    .replace(/ı/g, "i")
+    .replace(/ğ/g, "g")
+    .replace(/ü/g, "u")
+    .replace(/ş/g, "s")
+    .replace(/ö/g, "o")
+    .replace(/ç/g, "c")
+    .replace(/â/g, "a")
+    .replace(/î/g, "i")
+    .replace(/û/g, "u");
+
+  if(low.includes("soz")) return "Sözler";
+  if(low.includes("sua")) return "Şualar";
+  if(low.includes("mektub")) return "Mektubat";
+  if(low.includes("lema")) return "Lem'alar";
+  if(low.includes("tarihce")) return "Tarihçe-i Hayat";
+  if(low.includes("barla")) return "Barla Lâhikası";
+  if(low.includes("kastamonu")) return "Kastamonu Lâhikası";
+  if(low.includes("emirdag")) return "Emirdağ Lâhikası";
+  if(low.includes("asa") || low.includes("musa")) return "Asâ-yı Mûsâ";
+  if(low.includes("sikke") || low.includes("tasdik")) return "Sikke-i Tasdîk-i Gaybî";
+  if(low.includes("mesnevi")) return "Mesnevî-i Nuriye";
+  if(low.includes("isarat") || low.includes("icaz")) return "İşârâtü'l-İ'caz";
+  if(low.includes("muhakemat")) return "Muhakemat";
+  if(low.includes("iman") && low.includes("kufur")) return "İman ve Küfür Muvazeneleri";
+  return t;
+}
+
 var RISALE_TEXTS = {
-  "Şualar": [
-    {
-      kulliyat: "Risale-i Nur Külliyatı · Şualar",
-      chapter: "Yedinci Şua · Âyetü'l-Kübrâ",
-      title: "Kâinat Seyyahının Müşahedatı",
-      pageType: "mukaddime",
-      text: "Kâinattan Hâlıkını soran bir seyyahın müşahedatıdır.\n\nBu risale, imanın mertebelerini ve kâinat kitabının âyetlerini tefsir eder. Her bir mevcud, birer lisan-ı hal ile Cenâb-ı Hakk'ın vahdaniyetine ve sıfât-ı celâliyesine şehadet etmektedir.\n\nO mütefekkir seyyah, aklına der: 'Gel, bu muazzam saray-ı kâinatı temaşa edelim. Bakalım sakinleri ne diyorlar ve ustaları hakkında ne gibi şehadette bulunuyorlar?' Evvela semavat âlemine bakar."
-    },
-    {
-      kulliyat: "Risale-i Nur Külliyatı · Şualar",
-      chapter: "Yedinci Şua · Birinci Mertebe",
-      title: "Semavat Âlemi ve Yıldızlar Ordusu",
-      pageType: "metin",
-      text: "Seyyah der: 'Gözümüzü açtıkça görüyoruz ki; bu semâ âlemi hadsiz yıldızlarıyla bir meşher-i azamet ve bir ordugâh-ı sübhaniyedir.'\n\nO hadsiz ecram-ı semaviye, direksiz durdurulmuş, birbirine çarpmadan intizam-ı kâmil ile hareket ettiriliyor. Güneş bir lamba, ay bir kandil, yıldızlar birer ziynet ve tezyinat olarak zemin yüzündeki misafirlere hizmetkâr kılınmış.\n\nHer bir yıldız lisan-ı haliyle der: 'Bizi böyle nizam içinde gezdiren ve sönmeyen kandiller yapan Zât, Kadîr-i Zülcelâl'dir.'"
-    },
-    {
-      kulliyat: "Risale-i Nur Külliyatı · Şualar",
-      chapter: "Dördüncü Şua",
-      title: "Âyet-i Hasbiye Mertebesi",
-      pageType: "metin",
-      text: "Bana 'Hasbünallahu ve ni'mel vekîl' âyetinin sırrı inkişaf etti.\n\nGurbette, kimsesizlik ve tecrit içinde bulunduğum bir zamanda, kalbime geldi ki: 'Bu fani dünyada her şey zevale mahkûmdur. İnsan kimden medet ummalı?' Birden bu âyet-i kerime bir nur gibi parladı.\n\nAnladım ki: Her şeyin dizgini O'nun elindedir. O dilerse ateş gül bahçesi olur, zindan medreseye inkılap eder. O varsa, her şey vardır; O yoksa, hiçbir şey yoktur."
-    },
-    {
-      kulliyat: "Risale-i Nur Külliyatı · Şualar",
-      chapter: "On Üçüncü Şua",
-      title: "Medrese-i Yusufiye Mektupları",
-      pageType: "metin",
-      text: "Aziz, sıddık kardeşlerim!\n\nZindanları birer Medrese-i Yusufiye haline getirmek ve en karanlık musibetleri imanın nuruyla aydınlatmak, Risale-i Nur'un en birinci vazifesidir.\n\nBizler kader-i İlâhînin sevkiyle buradayız. İhlasımızı muhafaza ettikçe, zahiren aleyhimizde görünen her hadise, hakikatte lehimize neticeler verecektir. Ye'se düşmeyiniz, uhuvveti muhafaza ediniz."
-    }
-  ],
   "Sözler": [
     {
       kulliyat: "Risale-i Nur Külliyatı · Sözler",
       chapter: "Birinci Söz",
       title: "Bismillah Her Hayrın Başıdır",
       pageType: "mukaddime",
-      text: "Bismillah her hayrın başıdır. Biz dahi başta ona başlarız.\n\nBil ey nefsim! Şu mübarek kelime İslâm nişanı olduğu gibi, bütün mevcudatın lisan-ı haliyle vird-i zebânıdır. Bismillah ne büyük tükenmez bir kuvvet, ne çok bitmez bir bereket olduğunu anlamak istersen, şu temsilî hikâyeciğe bak, dinle:\n\nEski zaman sahrâ-yı Arabında seyahat eden adama gerektir ki, bir kabile reisinin ismini alsın ve himayesine girsin; tâ şakîlerin şerrinden kurtulsun."
+      arabicVerse: "بِسْمِ اللَّهِ الرَّحْمٰنِ الرَّحِيمِ ۞ وَبِهِ نَسْتَعِينُ",
+      text: "Bismillâh her hayrın başıdır. Biz dahi başta ona başlarız. Bil ey nefsim! Şu mübârek kelime İslâm nişanı olduğu gibi, bütün mevcudatın lisan-ı haliyle vird-i zebânıdır.\n\nBismillah ne büyük tükenmez bir kuvvet, ne çok bitmez bir bereket olduğunu anlamak istersen, şu temsilî hikâyeciğe bak, dinle:\n\nEski zaman sahrâ-yı Arabında seyahat eden adama gerektir ki, bir kabile reisinin ismini alsın ve himayesine girsin; tâ şakîlerin şerrinden kurtulup hâcâtını tedarik edebilsin. Yoksa tek başıyla hadsiz düşman ve ihtiyâcâtına karşı perişan olacaktır."
     },
     {
       kulliyat: "Risale-i Nur Külliyatı · Sözler",
       chapter: "Birinci Söz",
-      title: "Dünya Sahrasında İnsan",
+      title: "Kâinat Ordusunun Sultanı",
       pageType: "metin",
-      text: "İşte ey mağrur nefsim! Sen o seyyahsın. Şu dünya ise bir sahradır.\n\nAczin ve fakrın hadsizdir; düşmanın, hacatın nihayetsizdir. Madem öyledir; şu sahranın Mâlik-i Ebedîsi ve Hâkim-i Ezelîsinin ismini al. Bütün kâinatın dilenciliğinden ve her hadisenin karşısında titremekten kurtul.\n\nEvet, bu kelime öyle mübarek bir definedir ki; senin nihayetsiz aczini ve fakrını, nihayetsiz bir kudret ve rahmete rapteder."
+      arabicVerse: "قُلْ مَنْ يَرْزُقُكُمْ مِنَ السَّمَاءِ وَالْأَرْضِ أَمَّنْ يَمْلِكُ السَّمْعَ وَالْأَبْصَارَ",
+      text: "İşte ey mağrur nefsim! Sen o seyyahsın. Şu dünya ise bir sahradır. Aczin ve fakrın hadsizdir. Düşmanın, hâcâtın nihayetsizdir. Mâdem öyledir; şu sahranın Mâlik-i Ebedîsi ve Hâkim-i Ezelîsinin ismini al; bütün kâinatın dilenciliğinden ve her hâdisenin karşısında titremekten kurtul.\n\nEvet, bu kelime öyle mübârek bir definedir ki; senin nihayetsiz aczini ve fakrını, nihayetsiz bir kudret ve rahmete rabtedip Kâdir-i Rahîm'in dergâhında aczi, fakrı en makbul bir şefaatçi yapar.\n\nHer bir ağaç, 'Bismillâh' der; rahmet hazinesinin meyvelerini ellerimize verir. Her bir bostan 'Bismillâh' der, bir kazan hükmünde çeşit çeşit leziz etli taamları pişirir."
     },
     {
       kulliyat: "Risale-i Nur Külliyatı · Sözler",
       chapter: "Yirmi Üçüncü Söz",
-      title: "İmanın İnsana Kazandırdığı Nur",
+      title: "İmanın İnsana Kazandırdığı Ulvî Makam",
       pageType: "metin",
-      text: "İman hem nurdur, hem kuvvettir.\n\nEvet, hakikî imanı elde eden adam, kâinata meydan okuyabilir ve imanın kuvvetine göre hadisatın tazyikatından kurtulabilir. 'Tevekkeltü alâllah' der, sefine-i hayatta kemâl-i emniyetle hâdisatın dağlarvâri dalgaları içinde seyrân eder.\n\nİman insanı insan eder, belki insanı sultan eder. Öyle ise, insanın vazife-i asliyesi imandır ve duadır."
+      arabicVerse: "الَّذِينَ آمَنُوا وَتَطْمَئِنُّ قُلُوبُهُمْ بِذِكْرِ اللَّهِ أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ",
+      text: "İman hem nûrdur, hem kuvvettir. Evet, hakikî imanı elde eden adam, kâinata meydan okuyabilir ve imanın kuvvetine göre hâdisâtın tazyîkātından kurtulabilir.\n\n'Tevekkeltü alâllah' der, sefîne-i hayatta kemâl-i emniyetle hâdisâtın dağlarvâri dalgaları içinde seyrân eder. Bütün ağırlıklarını Kadîr-i Mutlak'ın yed-i kudretine emanet eder, rahatla dünyadan geçer, berzahta istirahat eder, sonra saadet-i ebediyeye girmek için Cennet'e uçabilir.\n\nİman insanı insan eder, belki insanı sultan eder. Öyle ise, insanın vazife-i asliyesi; imandır ve duadır. Küfür ise insanı gâyet âciz bir canavar hükmüne indirir."
     },
     {
       kulliyat: "Risale-i Nur Külliyatı · Sözler",
       chapter: "On Birinci Söz",
-      title: "Kâinat Sarayı ve İnsan Aynası",
+      title: "Kâinat Sarayı ve İnsan Âyinedarlığı",
       pageType: "metin",
-      text: "Şu kâinatın Hâlıkı, nihayetsiz cemâl ve kemâlini göstermek için şu âlemi bir saray suretinde inşa etmiştir.\n\nHer bir taifeye bir sofra sermiş, her bir varlığı birer antika sanat eseri suretinde tezyin etmiştir. İnsanı ise, o esmâ-i hüsnânın tamamına ayna olabilecek en câmi bir fıtratta yaratmıştır.\n\nİnsanın vazifesi; tefekkür ile bakmak, şükür ile mukabele etmek ve ubudiyet ile secdeye kapanmaktır."
+      arabicVerse: "وَإِنْ مِنْ شَيْءٍ إِلَّا يُسَبِّحُ بِحَمْدِهِ وَلٰكِنْ لَا تَفْقَهُونَ تَسْبِيحَهُمْ",
+      text: "Şu muazzam kâinatın Hâlık-ı Hakîm'i, nihayetsiz cemâl ve kemâlini izhar etmek için bu âlemi muhteşem bir saray sûretinde bina etmiştir.\n\nHer bir taifeye ayrı bir tefekkür sofrası sermiş, her bir varlığı birer bedîa-i sanat sûretinde tezyin etmiştir. İnsanı ise, o esmâ-i hüsnânın tamamını tartacak ve anlayacak mizanlarla donatmıştır.\n\nİnsanın bu saraydaki vazifesi; hayret ile tefekkür etmek, muhabbet ile şükretmek ve ubudiyetle Cenâb-ı Hakk'ın huzurunda rükû ve sücûda varmaktır."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Sözler",
+      chapter: "Yirmi İkinci Söz",
+      title: "Tevhidin Âşikâr Burhanları",
+      pageType: "metin",
+      arabicVerse: "لَا إِلٰهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ ۞ لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَىٰ كُلِّ شَيْءٍ قَدِيرٌ",
+      text: "Tevhid ve vahdette cemâl-i İlâhî ve kemâl-i Rabbânî tecellî eder. Eğer her şey Bir'e verilmezse, her bir zerre kadar şey dahi hadsiz müşkilât içine düşer.\n\nNasıl ki bir kumandanın idaresindeki muazzam bir ordu, tek bir merkezden gayet suhulet ve intizamla sevk edilir; öyle de bu zemin ve semavat ordusu, ancak ve ancak Vâhid-i Ehad olan Zât-ı Zülcelâl'in emriyle zerre kadar karışıklık olmadan idare olunur.\n\nBütün eşya tek bir Zât'a verildiği vakit, bütün kâinat bir tek ağaç gibi kolay yaratılır ve sevk edilir."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Sözler",
+      chapter: "Otuz Üçüncü Söz · Pencereler",
+      title: "Mahlûkat Aynasında Esmâ Tecellîleri",
+      pageType: "metin",
+      arabicVerse: "سُبْحَانَكَ لَا عِلْمَ لَنَا إِلَّا مَا عَلَّمْتَنَا إِنَّكَ أَنْتَ الْعَلِيمُ الْحَكِيمُ",
+      text: "Şu âlem baştan başa esmâ-i hüsnânın nakışlarıyla süslenmiş bir meşher-i İlâhîdir.\n\nÇiçeklerde cemâl tecellî eder, rızıklarda rahmet parlar, hayat sahiplerinde muhyî ismi tezahür eder. Akıl gözünü açıp ibretle bakan her mü'min, her zerrede bir mühr-ü vahdaniyet müşahede eder.\n\nDualarımızın ve niyazlarımızın sonu daima hamd ve şükürdür. Kâinat kitabını hüsn-ü niyetle okuyan ruhlar, fâni dünyanın kederlerinden kurtulup ebedî vuslat nuruna ulaşırlar."
     }
   ],
+
+  "Şualar": [
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Şualar",
+      chapter: "Yedinci Şua · Âyetü'l-Kübrâ",
+      title: "Kâinat Seyyahının Müşahedatı",
+      pageType: "mukaddime",
+      arabicVerse: "فَانْظُرْ إِلَىٰ آثَارِ رَحْمَتِ اللَّهِ كَيْفَ يُحْيِي الْأَرْضَ بَعْدَ مَوْتِهَا إِنَّ ذَٰلِكَ لَمُحْيِي الْمَوْتَىٰ",
+      text: "Kâinattan Hâlıkını soran bir seyyahın müşahedatıdır. Bu risale, imanın mertebelerini ve kâinat kitabının âyetlerini tefsir eder.\n\nHer bir mevcud, birer lisan-ı hal ile Cenâb-ı Hakk'ın vahdaniyetine ve sıfât-ı celâliyesine şehadet etmektedir.\n\nO mütefekkir seyyah aklına der: 'Gel, bu muazzam saray-ı kâinatı temaşa edelim. Bakalım sakinleri ne diyorlar ve ustaları hakkında ne gibi şehadette bulunuyorlar?' Evvela semavat âlemine bakar."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Şualar",
+      chapter: "Yedinci Şua · Birinci Mertebe",
+      title: "Semavat Âlemi ve Yıldızlar Ordusu",
+      pageType: "metin",
+      arabicVerse: "تَبَارَكَ الَّذِي جَعَلَ فِي السَّمَاءِ بُرُوجًا وَجَعَلَ فِيهَا سِرَاجًا وَقَمَرًا مُنِيرًا",
+      text: "Seyyah der: Gözümüzü açtıkça görüyoruz ki; bu semâ âlemi hadsiz yıldızlarıyla bir meşher-i azamet ve bir ordugâh-ı sübhaniyedir.\n\nO hadsiz ecram-ı semaviye, direksiz durdurulmuş, birbirine çarpmadan intizam-ı kâmil ile hareket ettiriliyor. Güneş bir lamba, ay bir kandil, yıldızlar birer ziynet ve tezyinat olarak zemin yüzündeki misafirlere hizmetkâr kılınmış.\n\nHer bir yıldız lisan-ı haliyle der: 'Bizi böyle nizam içinde gezdiren ve sönmeyen kandiller yapan Zât, Kadîr-i Zülcelâl'dir.'"
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Şualar",
+      chapter: "Dördüncü Şua",
+      title: "Âyet-i Hasbiye Mertebesi",
+      pageType: "metin",
+      arabicVerse: "حَسْبُنَا اللَّهُ وَنِعْمَ الْوَكِيلُ ۞ نِعْمَ الْمَوْلَىٰ وَنِعْمَ النَّصِيرُ",
+      text: "Bana 'Hasbünallahu ve ni'mel vekîl' âyetinin sırrı inkişaf etti. Gurbette, kimsesizlik ve tecrit içinde bulunduğum bir zamanda kalbime geldi ki:\n\n'Bu fâni dünyada her şey zevale mahkûmdur. İnsan kimden medet ummalı?' Birden bu âyet-i kerime bir nur gibi parladı.\n\nAnladım ki: Her şeyin dizgini O'nun elindedir. O dilerse ateş gül bahçesi olur, zindan medreseye inkılap eder. O varsa, her şey vardır; O yoksa, hiçbir şey yoktur."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Şualar",
+      chapter: "On Üçüncü Şua",
+      title: "Medrese-i Yusufiye Mektupları",
+      pageType: "metin",
+      arabicVerse: "إِنَّ مَعَ الْعُسْرِ يُسْرًا ۞ فَإِذَا فَرَغْتَ فَانْصَبْ ۞ وَإِلَىٰ رَبِّكَ فَارْغَبْ",
+      text: "Aziz, sıddık kardeşlerim! Zindanları birer Medrese-i Yusufiye haline getirmek ve en karanlık musibetleri imanın nuruyla aydınlatmak, Risale-i Nur'un en birinci vazifesidir.\n\nBizler kader-i İlâhînin sevkiyle buradayız. İhlasımızı muhafaza ettikçe, zahiren aleyhimizde görünen her hadise, hakikatte lehimize neticeler verecektir.\n\nYe'se düşmeyiniz, uhuvveti muhafaza ediniz; nifak tohumlarını ihlas suyuyla boğunuz."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Şualar",
+      chapter: "On Dördüncü Şua",
+      title: "Afyon Müdafaanamesi ve Hakikatin Galebesi",
+      pageType: "metin",
+      arabicVerse: "يُرِيدُونَ أَنْ يُطْفِئُوا نُورَ اللَّهِ بِأَفْوَاهِهِمْ وَيَأْبَى اللَّهُ إِلَّا أَنْ يُتِمَّ نُورَهُ",
+      text: "Mahkeme reisine ve azalarına derim: Biz imanı kurtarmak davasındayız. Siyasetle, menfaatle, dünya meşgaleleriyle işimiz yoktur.\n\nRisale-i Nur talebelerinin tek gayesi, şu memleket evlatlarının ebedî hayatını kurtarmak ve Kur'ân-ı Azîmüşşân'ın bu asra bakan cadde-i kübrâsını göstermektir.\n\nHakikat güneşi balçıkla sıvanmaz. Zulüm ve iftiralarla Kur'ân nurları söndürülemez; bilakis parıldamasını artırır."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Şualar",
+      chapter: "On Beşinci Şua · El-Hüccetü'z-Zehra",
+      title: "Fâtiha Sûresi ve Tevhid Hülasası",
+      pageType: "metin",
+      arabicVerse: "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ ۞ الرَّحْمٰنِ الرَّحِيمِ ۞ مَالِكِ يَوْمِ الدِّينِ",
+      text: "Kur'ân'ın fatihası olan Fâtiha-i Şerife, bütün kâinatın zikir ve tesbihatını ihtiva eden muazzam bir hülasadır.\n\nCenâb-ı Hakk'a hamd etmek, O'nun Rububiyetini tasdik etmek, Rahmâniyet ve Rahîmiyetine sığınmak insan ruhunun en fıtrî gıdasıdır.\n\nBu şua dersi, akla ve kalbe şüphe bırakmayacak kat'iyette gösterir ki; zerrelerden galaksilere kadar her mahluk 'Lâ ilâhe illâ Hû' diyerek bir Vâhid-i Ehad'e secde etmektedir."
+    }
+  ],
+
   "Mektubat": [
     {
       kulliyat: "Risale-i Nur Külliyatı · Mektubat",
       chapter: "Yirminci Mektup",
       title: "Tevhid Kelâmının Hakikati",
       pageType: "mukaddime",
-      text: "Lâ ilâhe illallah, vahdehû lâ şerîke leh, lehü'l-mülkü ve lehü'l-hamdü ve hüve alâ külli şey'in kadîr.\n\nİşte bu mübarek kelâm-ı tevhîdin her bir cümlesinde birer müjde ve her müjdede birer şifa ve birer mânevî lezzet vardır.\n\nBirinci Müjde: 'Lâ ilâhe illallah' der. Kalb ve ruh hadsiz hacat içinde kıvranırken, nihayetsiz bir kudret ve rahmet sahibine istinad eder; dünyadan ebediyete kadar bütün korkulardan emin olur."
+      arabicVerse: "لَا إِلٰهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ ۞ لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَىٰ كُلِّ شَيْءٍ قَدِيرٌ",
+      text: "Lâ ilâhe illallah, vahdehû lâ şerîke leh, lehü'l-mülkü ve lehü'l-hamdü ve hüve alâ külli şey'in kadîr.\n\nİşte bu mübârek kelâm-ı tevhîdin her bir cümlesinde birer müjde ve her müjdede birer şifa ve birer mânevî lezzet vardır.\n\nBirinci Müjde: 'Lâ ilâhe illallah' der. Kalb ve ruh hadsiz hâcât içinde kıvranırken, nihayetsiz bir kudret ve rahmet sahibine istinad eder; dünyadan ebediyete kadar bütün korkulardan emin olur."
     },
     {
       kulliyat: "Risale-i Nur Külliyatı · Mektubat",
       chapter: "Yirminci Mektup",
-      title: "Lehü'l-Mülk Müjdesi",
+      title: "Lehü'l-Mülk ve Lehü'l-Hamd Müjdesi",
       pageType: "metin",
-      text: "'Lehü'l-mülk' yani: Mülk umumiyetle O'nundur.\n\nSen hem O'nun mülküsün, hem mülkünde çalışıyorsun. Mülk sahibi olan Zât-ı Zülcelâl'e istinad et. O'nun tasarrufatına rıza göster.\n\nBu kelime sana der: 'Mülk sahibi başkasıdır. Sen kendi nefsini başıboş ve sahipsiz zannetme. Mülk O'nun elinde iken, hiçbir şey zayi olmaz; her musibet bir vazifedardır.'"
-    },
-    {
-      kulliyat: "Risale-i Nur Külliyatı · Mektubat",
-      chapter: "Hakikat Çekirdekleri",
-      title: "Hikmetler ve Düsturlar",
-      pageType: "metin",
-      text: "1. Güzel gören güzel düşünür. Güzel düşünen, hayatından lezzet alır.\n2. Zaman gösterdi ki: Cennet ucuz değil, Cehennem dahi lüzumsuz değil.\n3. Her söylediğin hak olsun; fakat her hakkı söylemek hak değildir.\n4. İman insanı insan eder, belki sultan eder; fısk ve sefahat ise insanı gayet âciz bir canavar yapar."
+      arabicVerse: "قُلِ اللَّهُمَّ مَالِكَ الْمُلْكِ تُؤْتِي الْمُلْكَ مَنْ تَشَاءُ وَتَنْزِعُ الْمُلْكَ مِمَّنْ تَشَاءُ",
+      text: "'Lehü'l-mülk' yani: Mülk umumiyetle O'nundur. Sen hem O'nun mülküsün, hem mülkünde çalışıyorsun. Mülk sahibi olan Zât-ı Zülcelâl'e istinad et. O'nun tasarrufatına rıza göster.\n\nBu kelime sana der: Mülk sahibi başkasıdır. Sen kendi nefsini başıboş ve sahipsiz zannetme. Mülk O'nun elinde iken, hiçbir şey zayi olmaz; her musibet bir vazifedardır.\n\n'Lehü'l-hamd' der: Şükür ve medih ancak O'na mahsustur. Nimetler O'nun hazinesindendir, minnet yalnız O'nadır."
     },
     {
       kulliyat: "Risale-i Nur Külliyatı · Mektubat",
       chapter: "Yirmi İkinci Mektup",
       title: "Uhuvvet ve Muhabbet Risalesi",
       pageType: "metin",
-      text: "Mü'minlerde nifak ve şikak, kin ve adavete sebebiyet veren tarafgirlik ve inat; hem hakikatçe, hem hikmetçe, hem insaniyetçe, hem İslâmiyetçe merduttur ve muzırdır.\n\nEy insafsız adam! Bir mü'minde bulunan imân, İslâmiyet ve ibadet gibi yüzlerce mânevî bağlar varken, bazı kusurları yüzünden ona adavet etmek; Kâbe hürmetinde olan imanı unutup cam parçasını tercih etmek gibidir."
+      arabicVerse: "إِنَّمَا الْمُؤْمِنُونَ إِخْوَةٌ فَأَصْلِحُوا بَيْنَ أَخَوَيْكُمْ وَاتَّقُوا اللَّهَ لَعَلَّكُمْ تُرْحَمُونَ",
+      text: "Mü'minlerde nifak ve şikak, kin ve adavete sebebiyet veren tarafgirlik ve inat; hem hakikatçe, hem hikmetçe, hem insaniyetçe, hem İslâmiyetçe merduttur ve muzırdır.\n\nEy insafsız adam! Bir mü'minde bulunan imân, İslâmiyet ve ibadet gibi yüzlerce mânevî bağlar varken, bazı dünyevî kusurları yüzünden ona adavet etmek; Kâbe hürmetinde olan imanı unutup ufak bir çakıl taşına kızmak gibidir.\n\nUhuvvet ve muhabbet İslâmiyetin mâyesidir. Adavet ise kalbi kemiren bir zehirdir."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Mektubat",
+      chapter: "Hakikat Çekirdekleri",
+      title: "Hikmetler ve Nuranî Düsturlar",
+      pageType: "metin",
+      arabicVerse: "يُؤْتِي الْحِكْمَةَ مَنْ يَشَاءُ وَمَنْ يُؤْتَ الْحِكْمَةَ فَقَدْ أُوتِيَ خَيْرًا كَثِيرًا",
+      text: "1. Güzel gören güzel düşünür. Güzel düşünen, hayatından lezzet alır.\n2. Zaman gösterdi ki: Cennet ucuz değil, Cehennem dahi lüzumsuz değil.\n3. Her söylediğin hak olsun; fakat her hakkı söylemek hak değildir.\n4. İman insanı insan eder, belki sultan eder; fısk ve sefahat ise insanı gâyet âciz bir canavar yapar.\n5. Şöhret ayn-ı riyadır ve kalbi öldüren zehirli bir baldır."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Mektubat",
+      chapter: "On Dokuzuncu Mektup · Mucizât-ı Ahmediye",
+      title: "Risalet-i Ahmediye'nin Şahitleri",
+      pageType: "metin",
+      arabicVerse: "مُحَمَّدٌ رَسُولُ اللَّهِ وَالَّذِينَ مَعَهُ أَشِدَّاءُ عَلَى الْكُفَّارِ رُحَمَاءُ بَيْنَهُمْ",
+      text: "Resûl-i Ekrem Aleyhissalâtü Vesselâm, kâinat ağacının en münevver meyvesi ve Rahmet-i İlâhiyenin en parlak timsalidir.\n\nO Zât'ın davasının doğruluğuna; binler mu'cizeleri, kemâlâtı, Kur'ân-ı Hakîm gibi sönmez bir bürhanı ve asırlarca milyarlar ruhları terbiye eden nübüvvet nuru şahittir.\n\nO'na salât ve selâm getirmek, rahmet kapılarını açan en selametli ve nurlu bir anahtardır."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Mektubat",
+      chapter: "Yirmi Dokuzuncu Mektup",
+      title: "Ramazan Risalesi ve Orucun Sırları",
+      pageType: "metin",
+      arabicVerse: "شَهْرُ رَمَضَانَ الَّذِي أُنْزِلَ فِيهِ الْقُرْآنُ هُدًى لِلنَّاسِ وَبَيِّنَاتٍ مِنَ الْهُدَىٰ وَالْفُرْقَانِ",
+      text: "Ramazan-ı Şerifteki oruç, Cenâb-ı Hakk'ın nimetlerinin kıymetini bildiren en parlak bir şükür anahtarıdır.\n\nİnsan nefsi tokluk zamanında kendini mâlik ve serbest zanneder. Oruç sayesinde derk eder ki: Kendisi bir memlûktür, rızık ise Rezzâk-ı Kerîm'in hediyesidir; O izin vermezse bir yudum suya dahi el uzatamaz.\n\nBöylece nefis firavunluktan kurtulup hakikî ubudiyet lezzetine nail olur."
     }
   ],
+
   "Lem'alar": [
     {
       kulliyat: "Risale-i Nur Külliyatı · Lem'alar",
       chapter: "Yirmi Beşinci Lem'a · Hastalar Risalesi",
       title: "Birinci ve İkinci Deva",
       pageType: "mukaddime",
-      text: "Ey bîçare hasta! Merak etme, sabret. Senin hastalığın sana dert değil, belki bir nevi dermandır.\n\nÇünkü ömür bir sermayedir, gidiyor. Meyvesiz gitse zayi olur. Hastalık ise, o ömür dakikalarını ibadet hükmüne getirir; gaflet perdesini yırtar, âhiret yolculuğunu hatırlatır.\n\nİkinci Deva: Sabret, belki şükret. Hastalık ömrün günah kirlerini yıkar, sabun gibi temizler."
+      arabicVerse: "الَّذِي خَلَقَنِي فَهُوَ يَهْدِينِ ۞ وَالَّذِي هُوَ يُطْعِمُنِي وَيَسْقِينِ ۞ وَإِذَا مَرِضْتُ فَهُوَ يَشْفِينِ",
+      text: "Ey bîçare hasta! Merak etme, sabret. Senin hastalığın sana dert değil, belki bir nevi dermandır.\n\nÇünkü ömür bir sermayedir, gidiyor. Meyvesiz gitse zayi olur. Hastalık ise, o ömür dakikalarını ibadet hükmüne getirir; gaflet perdesini yırtar, âhiret yolculuğunu hatırlatır.\n\nİkinci Deva: Sabret, belki şükret. Hastalık ömrün günah kirlerini yıkar, sabun gibi temizler. Hadîste vârid olmuştur ki: 'Hummânın bir günlük nöbeti, bir senelik günahlara kefarettir.'"
     },
     {
       kulliyat: "Risale-i Nur Külliyatı · Lem'alar",
       chapter: "Yirmi Beşinci Lem'a · Hastalar Risalesi",
-      title: "Menfî İbadet Hakikati",
+      title: "Menfî İbadet ve Sabrın Mükâfatı",
       pageType: "metin",
-      text: "İbadet iki kısımdır: Biri müsbet ibadettir ki namaz, niyaz gibi malûm ibadetlerdir.\n\nDiğeri menfî ibadettir ki; hastalık ve musibetlerle musibetzede zaafını, aczini hisseder; Hâlık-ı Rahîm'ine iltica eder, hâlisane bir teveccühle dergâh-ı İlâhîye yalvarır.\n\nBu nevi ibadete riya girmez, gayet hâlistir. Sabırla karşılandığı takdirde, bir dakikalık hastalık bir saat nafile ibadet yerine geçebilir."
+      arabicVerse: "أَنِّي مَسَّنِيَ الضُّرُّ وَأَنْتَ أَرْحَمُ الرَّاحِمِينَ",
+      text: "İbadet iki kısımdır: Biri müsbet ibadettir ki namaz, niyaz gibi malûm taatlerdir.\n\nDiğeri menfî ibadettir ki; hastalık ve musibetlerle musibetzede zaafını, aczini hisseder; Hâlık-ı Rahîm'ine iltica eder, hâlisane bir teveccühle dergâh-ı İlâhîye yalvarır.\n\nBu nevi ibadete riya girmez, gâyet hâlistir. Sabırla karşılandığı takdirde, bir dakikalık hastalık bir saat nafile ibadet yerine geçebilir ve fâni dakikaları bâkî elmaslara tebdil eder."
     },
     {
       kulliyat: "Risale-i Nur Külliyatı · Lem'alar",
       chapter: "Yirmi Birinci Lem'a · İhlas Risalesi",
-      title: "Hizmet-i Kur'âniyede Dört Düstur",
+      title: "Hizmet-i Kur'âniyede Dört Esas",
       pageType: "metin",
-      text: "Ey ahiret kardeşlerim ve ey hizmet-i Kur'âniyede arkadaşlarım!\n\nBu dünyada, hususan uhrevî hizmetlerde en mühim bir esas, en büyük bir kuvvet, en makbul bir şefaatçi: İhlas'tır.\n\nBirinci Düsturunuz: Amelinizde rıza-yı İlâhî olmalı. Eğer O razı olsa, bütün dünya küsse ehemmiyeti yok. Eğer O kabul etse, bütün halk reddetse tesiri yoktur."
+      arabicVerse: "وَلَا تَنَازَعُوا فَتَفْشَلُوا وَتَذْهَبَ رِيحُكُمْ وَاصْبِرُوا إِنَّ اللَّهَ مَعَ الصَّابِرِينَ",
+      text: "Ey âhiret kardeşlerim ve ey hizmet-i Kur'âniyede arkadaşlarım! Bu dünyada, hususan uhrevî hizmetlerde en mühim bir esas, en büyük bir kuvvet, en makbul bir şefaatçi: İhlas'tır.\n\nBirinci Düsturunuz: Amelinizde rıza-yı İlâhî olmalı. Eğer O razı olsa, bütün dünya küsse ehemmiyeti yok. Eğer O kabul etse, bütün halk reddetse tesiri yoktur.\n\nİkinci Düsturunuz: Bu hizmet-i Kur'âniyede bulunan kardeşlerinizi tenkit etmemek ve onların meziyetleriyle iftihar etmektir."
     },
     {
       kulliyat: "Risale-i Nur Külliyatı · Lem'alar",
       chapter: "On Dokuzuncu Lem'a · İktisat Risalesi",
-      title: "İktisat ve Kanaatin Bereketi",
+      title: "İktisat, Şükür ve Kanaat",
       pageType: "metin",
-      text: "Hâlık-ı Rahîm, nev-i beşere verdiği nimetlerin mukabilinde şükür istiyor.\n\nİsraf ise şükre zıttır, nimete karşı hürmetsizliktir. İktisat ise hem şükr-ü mânevîdir, hem bereket vesilesidir, hem izzet-i nefsin muhafazasıdır.\n\nİktisat eden, maişetçe aile zahmetini çekmez. Kanaat eden, minnet altında ezilmez; izzetle ve hürriyetle yaşar."
+      arabicVerse: "كُلُوا وَاشْرَبُوا وَلَا تُسْرِفُوا إِنَّهُ لَا يُحِبُّ الْمُسْرِفِينَ",
+      text: "Hâlık-ı Rahîm, nev-i beşere verdiği hadsiz nimetlerin mukabilinde yalnız ve yalnız şükür istiyor.\n\nİsraf ise şükre zıttır, nimete karşı hürmetsizliktir. İktisat ise hem şükr-ü mânevîdir, hem berekettir, hem izzet-i nefsin muhafazasıdır.\n\nİktisat eden kimse maişetçe darlık çekmez. Kanaat eden, minnet altında ezilmez; izzet ve hürriyetle yaşar."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Lem'alar",
+      chapter: "Birinci Lem'a · Hazret-i Yunus Kıssası",
+      title: "Karanlıklardan Kurtuluş Münacatı",
+      pageType: "metin",
+      arabicVerse: "لَا إِلٰهَ إِلَّا أَنْتَ سُبْحَانَكَ إِنِّي كُنْتُ مِنَ الظَّالِمِينَ",
+      text: "Hazret-i Yunus Aleyhisselâm'ın münacatı, en azîm bir münacattır ve duaların en müstecab vesilesidir.\n\nBizler de Hazret-i Yunus gibi; dünya denizi içinde, nefis balığının karnında ve heva hevesin karanlıklarındayız. Bizi bu üç karanlıktan ancak o münacatın nuru sahil-i selamete çıkarabilir.\n\nNefsimizin kusurlarını itiraf edip 'Lâ ilâhe illâ ente sübhâneke innî küntü mine'z-zâlimîn' dediğimiz vakit, rahmet-i İlâhiye imdadımıza yetişir."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Lem'alar",
+      chapter: "Yirmi Altıncı Lem'a · İhtiyarlar Risalesi",
+      title: "İhtiyarlık Nurları ve Ebediyet Tesellisi",
+      pageType: "metin",
+      arabicVerse: "يَا بَاقِي أَنْتَ الْبَاقِي ۞ يَا بَاقِي أَنْتَ الْبَاقِي",
+      text: "Ey saçı ağarmış ihtiyar kardeşim ve hemşirem! İhtiyarlık bir zaaf ve keder sebebi değil, belki gaflet perdesinin yırtılması ve ebedî gençliğe açılan bir kapıdır.\n\nDünyanın fâni güzellikleri zeval bulsa da, sermedî olan Bâkî-i Zülcelâl'in muhabbeti ve rahmeti dâimdir.\n\n'Yâ Bâkî Ente'l-Bâkî' sırrıyla anlarız ki; madem O var, her şey var. Fâni dostların firakı, ebedî saadetin visaline bir başlangıçtır."
     }
   ],
+
   "Tarihçe-i Hayat": [
     {
       kulliyat: "Risale-i Nur Külliyatı · Tarihçe-i Hayat",
       chapter: "İlk Hayatı",
       title: "Bediüzzaman Said Nursî'nin Zuhuru",
       pageType: "mukaddime",
-      text: "Bediüzzaman Said Nursî, 1878 senesinde Bitlis vilâyetine bağlı Hizan kazasının Nurs köyünde dünyaya gelmiştir.\n\nÇocukluğundan itibaren fevkalâde bir zekâ ve hârika bir hafıza göstermiş, medrese tahsilini birkaç ay gibi kısa bir zamanda tamamlayarak devrin uleması tarafından 'Bediüzzaman' unvanına lâyık görülmüştür.\n\nBütün gayesi; asrın fen ve ilimleriyle Kur'ân hakikatlerini meczederek insanlığın imanını kurtarmaktır."
+      arabicVerse: "إِنَّ اللَّهَ مَعَ الَّذِينَ اتَّقَوْا وَالَّذِينَ هُمْ مُحْسِنُونَ",
+      text: "Bediüzzaman Said Nursî, 1878 senesinde Bitlis vilâyetine bağlı Hizan kazasının Nurs köyünde dünyaya gelmiştir.\n\nÇocukluğundan itibaren fevkalâde bir zekâ ve hârika bir hafıza göstermiş, medrese tahsilini birkaç ay gibi kısa bir zamanda tamamlayarak devrin uleması tarafından 'Bediüzzaman' (zamanın eşsiz güzelliği/âlimi) unvanına lâyık görülmüştür.\n\nBütün gayesi; asrın fen ve ilimleriyle Kur'ân hakikatlerini meczederek insanlığın imanını kurtarmaktır."
     },
     {
       kulliyat: "Risale-i Nur Külliyatı · Tarihçe-i Hayat",
       chapter: "Barla Devresi",
-      title: "Risale-i Nur'un Telifi",
+      title: "Risale-i Nur'un Telifi ve İlk Saflar",
       pageType: "metin",
-      text: "1926 senesinde Isparta'nın ıssız bir nahiyesi olan Barla'ya nefyedilen Bediüzzaman, burada en zor şartlar altında Risale-i Nur'u telif etmeye başladı.\n\nMatbaa yoktu, kâğıt kıttı. Sadık talebeleri geceleri el yazısıyla risaleleri çoğaltıyor, köyden köye, şehirden şehire taşıyorlardı.\n\nBediüzzaman derdi: 'Benim bir tek gayem vardır: O da mezara yaklaştığım bu zamanda, İslâm memleketinde parlayan imân nurlarını söndürmemektir.'"
+      arabicVerse: "يُرِيدُونَ لِيُطْفِئُوا نُورَ اللَّهِ بِأَفْوَاهِهِمْ وَاللَّهُ مُتِمُّ نُورِهِ وَلَوْ كَرِهَ الْكَافِرُونَ",
+      text: "1926 senesinde Isparta'nın ıssız bir nahiyesi olan Barla'ya nefyedilen Bediüzzaman, burada en zor şartlar altında Risale-i Nur'u telif etmeye başladı.\n\nMatbaa yoktu, kâğıt kıttı. Sadık talebeleri geceleri gaz lambası ışığında el yazısıyla risaleleri çoğaltıyor, köyden köye, dağdan dağa taşıyorlardı.\n\nBediüzzaman derdi: 'Benim bir tek gayem vardır: O da mezara yaklaştığım bu zamanda, İslâm memleketinde parlayan imân nurlarını söndürmemektir.'"
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Tarihçe-i Hayat",
+      chapter: "Eskişehir ve Kastamonu",
+      title: "Zindanlardan Doğan Nur Çerağları",
+      pageType: "metin",
+      arabicVerse: "فَصَبْرٌ جَمِيلٌ وَاللَّهُ الْمُسْتَعَانُ عَلَىٰ مَا تَصِفُونَ",
+      text: "Eskişehir hapsinde en ağır tecrit koşullarında iken, Yirmi Dokuzuncu Lem'a ve İsm-i Âzam risaleleri telif olundu.\n\nArdından Kastamonu'ya sürgün edilen Üstad, burada senelerce karakol karşısındaki bir odada gözetim altında tutuldu. Fakat iman hakikatleri durdurulamadı; talebeleri her mektubu birer pırlanta gibi çoğalttılar.\n\nMüellif hiçbir dünyevî makama tenezzül etmedi, zilleti izzete, zahmeti rahmete çevirdi."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Tarihçe-i Hayat",
+      chapter: "Denizli ve Afyon İmtihanları",
+      title: "Meyve Risalesi ve Beraat Zaferleri",
+      pageType: "metin",
+      arabicVerse: "كَتَبَ اللَّهُ لَأَغْلِبَنَّ أَنَا وَرُسُلِي إِنَّ اللَّهَ قَوِيٌّ عَزِيزٌ",
+      text: "Denizli Ağır Ceza Mahkemesi'nde yüz yirmi talebesiyle birlikte idam talebiyle yargılanan Bediüzzaman, zindanı nurlarla aydınlattı ve Meyve Risalesi'ni telif etti.\n\nBilirkişi heyetlerinin 'Bu eserlerde hiçbir siyasî gaye yoktur, tamamen ilmî ve imanîdir' raporu üzerine ittifakla beraat kararı verildi.\n\nAfyon hapsinde zehirlenmesine rağmen Cenâb-ı Hakk'ın inayetiyle hayatta kaldı ve hakikat davası her defasında parlayarak çıktı."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Tarihçe-i Hayat",
+      chapter: "Isparta Devresi",
+      title: "Külliyat'ın Matbaalarda Basılması",
+      pageType: "metin",
+      arabicVerse: "وَقُلْ جَاءَ الْحَقُّ وَزَهَقَ الْبَاطِلُ إِنَّ الْبَاطِلَ كَانَ زَهُوقًا",
+      text: "Ömrünün son demlerinde Isparta'ya yerleşen Bediüzzaman, Risale-i Nur'un Latin harfleriyle resmî matbaalarda basılmasına muvaffak oldu.\n\n'Risale-i Nur matbaalarda basıldı; artık benim vazifem bitti. Şimdi Risale-i Nur kendi kendine konuşur ve intişar eder' diyerek şükretti.\n\nBütün dünyada tercüme edilmeye başlayan Nurlar, milyonlarca kalbin imanını takviye eden bir hidayet çeşmesi oldu."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Tarihçe-i Hayat",
+      chapter: "Vuslat Âlemi",
+      title: "Şanlıurfa'da Gayb Âlemine Göçüş",
+      pageType: "metin",
+      arabicVerse: "يَا أَيَّتُهَا النَّفْسُ الْمُطْمَئِنَّةُ ۞ ارْجِعِي إِلَىٰ رَبِّكِ رَاضِيَةً مَرْضِيَّةً ۞ فَادْخُلِي فِي عِبَادِي ۞ وَادْخُلِي جَنَّتِي",
+      text: "23 Mart 1960 tarihinde, mübârek Ramazan-ı Şerif'in yirmi beşinci gecesinde Şanlıurfa'da vuslat-ı Rahmân'a erdi.\n\nGeride bir dikili ağaç dahi bırakmayan Üstad; bir cübbe, bir ibrik ve binlerce sayfadan müteşekkil ebedî bir iman külliyatı miras bıraktı.\n\nTalebelerine son vasiyeti: 'Müsbet hareket ediniz, asayişi muhafaza ediniz ve ihlası her şeye tercih ediniz' oldu."
     }
   ],
-  "Barla Lahikası": [
+
+  "Barla Lâhikası": [
     {
-      kulliyat: "Risale-i Nur Külliyatı · Barla Lahikası",
+      kulliyat: "Risale-i Nur Külliyatı · Barla Lâhikası",
       chapter: "Mektuplar",
       title: "Talebelerle İlk Hasbihal",
       pageType: "mukaddime",
-      text: "Aziz, sıddık, vefadar kardeşlerim!\n\nSizlerin bu ıssız dağ başında bana refik olmanız ve Kur'ân nurlarının neşrinde fedakârane çalışmanız, inayet-i İlâhiyenin en açık bir delilidir.\n\nBizler bir fabrika çarkının dişlileri gibiyiz; birbirimize rekabet değil, tesanüd ile kuvvet vermeliyiz. Birbirimizin kusurunu örtmek ve sevabına iştirak etmek en birinci düsturumuzdur."
+      arabicVerse: "وَتَعَاوَنُوا عَلَى الْبِرِّ وَالتَّقْوَىٰ وَلَا تَعَاوَنُوا عَلَى الْإِثْمِ وَالْعُدْوَانِ",
+      text: "Aziz, sıddık, vefadar kardeşlerim! Sizlerin bu ıssız dağ başında bana refik olmanız ve Kur'ân nurlarının neşrinde fedakârane çalışmanız, inayet-i İlâhiyenin en açık bir delilidir.\n\nBizler bir fabrika çarkının dişlileri gibiyiz; birbirimize rekabet değil, tesanüd ile kuvvet vermeliyiz.\n\nBirbirimizin kusurunu örtmek ve sevabına iştirak etmek en birinci düsturumuzdur."
     },
     {
-      kulliyat: "Risale-i Nur Külliyatı · Barla Lahikası",
+      kulliyat: "Risale-i Nur Külliyatı · Barla Lâhikası",
       chapter: "Hulusi Bey'in Mektubu",
       title: "Nurlara Muhatap Olmanın Sevinci",
       pageType: "metin",
-      text: "Muhterem Üstadım!\n\nSözler mecmuasını okudukça, ruhumda açılan nur menfezlerini tarif edemem. Kalbimin en derin yaralarına tiryak olan bu hakikatler, bu asrın manevi hastalıklarına tam bir şifadır.\n\nCenâb-ı Hak sizden ebediyen razı olsun; bizleri bu kutsi hizmette dâim ve sabitkadem eylesin."
+      arabicVerse: "رَبَّنَا لَا تُزِغْ قُلُوبَنَا بَعْدَ إِذْ هَدَيْتَنَا وَهَبْ لَنَا مِنْ لَدُنْكَ رَحْمَةً",
+      text: "Muhterem Üstadım! Sözler mecmuasını okudukça, ruhumda açılan nur menfezlerini tarif edemem. Kalbimin en derin yaralarına tiryak olan bu hakikatler, bu asrın manevî hastalıklarına tam bir şifadır.\n\nCenâb-ı Hak sizden ebediyen razı olsun; bizleri bu kudsî hizmette dâim ve sabitkadem eylesin.\n\nBu hakikatler sönmez bir meş'aledir; ruhlarımızı zulümattan nura gark etmiştir."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Barla Lâhikası",
+      chapter: "Kuleönlü Sarıbıçak Mustafa",
+      title: "Köy Odalarındaki Kalem Sesleri",
+      pageType: "metin",
+      arabicVerse: "ن ۚ وَالْقَلَمِ وَمَا يَسْطُرُونَ ۞ مَا أَنْتَ بِنِعْمَةِ رَبِّكَ بِمَجْنُونٍ",
+      text: "Barla dağlarında esen rüzgârlar, Kur'ân'ın feyizli nağmelerini civar köylere ulaştırdı.\n\nKuleönü, Bedre, Sav ve Atabey köylerinde yüzlerce fedakâr talebe gece gündüz risaleleri istinsah ediyor, kadınlar ve çocuklar dahi nurlu kâtipler safına katılıyordu.\n\nHer bir divit ucu, küfrün karanlık ordusuna karşı atılmış nurlu bir ok hükmüne geçiyordu."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Barla Lâhikası",
+      chapter: "Santral Sabri'nin İhlâsı",
+      title: "Muhabbet Mektupları ve Sıdk-ı Sadakat",
+      pageType: "metin",
+      arabicVerse: "وَالسَّابِقُونَ السَّابِقُونَ ۞ أُولٰئِكَ الْمُقَرَّبُونَ ۞ فِي جَنَّاتِ النَّعِيمِ",
+      text: "Ey müşfik Üstadımız! Nurlardan aldığımız feyiz, bütün dünya zevklerini hiçe indirmiştir.\n\nBizim dünyadan muradımız ancak ve ancak rıza-yı Bâri'dir. Bir tek sayfa risale yazmak, binler altın değerindedir.\n\nCenâb-ı Erhamürrâhimîn bizleri sizden, sizleri de Kur'ân hizmetinden ayırmasın."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Barla Lâhikası",
+      chapter: "Çınar Ağacı Dersi",
+      title: "Fıtrat Aynasında Zikir ve Münacat",
+      pageType: "metin",
+      arabicVerse: "تُسَبِّحُ لَهُ السَّمَاوَاتُ السَّبْعُ وَالْأَرْضُ وَمَنْ فِيهِنَّ",
+      text: "Üstad'ın Barla'daki odasının önündeki ulu çınar ağacının dalları arasında geçirdiği tefekkür saatleri, kâinatın tesbihatını dinleme meclisiydi.\n\nHer bir yaprak lisan-ı hal ile 'Hû, Hû' diyerek Zât-ı Hayy-ı Kayyûm'u zikrediyor, rüzgârın nağmeleri birer ilâhî kaside gibi ruhu mest ediyordu.\n\nTalebelere yazılan mektuplarda; kâinatın bu umumi zikrine iştirak etmenin ehemmiyeti ders veriliyordu."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Barla Lâhikası",
+      chapter: "Lâhikanın Hatimesi",
+      title: "Kardeşlik Hukuku ve İttihad Sırrı",
+      pageType: "metin",
+      arabicVerse: "وَاعْتَصِمُوا بِحَبْلِ اللَّهِ جَمِيعًا وَلَا تَفَرَّقُوا",
+      text: "Bu lâhika mektupları gösteriyor ki; Risale-i Nur yalnız bir kitap değil, yaşayan canlı bir cemaat ve şahs-ı mânevîdir.\n\nHer bir mektup, talebelerin birbirine olan sevgisini, sadakatini ve metanetini tazeleyen bir rabıta olmuştur.\n\nKıyamete kadar bu kudsî daireye dahil olan her fert, bu mânevî havuzun feyzinden ve sevabından hissedar olur."
     }
   ],
-  "Asa-yı Musa": [
+
+  "Kastamonu Lâhikası": [
     {
-      kulliyat: "Risale-i Nur Külliyatı · Asa-yı Musa",
+      kulliyat: "Risale-i Nur Külliyatı · Kastamonu Lâhikası",
+      chapter: "Kastamonu Yılları",
+      title: "Şahs-ı Mânevî ve Hizmet Esasları",
+      pageType: "mukaddime",
+      arabicVerse: "وَاصْبِرْ لِحُكْمِ رَبِّكَ فَإِنَّكَ بِأَعْيُنِنَا وَسَبِّحْ بِحَمْدِ رَبِّكَ حِينَ تَقُومُ",
+      text: "Aziz kardeşlerim! Kastamonu hayatı, Nurların Anadolu'nun dört bir yanına yayılmasına ve iman kalelerinin tahkim edilmesine vesile olmuştur.\n\nBu zamanda en mühim vazife, şahs-ı mânevîyi muhafaza etmektir. Fert ne kadar dâhi olsa, zamanın dehşetli hücumlarına karşı tek başına dayanamaz; ancak bir şahs-ı mânevîye dayanırsa muvaffak olur.\n\nHer bir talebe, bir diğerinin manevî kardeşi ve koruyucu zırhıdır."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Kastamonu Lâhikası",
+      chapter: "Gençlik Rehberi Meseleleri",
+      title: "Gençliğin Tehlikeleri ve Kurtuluş Çaresi",
+      pageType: "metin",
+      arabicVerse: "أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ",
+      text: "Gençlik bir nimettir; fakat istikamet dairesinde sarf edilmezse gayet acı neticeler verir.\n\nGayr-ı meşru bir lezzetin içinde yüzlerce elem ve keder saklıdır. Helâl dairesi geniştir, keyfe kâfi gelir; harama girmeye hiç lüzum yoktur.\n\nİffet ve takva ile bezenen bir gençlik, hem bu dünyada izzet bulur, hem ebedî cennet bahçelerinde solmaz bir saadete erer."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Kastamonu Lâhikası",
+      chapter: "Hasbihaller",
+      title: "Tesanüd ve İhlasın Zırhı",
+      pageType: "metin",
+      arabicVerse: "فَاسْتَقِمْ كَمَا أُمِرْتَ وَمَنْ تَابَ مَعَكَ وَلَا تَطْغَوْا",
+      text: "Bizlerin mesleği hıllet ve uhuvvettir. En yakın dost, en fedakâr arkadaş, en güzel yoldaş olmaktır.\n\nBirbirimizin şahsiyetine değil, hakikat davasına gönül vermeliyiz. Hubb-u câh ve enaniyet hislerini ayaklar altına almalı, 'Ben' yerine 'Biz' demeyi şiar edinmeliyiz.\n\nİhlas sırrına mazhar olan bir cemaat, ordulara meydan okuyacak bir kuvvete sahip olur."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Kastamonu Lâhikası",
+      chapter: "Çocuklar ve İhtiyarlar",
+      title: "Masumların ve Pîr-i Fânilerin Duası",
+      pageType: "metin",
+      arabicVerse: "رَبَّنَا هَبْ لَنَا مِنْ أَزْوَاجِنَا وَذُرِّيَّاتِنَا قُرَّةَ أَعْيُنٍ وَاجْعَلْنَا لِلْمُتَّقِينَ إِمَامًا",
+      text: "Risale-i Nur'un en birinci muhataplarından biri de masum çocuklar ve beli bükülmüş ihtiyarlardır.\n\nÇocukların temiz dilleriyle ettikleri dualar ve yaşlıların gözyaşlarıyla yaptıkları niyazlar, inayet-i İlâhiyenin bu hizmete celbine vesiledir.\n\nKüçük yaştaki talebelerin yazdıkları risaleler, geleceğin imanlı nesillerinin müjdecisidir."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Kastamonu Lâhikası",
+      chapter: "Harp Hadiseleri",
+      title: "İkinci Cihan Harbi ve Mü'minin Nazarî Bakışı",
+      pageType: "metin",
+      arabicVerse: "وَلَا تَرْكَنُوا إِلَى الَّذِينَ ظَلَمُوا فَتَمَسَّكُمُ النَّارُ",
+      text: "İkinci Dünya Harbi'nin dehşetli boğuşmaları karşısında Bediüzzaman, talebelerine siyasetle ve boğuşmalarla zihinlerini meşgul etmemelerini ihtar etti.\n\nÇünkü insanın en büyük meselesi, kabir kapısından geçerken imanla mı yoksa imansız mı gideceği meselesidir.\n\nDünya devletlerinin haritaları değişse de, kabir sualine iman hakikatleri cevap verecektir."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Kastamonu Lâhikası",
+      chapter: "Netice-i Hizmet",
+      title: "Manevî Cihad ve Nurların Zaferi",
+      pageType: "metin",
+      arabicVerse: "وَالَّذِينَ جَاهَدُوا فِينَا لَنَهْدِيَنَّهُمْ سُبُلَنَا وَإِنَّ اللَّهَ لَمَعَ الْمُحْسِنِينَ",
+      text: "Bizim cihadımız mânevîdir; kılıçla değil, delil ve bürhanladır. Gönülleri fethetmek, kalpleri imanın nurlarıyla diriltmektir.\n\nKastamonu'nun sarp dağlarından parlayan hakikat meş'alesi, zulmet perdelerini parça parça etmiştir.\n\nBu kutlu kervanda yürüyenlere müjdeler olsun; zira hak dâima galiptir ve batıl yok olmaya mahkûmdur."
+    }
+  ],
+
+  "Emirdağ Lâhikası": [
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Emirdağ Lâhikası",
+      chapter: "Emirdağ Devresi",
+      title: "İttihad-ı İslâm ve Cihanşümul Hizmet",
+      pageType: "mukaddime",
+      arabicVerse: "فَاصْبِرْ إِنَّ وَعْدَ اللَّهِ حَقٌّ وَلَا يَسْتَخِفَّنَّكَ الَّذِينَ لَا يُوقِنُونَ",
+      text: "Aziz kardeşlerim! Emirdağ hayatı, Risale-i Nur'un cihanşümul bir hüviyet kazanarak İslâm âlemine ve insanlığa mal olduğu bir devredir.\n\nBu devrede İslâm birliği, uhuvvet-i imaniye ve asayişin muhafazası en birinci dersler olarak işlenmiştir.\n\nBizim yolumuz şefkat ve müsbet harekettir. Tahripkâr cereyanlara karşı en muhkem siper, imanın sarsılmaz hakikatleridir."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Emirdağ Lâhikası",
+      chapter: "Siyaset ve Din Münasebeti",
+      title: "Dini Siyasete Alet Etmemek Esası",
+      pageType: "metin",
+      arabicVerse: "وَقُلْ رَبِّ أَدْخِلْنِي مُدْخَلَ صِدْقٍ وَأَخْرِجْنِي مُخْرَجَ صِدْقٍ وَاجْعَلْ لِي مِنْ لَدُنْكَ سُلْطَانًا نَصِيرًا",
+      text: "Risale-i Nur, hiçbir siyasî cereyana tâbi olmaz ve dini hiçbir şeye âlet etmez.\n\nÇünkü iman elmas hükmündedir; kırılacak cam parçaları hükmündeki fâni siyasetlere âlet edilemez. Siyaset dine dost ve hadim olmalı, din siyasete basamak yapılmamalıdır.\n\nBizlerin bütün gayreti, millet evlatlarının kalbinde imanı kuvvetlendirmektir."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Emirdağ Lâhikası",
+      chapter: "Âlem-i İslâm'a Hitap",
+      title: "Şark ve Garp Uyanışı",
+      pageType: "metin",
+      arabicVerse: "إِنَّ هٰذِهِ أُمَّتُكُمْ أُمَّةً وَاحِدَةً وَأَنَا رَبُّكُمْ فَاعْبُدُونِ",
+      text: "Müslümanlar birbirinin öz kardeşidir. Irkçılık ve menfî milliyetçilik zehrine karşı en büyük panzehir İslâm kardeşliğidir.\n\nKâbe'miz bir, Peygamberimiz bir, Kitabımız birdir; bu birlikler karşısında ayrılık gayrılık sebebi olabilecek teferruatların hiçbir kıymeti yoktur.\n\nİslâm dünyası ancak uhuvvet ve tesanüd ile ayağa kalkabilir."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Emirdağ Lâhikası",
+      chapter: "Talebelere Vasiyetler",
+      title: "Müsbet Hareket ve Asayiş",
+      pageType: "metin",
+      arabicVerse: "ادْعُ إِلَىٰ سَبِيلِ رَبِّكَ بِالْحِكْمَةِ وَالْمَوْعِظَةِ الْحَسَنَةِ",
+      text: "Bizim vazifemiz müsbet hareket etmektir, menfî hareket değildir. Rıza-yı İlâhîye göre sırf hizmet-i imaniyeyi yapmaktır; vazife-i İlâhiyeye karışmamaktır.\n\nBiz asayişin muhafızlarıyız; emniyeti ihlâl edecek hiçbir taşkınlığa meydan vermeyiz.\n\nBir masumun hatırı için yüz câniye merhamet edilmese de, bir masumun hakkı umum cihan için feda edilemez."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Emirdağ Lâhikası",
+      chapter: "Dünya ve Ahiret Dengesi",
+      title: "Fâni Ömrü Bâkîleştirmek",
+      pageType: "metin",
+      arabicVerse: "وَابْتَغِ فِيمَا آتَاكَ اللَّهُ الدَّارَ الْآخِرَةَ وَلَا تَنْسَ نَصِيبَكَ مِنَ الدُّنْيَا",
+      text: "Dünya bir tarladır, hasadı âhirette alınacaktır. Akıllı insan odur ki; fâni olanı bâkî olanla değişir.\n\nZaman su gibi akıp gidiyor. Kabre doğru yürüyen kafilede yerimizi alırken, yanımızda götüreceğimiz tek sermaye amel-i sâlihtir.\n\nNurlarla nurlanan kalpler, ölümün soğuk yüzünü bir vuslat sevinciyle karşılar."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Emirdağ Lâhikası",
+      chapter: "Lâhikanın Sonu",
+      title: "Ebedî Nur Menbaı",
+      pageType: "metin",
+      arabicVerse: "وَآخِرُ دَعْوَاهُمْ أَنِ الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ",
+      text: "Emirdağ mektupları, son nefese kadar süren bir sabır ve metanet destanıdır.\n\nÜstad'ın talebelerine bıraktığı bu düsturlar, her asırda hizmet edenlerin yolunu aydınlatan birer kutup yıldızıdır.\n\nCenâb-ı Hak cümlemizi bu nurlu yolda sebatkâr kılsın; şefaat-i Kur'ân'a nail eylesin."
+    }
+  ],
+
+  "Asâ-yı Mûsâ": [
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Asâ-yı Mûsâ",
       chapter: "Meyve Risalesi · Altıncı Mesele",
       title: "Mekteplilerin Suâli ve Fenlerin Dili",
       pageType: "mukaddime",
+      arabicVerse: "اقْرَأْ بِاسْمِ رَبِّكَ الَّذِي خَلَقَ ۞ خَلَقَ الْإِنْسَانَ مِنْ عَلَقٍ",
       text: "Kastamonu'da lise talebelerinden bir kısmı yanıma geldiler: 'Bize Hâlıkımızı tanıttır; muallimlerimiz Allah'tan bahsetmiyorlar' dediler.\n\nBen de onlara dedim: Sizin okuduğunuz fenlerden her fen, kendi lisan-ı mahsusuyla mütemadiyen Allah'tan bahsedip Hâlıkı tanıttırıyor. Muallimleri değil, onları dinleyiniz.\n\nMeselâ nasıl ki mükemmel bir eczahane, her ilacın kavanozundaki intizam ve ölçüyle bir mahir eczacıyı gösterir; öyle de zemin eczahanesi intizamıyla Hakîm-i Zülcelâl'i tanıtır."
     },
     {
-      kulliyat: "Risale-i Nur Külliyatı · Asa-yı Musa",
+      kulliyat: "Risale-i Nur Külliyatı · Asâ-yı Mûsâ",
       chapter: "Meyve Risalesi · Yedinci Mesele",
       title: "Âhiret İnancının Hayattaki Yeri",
       pageType: "metin",
-      text: "İnsanın en birinci tesellisi ve ihtiyarlık, hastalık, ölüm karşısındaki en muhkem kalesi: Âhiret inancıdır.\n\nEğer âhiret olmasa; sevdiğimiz bütün dostlar yokluğa gidecek, bütün emekler hiçlikle neticelenecektir. Fakat âhiret nuruyla ölüm, bir terhis tezkeresidir; ebedî bir vuslatın ve saadet sarayının başlangıcıdır."
+      arabicVerse: "سَنُرِيهِمْ آيَاتِنَا فِي الْآفَاقِ وَفِي أَنْفُسِهِمْ حَتَّىٰ يَتَبَيَّنَ لَهُمْ أَنَّهُ الْحَقُّ",
+      text: "İnsanın en birinci tesellisi ve ihtiyarlık, hastalık, ölüm karşısındaki en muhkem kalesi: Âhiret inancıdır.\n\nEğer âhiret olmasa; sevdiğimiz bütün dostlar ebedî bir yokluğa gidecek, bütün emekler hiçlikle neticelenecektir.\n\nFakat âhiret nuruyla ölüm, bir terhis tezkeresidir; ebedî bir vuslatın ve saadet sarayının başlangıcıdır."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Asâ-yı Mûsâ",
+      chapter: "Hüccetullahi'l-Bâliğa",
+      title: "Birinci Hüccet: Kâinat Kitabının Sahifeleri",
+      pageType: "metin",
+      arabicVerse: "أَمْ خُلِقُوا مِنْ غَيْرِ شَيْءٍ أَمْ هُمُ الْخَالِقُونَ",
+      text: "Bu kâinattaki mükemmel nizam, tesadüfe yer bırakmaz. Hiçbir harf kâtipsiz olmazken, kâinat kitabının hikmetli satırları nasıl sahipsiz kalabilir?\n\nHer bir atom, kendi başına bir ilim ve kudret mucizesidir. Bir atomu yaratıp idare etmek, bütün kâinatı yaratıp idare etmek kadar kudret ister.\n\nKâinatın sanatkârı, Vâhid-i Ehad olan Allah'tır."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Asâ-yı Mûsâ",
+      chapter: "Meyve Risalesi · Onuncu Mesele",
+      title: "Diriliş ve Haşir Hakikati",
+      pageType: "metin",
+      arabicVerse: "يَوْمَ تُبَدَّلُ الْأَرْضُ غَيْرَ الْأَرْضِ وَالسَّمَاوَاتُ وَبَرَزُوا لِلَّهِ الْوَاحِدِ الْقَهَّارِ",
+      text: "Bahar mevsiminde milyonlarca nebatat ve hayvanatı birkaç gün içinde dirilten Kudret-i Ezeliyeye, insanları haşir meydanında toplamak hiç zor gelir mi?\n\nBahar, haşrin küçük bir numunesidir. Her sene gözümüz önünde vukua gelen bu kıyametler, ebedî dirilişin en kat'î müjdecileridir.\n\nÖlüm bir son değil, hakikî hayatın başlangıcıdır."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Asâ-yı Mûsâ",
+      chapter: "Namazın Hakikati",
+      title: "Mi'râc-ı Mü'min Olan Namaz",
+      pageType: "metin",
+      arabicVerse: "وَأَقِمِ الصَّلَاةَ إِنَّ الصَّلَاةَ تَنْهَىٰ عَنِ الْفَحْشَاءِ وَالْمُنْكَرِ",
+      text: "Namaz, mü'minin mi'râcıdır. Günde beş vakit Cenâb-ı Hakk'ın huzuruna çıkıp kâinatın ibadetini arz etmektir.\n\nFâtiha ile hamd etmek, rükû ile tezellül etmek, secde ile ubudiyetin zirvesine ulaşmaktır.\n\nNamaz kılan adamın fâni dakikaları, bâkî meyveler verir; bütün meşru amelleri bir nevi nafile ibadet hükmüne geçer."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Asâ-yı Mûsâ",
+      chapter: "Hâtime",
+      title: "Asâ-yı Mûsâ'nın Kurtarıcı Darbeleri",
+      pageType: "metin",
+      arabicVerse: "وَقُلْ جَاءَ الْحَقُّ وَزَهَقَ الْبَاطِلُ إِنَّ الْبَاطِلَ كَانَ زَهُوقًا",
+      text: "Hazret-i Mûsâ'nın asâsı sihirbazların yalanlarını yuttuğu gibi; Asâ-yı Mûsâ risalesi de tabiatperestlik ve dalâlet fikirlerini çürütmüştür.\n\nBu eseri tahkik ile okuyan bir talebe, fenlerin diliyle Allah'ı tanır ve şüphelerden kurtulup kâmil imana ulaşır.\n\nİman nurları sönmez bir zırhtır; okuyucusunu dünya ve âhiret felaketlerinden muhafaza eder."
+    }
+  ],
+
+  "Sikke-i Tasdîk-i Gaybî": [
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Sikke-i Tasdîk-i Gaybî",
+      chapter: "Gaybî İşaretler",
+      title: "Kur'ân Âyetlerinin İman Hizmetine İmaları",
+      pageType: "mukaddime",
+      arabicVerse: "يَهْدِي اللَّهُ لِنُورِهِ مَنْ يَشَاءُ وَيَضْرِبُ اللَّهُ الْأَمْثَالَ لِلنَّاسِ",
+      text: "Bu risale; Kur'ân-ı Hakîm'in otuz üç âyetinin, İmam-ı Ali'nin (r.a.) Celcelûtiye kasidesinin ve Gavs-ı Âzam Abdülkadir Geylânî'nin gaybî kerametlerinin Risale-i Nur'a ve bu asrın hizmetine bakan işaretlerini beyan eder.\n\nBu gaybî tevafuklar, Nurların kendi kendine uydurulmuş bir eser değil, Kur'ân semâsından inen mânevî bir tereşşuh olduğunu ispat eder."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Sikke-i Tasdîk-i Gaybî",
+      chapter: "Âyetü'n-Nur İhわざı",
+      title: "Nûr Âyetinin Cifir ve Ebced Sırları",
+      pageType: "metin",
+      arabicVerse: "اللَّهُ نُورُ السَّمَاوَاتِ وَالْأَرْضِ مَثَلُ نُورِهِ كَمِشْكَاةٍ فِيهَا مِصْبَاحٌ",
+      text: "Âyet-i Nûr'un muazzam mânâ tabakaları arasında, ahirzamanda zuhur edecek olan Kur'ân nurlarına cifir ve ebced hesabıyla bakan harika remizler vardır.\n\nKandil içindeki zücacenin parlaklığı, Kur'ân'ın feyizli hakikatlerine ayna olan sadık talebelerin kalbini temsil eder.\n\nBu tevafuklar kalbe itminan ve şevk verir; talebelerin gayretini artırır."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Sikke-i Tasdîk-i Gaybî",
+      chapter: "İmam-ı Ali Kasidesi",
+      title: "Celcelûtiye'nin Gaybî Müjdeleri",
+      pageType: "metin",
+      arabicVerse: "وَالَّذِينَ جَاهَدُوا فِينَا لَنَهْدِيَنَّهُمْ سُبُلَنَا وَإِنَّ اللَّهَ لَمَعَ الْمُحْسِنِينَ",
+      text: "İmam-ı Ali Kerremallahu Vechehû, meşhur Celcelûtiye kasidesinde ahirzamanın zulümatına dikkat çekerek, 'Sirâcünnûr' ismini verdiği eserlerin hakikati haykıracağını gaybî bir basiretle haber vermiştir.\n\nRisale-i Nur talebelerinin maruz kaldığı musibetler ve ardından gelen inayet-i İlâhiye, asırlar evvelinden müjdelenmiş bir kader çizgisidir."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Sikke-i Tasdîk-i Gaybî",
+      chapter: "Gavs-ı Âzam'ın Kerameti",
+      title: "Kutbü'l-Ârifîn'in Teveccühü",
+      pageType: "metin",
+      arabicVerse: "أَلَا إِنَّ أَوْلِيَاءَ اللَّهِ لَا خَوْفٌ عَلَيْهِمْ وَلَا هُمْ يَحْزَنُونَ",
+      text: "Gavs-ı Âzam Şeyh Abdülkadir Geylânî (k.s.), asırlar evvelinden yazdığı kasidesinde Üstad Bediüzzaman'a ve talebelerine hitap ederek 'Korkma! Sen himayemizdesin, Kur'ân davasında sabitkadem ol' mânâsını ihsas etmiştir.\n\nBu mânevî himaye, en karanlık zindanlarda dahi Nur talebelerine sebat ve cesaret bahşetmiştir."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Sikke-i Tasdîk-i Gaybî",
+      chapter: "Tevafuk Mu'cizeleri",
+      title: "Kur'ân'daki Tevafukatın İcazı",
+      pageType: "metin",
+      arabicVerse: "كِتَابٌ أُحْكِمَتْ آيَاتُهُ ثُمَّ فُصِّلَتْ مِنْ لَدُنْ حَكِيمٍ خَبِيرٍ",
+      text: "Risale-i Nur'un sayfalarında ve Kur'ân-ı Mu'cizü'l-Beyân'ın mushafında görülen tevafuklar, gözü olan herkese kör olmadığını ispat edecek derecede bedihî bir intizam arz eder.\n\nKelimelerin ve âyetlerin birbirine bakması, tesadüfün işi olamaz; ancak kâinatı yaratan Zât'ın kudsî iradesinin bir mührüdür."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Sikke-i Tasdîk-i Gaybî",
+      chapter: "Netice-i Tasdik",
+      title: "İlâhî İnayetin Mührü",
+      pageType: "metin",
+      arabicVerse: "وَآخِرُ دَعْوَاهُمْ أَنِ الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ",
+      text: "Bütün bu gaybî işaretler ve tasdikler gösterir ki: Risale-i Nur talebeleri meşru ve kudsî bir yoldadır.\n\nŞahsiyetperestlikten uzak, sırf Kur'ân'ın hakikatine hizmet eden bu dâireye intisap edenler, ebedî sermaye kazanmaktadırlar.\n\nHamd ve senâ Cenâb-ı Hakk'a mahsustur ki bizi bu nurlarla tenvir etmiştir."
+    }
+  ],
+
+  "Mesnevî-i Nuriye": [
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Mesnevî-i Nuriye",
+      chapter: "Mukaddime",
+      title: "Nurların Fidanlığı ve Kalb Âlemi",
+      pageType: "mukaddime",
+      arabicVerse: "اعْلَمْ أَيُّهَا الْعَزِيزُ أَنَّ أَوَّلَ وَاجِبٍ عَلَى الْمُكَلَّفِ مَعْرِفَةُ اللَّهِ",
+      text: "İ'lem eyyühe'l-aziz! Bil ki; bu eser Risale-i Nur Külliyatı'nın bir fidanlığı, çekirdeği ve hülasası hükmündedir.\n\nBediüzzaman'ın Eski Said devrinden Yeni Said devrine intikal ederken Arapça olarak kaleme aldığı bu şaheser, doğrudan doğruya Kur'ân-ı Kerîm'den kalbe damlayan hakikat katreleridir.\n\nHer bir 'İ'lem' başlığı, gafleti dağıtan ve nefsi dize getiren birer hikmet mızrağıdır."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Mesnevî-i Nuriye",
+      chapter: "Habbe Risalesi",
+      title: "Dört Kelime ve Dört Kelâm",
+      pageType: "metin",
+      arabicVerse: "يَا مَنْ دَلَّ عَلَى ذَاتِهِ بِذَاتِهِ وَتَنَزَّهَ عَنْ مُجَانَسَةِ مَخْلُوقَاتِهِ",
+      text: "Ömrümde kırk sene tahsil ve otuz sene tefekkürden sonra dört kelime ile dört kelâm öğrendim:\n\nDört Kelime: 'Mâna-yı harfî', 'Mâna-yı ismî', 'Niyet' ve 'Nazar'dır.\n\nDört Kelâm: 'Ben kendime mâlik değilim', 'Ölüm haktır', 'Rabbim birdir' ve 'Ene bir aynadır'. Eşyaya Allah namına bakarsan mâna-yı harfî olur, nur saçılır; nefis namına bakarsan zulmet olur."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Mesnevî-i Nuriye",
+      chapter: "Zerre Risalesi",
+      title: "Tahavvülât-ı Zerrat Hikmeti",
+      pageType: "metin",
+      arabicVerse: "لَا يَعْزُبُ عَنْهُ مِثْقَالُ ذَرَّةٍ فِي السَّمَاوَاتِ وَلَا فِي الْأَرْضِ",
+      text: "İ'lem eyyühe'l-aziz! Kâinattaki zerrelerin hareket ve intizamı, Kadîr-i Ezelî'nin tasarrufunu ilan eder.\n\nBir zerre, vücuda girdiği vakit vazifesini bilir gibi hareket eder. Cansız, şuursuz bir zerrenin bu intizamı; her şeyi bilen ve her şeye hükmeden bir Sâni'-i Zülcelâl'in mevcudiyetini güneşe nispetle daha parlak gösterir."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Mesnevî-i Nuriye",
+      chapter: "Şemme Risalesi",
+      title: "Vahdet ve Ubudiyet Menfezleri",
+      pageType: "metin",
+      arabicVerse: "وَفِي كُلِّ شَيْءٍ لَهُ آيَةٌ تَدُلُّ عَلَى أَنَّهُ وَاحِدٌ",
+      text: "İ'lem eyyühe'l-aziz! İnsanın fıtratında nihayetsiz bir acz ve fakr vardır. Bu iki kanat, insanı dergâh-ı İlâhiyeye uçuracak en kuvvetli vesiledir.\n\nNefis kendini müstakil zannettikçe küçülür ve batar; aczini anlayıp Rabbine iltica ettikçe büyür ve kâinata sultan olur.\n\nUbudiyet, insanın fıtrî şerefi ve hakikî makamıdır."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Mesnevî-i Nuriye",
+      chapter: "Lasiyyemalar",
+      title: "Tevhid Nurları ve Kalb İnkişafı",
+      pageType: "metin",
+      arabicVerse: "شَهِدَ اللَّهُ أَنَّهُ لَا إِلٰهَ إِلَّا هُوَ وَالْمَلَائِكَةُ وَأُولُو الْعِلْمِ",
+      text: "İ'lem eyyühe'l-aziz! Kâinattaki bütün güzellikler, sermedî bir cemâlin gölgeleridir.\n\nAynanın kırılmasıyla güneş batmaz; güneş semâda bâkîdir. Mahlûkatın zeval bulmasıyla esmâ-i hüsnâ tükenmez; tecellîler daima yenilenir.\n\nFâni mevcudata değil, o tecellîleri bahşeden Bâkî-i Zülcelâl'e kalbini bağla."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Mesnevî-i Nuriye",
+      chapter: "Hâtime-i Mesnevî",
+      title: "Tazarru ve Niyaz Makamı",
+      pageType: "metin",
+      arabicVerse: "رَبَّنَا لَا تُؤَاخِذْنَا إِنْ نَسِينَا أَوْ أَخْطَأْنَا",
+      text: "Mesnevî-i Nuriye'nin son sayfaları, aczini müdrik bir kulun dergâh-ı Rahmet'e sunduğu samimî gözyaşlarıdır.\n\n'Ey Rabbimiz! Günahlarımızı bağışla, bizi nefsimizin eline bırakma, kalbimizi iman nuruyla nurlandır' niyazıyla nihayete erer.\n\nBu dersi kalb kulağıyla dinleyenler, hakikî marifetullah deryasına gark olurlar."
+    }
+  ],
+
+  "İşârâtü'l-İ'caz": [
+    {
+      kulliyat: "Risale-i Nur Külliyatı · İşârâtü'l-İ'caz",
+      chapter: "Mukaddime",
+      title: "Harp Meydanında Yazılan Tefsir",
+      pageType: "mukaddime",
+      arabicVerse: "الم ۞ ذَٰلِكَ الْكِتَابُ لَا رَيْبَ فِيهِ هُدًى لِلْمُتَّقِينَ",
+      text: "Bu muazzam tefsir, Birinci Cihan Harbi'nin en dehşetli cephelerinde, Pasinler ve Bitlis müdafaasında at sırtında telif edilmiştir.\n\nBediüzzaman avcı hattında mermiler yağarken talebesi Molla Habib'e 'Yaz kardeşim!' diyerek Kur'ân'ın nazmındaki i'caz nüktelerini dikte ettirmiştir.\n\nKur'ân-ı Hakîm'in harf, kelime ve cümlelerindeki sarsılmaz intizam ve fesahat mucizesi bu eserde harika bir vukufla izah edilmiştir."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · İşârâtü'l-İ'caz",
+      chapter: "Fâtiha Tefsiri",
+      title: "Kâinatın Fihristesi Olan Sûre",
+      pageType: "metin",
+      arabicVerse: "إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ ۞ اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ",
+      text: "Fâtiha sûresi, Kur'ân'ın bütün hakikatlerini çekirdek misali ihtiva eden bir mu'cizedir.\n\n'İyyâke na'büdü' cümlesi, insanın bütün kâinat namına Rabbine sunduğu bir ahd-ü peymandır.\n\n'İhdina's-sırâta'l-müstakîm' niyazı ise; ifrat ve tefritten uzak, adalet ve istikamet dairesinde yaşama talebidir."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · İşârâtü'l-İ'caz",
+      chapter: "Bakara Sûresi",
+      title: "Müttakîlerin Sıfatları ve Gayba İman",
+      pageType: "metin",
+      arabicVerse: "الَّذِينَ يُؤْمِنُونَ بِالْغَيْبِ وَيُقِيمُونَ الصَّلَاةَ وَمِمَّا رَزَقْنَاهُمْ يُنْفِقُونَ",
+      text: "Gayba iman etmek, aklın ve kalbin madde hapishanesinden kurtularak mânevî âlemlere kanatlanmasıdır.\n\nNamaz kılmak, kâinattaki bütün mevcudatın ibadetlerine tercüman olmaktır.\n\nİnfak etmek ise; cemiyetteki sınıf çatışmalarını ve servet düşmanlığını kaldıran en adilâne uhuvvet köprüsüdür."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · İşârâtü'l-İ'caz",
+      chapter: "İ'caz-ı Nazmî",
+      title: "Kelamullah'ın Eşsiz Âhengi",
+      pageType: "metin",
+      arabicVerse: "وَإِنْ كُنْتُمْ فِي رَيْبٍ مِمَّا نَزَّلْنَا عَلَىٰ عَبْدِنَا فَأْتُوا بِسُورَةٍ مِنْ مِثْلِهِ",
+      text: "Kur'ân-ı Hakîm'in kelimeleri öyle bir hendese ile dizilmiştir ki; bir tek harf yerinden çıkarılsa cümle binası sarsılır.\n\nCahiliye devrinin en meşhur şairleri ve edipleri, Kur'ân'ın bir tek sûresine nazire yapamamış ve acz ile secdeye kapanmışlardır.\n\nKur'ân'ın fesahati, beşer takatinin fevkindedir."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · İşârâtü'l-İ'caz",
+      chapter: "Halk ve İbâdet",
+      title: "Tevhid Delilleri ve İnsanın Vazifesi",
+      pageType: "metin",
+      arabicVerse: "يَا أَيُّهَا النَّاسُ اعْبُدُوا رَبَّكُمُ الَّذِي خَلَقَكُمْ وَالَّذِينَ مِنْ قَبْلِكُمْ لَعَلَّكُمْ تَتَّقُونَ",
+      text: "Ey insanlar! Sizi ve sizden öncekileri yaratan Rabbinize ibadet ediniz.\n\nSemâyı bir çatı, arzı bir döşek kılan ve semâdan yağmur indirip rızık yetiştiren Zât'a hiçbir şeyi şerik koşmayınız.\n\nİbadet, insanın nankörlükten kurtulup şükür tacını giymesidir."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · İşârâtü'l-İ'caz",
+      chapter: "Tefsirin Sonu",
+      title: "Kur'ân'ın Ebedî İ'cazı",
+      pageType: "metin",
+      arabicVerse: "قُلْ لَئِنِ اجْتَمَعَتِ الْإِنْسُ وَالْجِنُّ عَلَىٰ أَنْ يَأْتُوا بِمِثْلِ هٰذَا الْقُرْآنِ لَا يَأْتُونَ بِمِثْلِهِ",
+      text: "İşârâtü'l-İ'caz, asrımızın fen ve felsefe hücumlarına karşı Kur'ân'ın harf harf nasıl bir elmas kalkan olduğunu göstermiştir.\n\nBu tefsiri okuyanlar; Kur'ân'ın beşer kelâmı olmadığını, bizzat Hâlık-ı Zülcelâl'in ezelî ve ebedî hitabı olduğunu sarsılmaz bir yakin ile tasdik ederler."
+    }
+  ],
+
+  "Muhakemat": [
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Muhakemat",
+      chapter: "Mukaddime",
+      title: "Akıl ve Nakil Muvazenesi",
+      pageType: "mukaddime",
+      arabicVerse: "ادْعُ إِلَىٰ سَبِيلِ رَبِّكَ بِالْحِكْمَةِ وَالْمَوْعِظَةِ الْحَسَنَةِ وَجَادِلْهُمْ بِالَّتِي هِيَ أَحْسَنُ",
+      text: "Bu eser, tefsir usûlünün ve İslâmî mantığın en temel kaidelerini vaz'eden bir usûl şaheseridir.\n\nBediüzzaman der: 'Akıl ve nakil teâruz ettikleri vakitte, akıl asıl itibar olunur ve nakil te'vil edilir; fakat o akıl, akıl olmak gerektir.'\n\nHurafeleri ve israiliyatı İslâm akidesinden ayıklayarak Kur'ân hakikatlerini berrak bir ayna ile göstermek bu eserin gayesidir."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Muhakemat",
+      chapter: "Birinci Makale · Unsuru'l-Hakikat",
+      title: "Hakikatin Esasları ve Delil Terazisi",
+      pageType: "metin",
+      arabicVerse: "قُلْ هَاتُوا بُرْهَانَكُمْ إِنْ كُنْتُمْ صَادِقِينَ",
+      text: "Hakikati arayan insana gerektir ki: Taassubu bıraksın, delile tâbi olsun.\n\nBir fikrin doğruluğu, söyleyenin şöhretiyle değil, bürhanının kuvvetiyle ölçülür.\n\nMuhakemesiz taklit insanı cehalete sürükler; tahkik ve tefekkür ise hakikî imana ulaştırır."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Muhakemat",
+      chapter: "İkinci Makale · Unsuru'l-Belâgat",
+      title: "Sözün Kıymeti ve Belâgat Kanunları",
+      pageType: "metin",
+      arabicVerse: "الرَّحْمٰنُ ۞ عَلَّمَ الْقُرْآنَ ۞ خَلَقَ الْإِنْسَانَ ۞ عَلَّمَهُ الْبَيَانَ",
+      text: "Kelâmın hayatı; mâna ile lafzın tenasübündedir. Mânasız lafız süsü bir cesede elbise giydirmek gibidir.\n\nKur'ân-ı Hakîm'in belâgati, ifrat ve tefritten münezzeh olarak hakikati tam ve noksansız ifade etmesindedir.\n\nSözün en güzeli, hakkı tebliğ eden ve kalbi hidayete sevk eden sözdür."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Muhakemat",
+      chapter: "Üçüncü Makale · Unsuru'l-Akîde",
+      title: "Nübüvvet ve Haşir Bürhanları",
+      pageType: "metin",
+      arabicVerse: "أَفَحَسِبْتُمْ أَنَّمَا خَلَقْنَاكُمْ عَبَثًا وَأَنَّكُمْ إِلَيْنَا لَا تُرْجَعُونَ",
+      text: "Bu kâinat sarayının gayesi عبesiyet olamaz. İnsanın dünyaya gönderilmesi, nihayetsiz hikmetler ve gayeler içindir.\n\nNübüvvet, beşeriyetin karanlık yollarını aydınlatan bir meş'aledir. Haşir ise, adaletin tecellî edeceği ve amellerin karşılığını bulacağı adl-i İlâhî mahkemesidir."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Muhakemat",
+      chapter: "İsrailiyat Tenkidi",
+      title: "Kur'ân'ı Hurafelerden Tenzih",
+      pageType: "metin",
+      arabicVerse: "بَلْ نَقْذِفُ بِالْحَقِّ عَلَى الْبَاطِلِ فَيَدْمَغُهُ فَإِذَا هُوَ زَاهِقٌ",
+      text: "Eski devirlerden kalma masalları ve hurafeleri Kur'ân tefsirine karıştırmak, hakikat elmasını çamura atmak gibidir.\n\nKur'ân akla hitap eder, fen ve ilimle asla çelişmez; bilakis kâinat fenni Kur'ân'ın mûcizevi âyetlerini tasdik eden birer şahittir."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · Muhakemat",
+      chapter: "Hâtime",
+      title: "İstikbalde İslâmiyet'in Hâkimiyeti",
+      pageType: "metin",
+      arabicVerse: "وَيَأْبَى اللَّهُ إِلَّا أَنْ يُتِمَّ نُورَهُ وَلَوْ كَرِهَ الْكَافِرُونَ",
+      text: "Bediüzzaman müjdeler: 'İstikbal yalnız ve yalnız İslâmiyet'in olacaktır. Ve hâkim, hakaik-i Kur'âniye ve imaniye olacaktır.'\n\nAkıl ve ilim inkişaf ettikçe, beşeriyet Kur'ân'ın hakikatlerine muhtaç olduğunu görecek ve fevc fevc hakikate koşacaktır.\n\nMuhakemat, bu nurlu istikbalin usûl haritasıdır."
     }
   ]
 };
 
+// Aliases for shelf ASCII titles
+RISALE_TEXTS["Sozler"] = RISALE_TEXTS["Sözler"];
+RISALE_TEXTS["Sualar"] = RISALE_TEXTS["Şualar"];
+RISALE_TEXTS["Lem'alar"] = RISALE_TEXTS["Lem'alar"];
+RISALE_TEXTS["Lemalar"] = RISALE_TEXTS["Lem'alar"];
+RISALE_TEXTS["Tarihce-i Hayat"] = RISALE_TEXTS["Tarihçe-i Hayat"];
+RISALE_TEXTS["Barla Lahikasi"] = RISALE_TEXTS["Barla Lâhikası"];
+RISALE_TEXTS["Kastamonu Lahikasi"] = RISALE_TEXTS["Kastamonu Lâhikası"];
+RISALE_TEXTS["Emirdag Lahikasi"] = RISALE_TEXTS["Emirdağ Lâhikası"];
+RISALE_TEXTS["Asa-yi Musa"] = RISALE_TEXTS["Asâ-yı Mûsâ"];
+RISALE_TEXTS["Sikke-i Tasdik"] = RISALE_TEXTS["Sikke-i Tasdîk-i Gaybî"];
+RISALE_TEXTS["Mesnevi-i Nuriye"] = RISALE_TEXTS["Mesnevî-i Nuriye"];
+RISALE_TEXTS["Isarat-ul I'caz"] = RISALE_TEXTS["İşârâtü'l-İ'caz"];
+RISALE_TEXTS["Isaratul-I'caz"] = RISALE_TEXTS["İşârâtü'l-İ'caz"];
+
 function generateRisaleChapters(title){
+  var norm = normalizeBookTitle(title) || title;
   return [
     {
-      kulliyat: "Risale-i Nur Külliyatı · " + title,
+      kulliyat: "Risale-i Nur Külliyatı · " + norm,
       chapter: "Mukaddime",
-      title: title + " Eserinin Esasları",
+      title: norm + " Eserinin Kudsî Esasları",
       pageType: "mukaddime",
-      text: title + " eseri, Risale-i Nur Külliyatı'nın en mühim rükünlerinden biridir. Kur'ân-ı Hakîm'in feyzinden tereşşuh eden bu nuranî dersler; akıl, kalb ve vicdanı tenvir ederek hakikate ulaştırır.\n\nBu eserde işlenen hakikatler, şüpheleri zail eden bürhanlar ve sarsılmaz deliller ile teyit edilmiştir. Okuyucu, her bir satırda marifetullahın derinliklerine ve tefekkürün feyizli iklimine davet edilir."
+      arabicVerse: "بِسْمِ اللَّهِ الرَّحْمٰنِ الرَّحِيمِ ۞ وَبِهِ نَسْتَعِينُ",
+      text: norm + " eseri, Risale-i Nur Külliyatı'nın en mühim rükünlerinden biridir. Kur'ân-ı Hakîm'in feyzinden tereşşuh eden bu nuranî dersler; akıl, kalb ve vicdanı tenvir ederek hakikate ulaştırır.\n\nBu eserde işlenen hakikatler, şüpheleri zail eden bürhanlar ve sarsılmaz deliller ile teyit edilmiştir. Okuyucu, her bir satırda marifetullahın derinliklerine ve tefekkürün feyizli iklimine davet edilir."
     },
     {
-      kulliyat: "Risale-i Nur Külliyatı · " + title,
+      kulliyat: "Risale-i Nur Külliyatı · " + norm,
       chapter: "Birinci Fasıl",
       title: "İman ve Hikmet Pencereleri",
       pageType: "metin",
-      text: "Bediüzzaman Said Nursî der: 'Kur'ân'ın bu asırdaki manevî bir mu'cizesi olan Risale-i Nur, yalnız aklı ikna etmekle kalmaz; kalbi tatmin, nefsi teslim, ruhu inkişaf ettirir.'\n\nBu mübarek sayfalar, kâinat meşherinde parlayan cemâl-i İlâhîyi temaşa ettirir. Tefekkür ile okuyan bir mü'min, dünyanın fani endişelerinden sıyrılarak ebedî saadet müjdesine nail olur."
+      arabicVerse: "إِنَّ فِي خَلْقِ السَّمَاوَاتِ وَالْأَرْضِ وَاخْتِلَافِ اللَّيْلِ وَالنَّهَارِ لَآيَاتٍ لِأُولِي الْأَلْبَابِ",
+      text: "Bediüzzaman Said Nursî der: 'Kur'ân'ın bu asırdaki manevî bir mu'cizesi olan Risale-i Nur, yalnız aklı ikna etmekle kalmaz; kalbi tatmin, nefsi teslim, ruhu inkişaf ettirir.'\n\nBu mübârek sayfalar, kâinat meşherinde parlayan cemâl-i İlâhîyi temaşa ettirir. Tefekkür ile okuyan bir mü'min, dünyanın fâni endişelerinden sıyrılarak ebedî saadet müjdesine nail olur."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · " + norm,
+      chapter: "İkinci Fasıl",
+      title: "Tevhid ve Marifetullah Nur'u",
+      pageType: "metin",
+      arabicVerse: "لَا إِلٰهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ ۞ لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ",
+      text: "Bütün kâinat lisan-ı haliyle bir Vâhid-i Ehad'e şehadet etmektedir. Her bir çiçekte açan nakış, her bir meyvedeki intizam, Hâlık-ı Rahîm'in cemâl ve kemâlini ilan eder.\n\nİnsan bu âleme marifetullah ve ibadet için gönderilmiştir. Bu hakikati derk eden bir mü'min, kâinatın her hadisesini nurlu bir hikmet aynasında temaşa eder."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · " + norm,
+      chapter: "Üçüncü Fasıl",
+      title: "İhlas ve Uhuvvet Düsturları",
+      pageType: "metin",
+      arabicVerse: "إِنَّمَا الْمُؤْمِنُونَ إِخْوَةٌ فَأَصْلِحُوا بَيْنَ أَخَوَيْكُمْ",
+      text: "Bu kudsî hizmette en büyük kuvvet ihlastır. Rıza-yı İlâhî gözetildiği vakit, ameller zerre kadar dahi olsa dağlar hükmüne geçer.\n\nKardeşler birbirinin meziyetiyle iftihar etmeli, kusurunu örtmeli ve hakikat davasında tesanüd ile omuz omuza yürümelidir."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · " + norm,
+      chapter: "Dördüncü Fasıl",
+      title: "Âhiret ve Ebediyet Tesellisi",
+      pageType: "metin",
+      arabicVerse: "يَا بَاقِي أَنْتَ الْبَاقِي ۞ يَا بَاقِي أَنْتَ الْبَاقِي",
+      text: "Dünya bir misafirhanedir; insan onda az duran bir yolcudur. Kabir kapısı kapanmıyor ve ölüm öldürülmüyor; öyle ise ebedî saadet yurduna hazırlık yapmak en akıllıca iştir.\n\nİman nuruyla ölüm, bir idam-ı ebedî değil; ahbaba kavuşma ve Cennet saraylarına davettir."
+    },
+    {
+      kulliyat: "Risale-i Nur Külliyatı · " + norm,
+      chapter: "Hâtime",
+      title: "Dua ve Niyaz Makamı",
+      pageType: "metin",
+      arabicVerse: "سُبْحَانَكَ لَا عِلْمَ لَنَا إِلَّا مَا عَلَّمْتَنَا إِنَّكَ أَنْتَ الْعَلِيمُ الْحَكِيمُ",
+      text: "Risale-i Nur talebelerinin duası; âlem-i İslâm'ın intibahı, insanlığın hidayeti ve ebedî saadete nailiyet içindir.\n\nHamd olsun O Zât-ı Zülcelâl'e ki bizleri bu nurlarla tenvir eyledi. Dualarımızın hatimesi dâima hamd-ü senâdır."
     }
   ];
 }
 
 function getBookPages(title){
+  var norm = normalizeBookTitle(title);
+  // 1. Custom books check
   for(var i=0;i<customBooks.length;i++){
-    if(customBooks[i].title===title&&customBooks[i].pages&&customBooks[i].pages.length){
+    if((customBooks[i].title===title || normalizeBookTitle(customBooks[i].title)===norm) && customBooks[i].pages && customBooks[i].pages.length){
       var cDesc = customBooks[i].desc || "PDF Eseri";
       return customBooks[i].pages.map(function(p,idx){
         if(typeof p === "object" && p !== null){
@@ -1426,6 +2004,7 @@ function getBookPages(title){
             title: p.title || (title + " · Sayfa " + (idx+1)),
             pageType: idx===0 ? "mukaddime" : "metin",
             text: p.text || "",
+            arabicVerse: p.arabicVerse || null,
             imageData: p.imageData || null
           };
         }
@@ -1439,10 +2018,15 @@ function getBookPages(title){
       });
     }
   }
-  if(RISALE_TEXTS[title]&&RISALE_TEXTS[title].length){
+  // 2. Exact match in canonical texts
+  if(RISALE_TEXTS[norm] && RISALE_TEXTS[norm].length){
+    return RISALE_TEXTS[norm];
+  }
+  if(RISALE_TEXTS[title] && RISALE_TEXTS[title].length){
     return RISALE_TEXTS[title];
   }
-  return generateRisaleChapters(title);
+  // 3. Dynamic generator
+  return generateRisaleChapters(norm || title);
 }
 
 function formatTomeHTML(page){
@@ -1454,12 +2038,31 @@ function formatTomeHTML(page){
   if(page.title){
     html+="<h4>"+escHTML(page.title)+"</h4>";
   }
-  if(page.pageType==="mukaddime"){
-    html+="<div class='bismillah-art'>بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيمِ</div>";
+  if(page.pageType==="mukaddime" || page.bismillah !== false && (page.arabicVerse || page.pageType==="mukaddime")){
+    html+="<div class='bismillah-art' dir='rtl' lang='ar'>بِسْمِ اللَّهِ الرَّحْمٰنِ الرَّحِيمِ</div>";
+  }
+  if(page.arabicVerse){
+    html+="<div class='arabic-verse' dir='rtl' lang='ar'>"+escHTML(page.arabicVerse)+"</div>";
   }
   if(page.text){
-    html+=page.text.split(/\n{2,}/).map(function(p){
-      return "<p>"+escHTML(p.trim()).replace(/\n/g,"<br>")+"</p>";
+    var paragraphs = page.text.split(/\n{2,}/);
+    html += paragraphs.map(function(p){
+      var clean = p.trim();
+      if(!clean) return "";
+      // Detect if whole paragraph is Arabic
+      var arabicChars = (clean.match(/[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]/g) || []).length;
+      var nonSpaceChars = clean.replace(/\s+/g, "").length;
+      if(arabicChars > 6 && arabicChars / nonSpaceChars > 0.45){
+        return "<div class='arabic-block' dir='rtl' lang='ar'>" + escHTML(clean).replace(/\n/g, "<br>") + "</div>";
+      }
+      // Wrap inline Arabic text in arabic-inline span
+      var formatted = escHTML(clean).replace(/[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF][\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF\s\u064B-\u065F\u0670]*/g, function(arMatch){
+        if(arMatch.trim().length > 2){
+          return "<span class='arabic-inline' dir='rtl' lang='ar'>" + arMatch + "</span>";
+        }
+        return arMatch;
+      });
+      return "<p>"+formatted.replace(/\n/g,"<br>")+"</p>";
     }).join("");
   }
   return html;
@@ -1484,7 +2087,10 @@ function renderSpread(){
   if(leftPage){
     if(leftKulliyatEl)leftKulliyatEl.textContent=leftPage.kulliyat||("Risale-i Nur · "+currentBookTitle);
     if(leftRunningHeadEl)leftRunningHeadEl.textContent=leftPage.chapter||currentBookTitle;
-    if(leftPageBodyEl)leftPageBodyEl.innerHTML=formatTomeHTML(leftPage);
+    if(leftPageBodyEl){
+      leftPageBodyEl.innerHTML=formatTomeHTML(leftPage);
+      leftPageBodyEl.scrollTop=0;
+    }
     if(leftPageNumEl)leftPageNumEl.textContent=leftIdx+1;
   }else{
     if(leftPageBodyEl)leftPageBodyEl.innerHTML="";
@@ -1493,11 +2099,17 @@ function renderSpread(){
 
   if(rightPage){
     if(rightChapterTagEl)rightChapterTagEl.textContent=rightPage.chapter||currentBookTitle;
-    if(rightPageBodyEl)rightPageBodyEl.innerHTML=formatTomeHTML(rightPage);
+    if(rightPageBodyEl){
+      rightPageBodyEl.innerHTML=formatTomeHTML(rightPage);
+      rightPageBodyEl.scrollTop=0;
+    }
     if(rightPageNumEl)rightPageNumEl.textContent=rightIdx+1;
   }else{
     if(rightChapterTagEl)rightChapterTagEl.textContent="";
-    if(rightPageBodyEl)rightPageBodyEl.innerHTML="<div style='display:flex;align-items:center;justify-content:center;height:100%;color:#a08246;font-style:italic;padding:40px;text-align:center;'>Faslın Sonu · Külliyat'ın bir sonraki risalesine geçebilirsiniz.</div>";
+    if(rightPageBodyEl){
+      rightPageBodyEl.innerHTML="<div style='display:flex;align-items:center;justify-content:center;height:100%;color:#a08246;font-style:italic;padding:40px;text-align:center;'>Faslın Sonu · Külliyat'ın bir sonraki risalesine geçebilirsiniz.</div>";
+      rightPageBodyEl.scrollTop=0;
+    }
     if(rightPageNumEl)rightPageNumEl.textContent="";
   }
 
@@ -1510,21 +2122,24 @@ function updateChrome(){
   var leftNum=pageIdx+1;
   var progress=Math.min(100,(rightNum/total)*100);
 
-  readerProgressFill.style.width=progress.toFixed(1)+"%";
-  readerPageLabel.textContent="Sayfa "+leftNum+(rightNum>leftNum?(" - "+rightNum):"")+" / "+total;
-  readerPrev.disabled=pageIdx<=0;
-  readerNext.disabled=pageIdx+2>=total;
+  if(readerProgressFill)readerProgressFill.style.width=progress.toFixed(1)+"%";
+  if(readerPageLabel)readerPageLabel.textContent="Sayfa "+leftNum+(rightNum>leftNum?(" - "+rightNum):"")+" / "+total;
+  if(readerPrev)readerPrev.disabled=pageIdx<=0;
+  if(readerNext)readerNext.disabled=pageIdx+2>=total;
 
   var key=currentBookTitle+":"+pageIdx;
-  bookmarkBtn.innerHTML=bookmarks[key]?"★":"☆";
-  bookmarkBtn.classList.toggle("active",!!bookmarks[key]);
+  if(bookmarkBtn){
+    bookmarkBtn.innerHTML=bookmarks[key]?"★":"☆";
+    bookmarkBtn.classList.toggle("active",!!bookmarks[key]);
+  }
 }
 
 function openReader(title,isDirect3D){
-  currentBookTitle=title;
-  currentPages=getBookPages(title);
-  pageIdx=0;
-  readerTitle.textContent=title;
+  var canonicalTitle = normalizeBookTitle(title) || title;
+  currentBookTitle = canonicalTitle;
+  currentPages = getBookPages(canonicalTitle);
+  pageIdx = 0;
+  if(readerTitle)readerTitle.textContent = canonicalTitle;
   renderSpread();
   closeModal();
   readerEl.classList.add("open");
@@ -1560,15 +2175,22 @@ function closeReader(){
 function turnSpread(dir){
   if(isFlipping)return;
   var newIdx=pageIdx+dir*2;
-  if(newIdx<0||newIdx>=currentPages.length)return;
+  if(newIdx<0){
+    showToast("İlk sayfadasınız.");
+    return;
+  }
+  if(newIdx>=currentPages.length){
+    showToast("Kitabın son sayfasına ulaştınız.");
+    return;
+  }
   isFlipping=true;
   playTurn();
 
   var tomeBook=document.getElementById("tomeBook");
   if(tomeBook){
-    tomeBook.style.transition="opacity 0.22s ease, transform 0.22s ease";
-    tomeBook.style.opacity="0.45";
-    tomeBook.style.transform=dir>0?"scale(0.985) translateX(-6px)":"scale(0.985) translateX(6px)";
+    tomeBook.style.transition="opacity 0.2s ease, transform 0.2s ease";
+    tomeBook.style.opacity="0.5";
+    tomeBook.style.transform=dir>0?"scale(0.985) translateX(-8px)":"scale(0.985) translateX(8px)";
   }
 
   setTimeout(function(){
@@ -1579,24 +2201,31 @@ function turnSpread(dir){
       tomeBook.style.transform="none";
     }
     isFlipping=false;
-  },220);
+  },200);
 }
 
 document.getElementById("modalOpenReader").addEventListener("click",function(){openReader(modalTitle.textContent);});
 document.getElementById("readerClose").addEventListener("click",closeReader);
-readerPrev.addEventListener("click",function(){turnSpread(-1);});
-readerNext.addEventListener("click",function(){turnSpread(1);});
+if(readerPrev)readerPrev.addEventListener("click",function(){turnSpread(-1);});
+if(readerNext)readerNext.addEventListener("click",function(){turnSpread(1);});
 
 var tomePageLeft=document.getElementById("tomePageLeft");
 var tomePageRight=document.getElementById("tomePageRight");
-if(tomePageLeft)tomePageLeft.addEventListener("click",function(){turnSpread(-1);});
-if(tomePageRight)tomePageRight.addEventListener("click",function(){turnSpread(1);});
+if(tomePageLeft)tomePageLeft.addEventListener("click",function(e){
+  if(window.getSelection && window.getSelection().toString().length > 0) return;
+  turnSpread(-1);
+});
+if(tomePageRight)tomePageRight.addEventListener("click",function(e){
+  if(window.getSelection && window.getSelection().toString().length > 0) return;
+  turnSpread(1);
+});
 
 document.getElementById("fontDec").addEventListener("click",function(){readerFontSize=Math.max(0.75,readerFontSize-0.08);readerEl.style.setProperty("--reader-font",readerFontSize+"rem");});
 document.getElementById("fontInc").addEventListener("click",function(){readerFontSize=Math.min(1.35,readerFontSize+0.08);readerEl.style.setProperty("--reader-font",readerFontSize+"rem");});
 toneBtn.addEventListener("click",function(){readerEl.classList.toggle("tone-gece");toneBtn.classList.toggle("active");});
 bookmarkBtn.addEventListener("click",function(){var key=currentBookTitle+":"+pageIdx;bookmarks[key]=!bookmarks[key];updateChrome();});
 window.addEventListener("keydown",function(e){if(!readerEl.classList.contains("open"))return;if(e.key==="ArrowRight")turnSpread(1);else if(e.key==="ArrowLeft")turnSpread(-1);else if(e.key==="Escape")closeReader();});
+
 
 /* ── TOAST NOTIFICATION HELPER ───────────────────────────── */
 var libToast=document.getElementById("lib-toast"),toastTimer;
