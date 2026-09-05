@@ -2705,11 +2705,12 @@ async function extractPdfDocument(file, onProgress){
   var buf = await file.arrayBuffer();
   var doc = await window.pdfjsLib.getDocument({ data: buf, cMapUrl: "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/cmaps/", cMapPacked: true }).promise;
   var pages = [];
-  var total = Math.min(doc.numPages, 120);
+  var total = doc.numPages; // Sınır kaldırıldı: PDF kaç sayfa ise tamamı eksiksiz taranır
 
-  // Cihaz piksel yoğunluğunu hesaba kat (retina için 1.5, max 2.0)
+  // Cihaz ve sayfa sayısına göre optimize render ölçeği (büyük kitaplarda bellek korumalı)
   var deviceScale = Math.min(window.devicePixelRatio || 1, 2);
-  var renderScale = Math.max(1.5, deviceScale);
+  var renderScale = total > 250 ? 1.35 : Math.max(1.5, deviceScale);
+  var quality = total > 250 ? 0.82 : 0.88;
 
   for(var i=1; i<=total; i++){
     if(onProgress) onProgress(i, total);
@@ -2727,7 +2728,7 @@ async function extractPdfDocument(file, onProgress){
         offCtx.fillStyle = "#f8f4e8";
         offCtx.fillRect(0, 0, offCanvas.width, offCanvas.height);
         await page.render({ canvasContext: offCtx, viewport: viewport, background: "rgba(248,244,232,1)" }).promise;
-        imageData = offCanvas.toDataURL("image/jpeg", 0.88);
+        imageData = offCanvas.toDataURL("image/jpeg", quality);
         // Bellekten temizle
         offCanvas.width = 1; offCanvas.height = 1;
       }catch(renderErr){
@@ -2740,6 +2741,11 @@ async function extractPdfDocument(file, onProgress){
         text: "",         // Ham metin gösterilmez – her zaman görüntü kullanılır
         imageData: imageData
       });
+
+      // Büyük PDF'lerde tarayıcı arayüzünün (progress bar) akıcı kalması için kısa nefes al
+      if(i % 5 === 0) {
+        await new Promise(function(resolve){ setTimeout(resolve, 4); });
+      }
     }catch(pageErr){
       console.warn("PDF sayfa hatası:", i, pageErr);
       pages.push({ pageNumber: i, title: "Sayfa " + i, text: "Bu sayfa görüntülenemedi.", imageData: null });
