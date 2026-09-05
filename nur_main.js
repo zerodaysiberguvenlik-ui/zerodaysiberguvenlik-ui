@@ -464,18 +464,30 @@ modal.addEventListener("click",function(e){if(e.target===modal)closeModal();});
 var stageManagers=new Map();
 var texBookCache={};
 
-function getBookTextures(title,theme){
-  var key=title+"_"+theme;
+function getBookTextures(title,theme,customColor){
+  var isCustom = false;
+  if(window.customBooks && window.customBooks.length){
+    var cb = window.customBooks.find(function(b){ return b.title === title; });
+    if(cb){
+      isCustom = true;
+      if(!customColor && cb.color) customColor = cb.color;
+    }
+  }
+  var key=title+"_"+theme+"_"+(customColor||"");
   if(texBookCache[key])return texBookCache[key];
 
   // 1. Kapak Dokusu (512 x 768)
   var cCov=document.createElement("canvas");cCov.width=512;cCov.height=768;
   var ctx=cCov.getContext("2d");
   var g=ctx.createLinearGradient(0,0,512,768);
-  if(theme==="hayat"){
+  if(customColor==="emerald"||theme==="hayat"){
     g.addColorStop(0,"#1a4229");g.addColorStop(0.5,"#0e2a18");g.addColorStop(1,"#06170d");
-  }else if(theme==="risaleler"){
+  }else if(customColor==="sapphire"||theme==="risaleler"){
     g.addColorStop(0,"#182a44");g.addColorStop(0.5,"#0e1929");g.addColorStop(1,"#060c14");
+  }else if(customColor==="leather"){
+    g.addColorStop(0,"#4a2c16");g.addColorStop(0.5,"#2b190c");g.addColorStop(1,"#150b05");
+  }else if(customColor==="royal"){
+    g.addColorStop(0,"#431d4a");g.addColorStop(0.5,"#260f2a");g.addColorStop(1,"#130615");
   }else{
     g.addColorStop(0,"#7a1620");g.addColorStop(0.5,"#480b12");g.addColorStop(1,"#240508");
   }
@@ -501,7 +513,7 @@ function getBookTextures(title,theme){
   // Üst Kitabe
   ctx.fillStyle="#F7DF88";ctx.font="bold 15px 'Instrument Sans',sans-serif";
   ctx.textAlign="center";ctx.textBaseline="middle";
-  ctx.fillText("R İ S A L E - İ   N U R",256,110);
+  ctx.fillText(isCustom ? "H A Z İ N E - İ   E V R A K" : "R İ S A L E - İ   N U R",256,110);
 
   // Merkezi Altın Güneş Madalyonu (Şemse)
   ctx.save();ctx.translate(256,340);
@@ -519,7 +531,7 @@ function getBookTextures(title,theme){
 
   // Alt Yazar İmzası
   ctx.fillStyle="#E4BE52";ctx.font="italic 16px 'Fraunces',Georgia,serif";
-  ctx.fillText("Bediüzzaman Said Nursî",256,640);
+  ctx.fillText(isCustom ? "Özel Kütüphane · PDF Eseri" : "Bediüzzaman Said Nursî",256,640);
 
   // 2. Sırt Dokusu (128 x 768)
   var cSpn=document.createElement("canvas");cSpn.width=128;cSpn.height=768;
@@ -640,22 +652,138 @@ function playBookOpenSound(){
   }catch(e){}
 }
 
+function render3DEmptyLecternStage(stageEl, chapterEl){
+  var prevWrap=stageEl.querySelector(".stage-3d-wrap");
+  if(prevWrap)prevWrap.remove();
+
+  var wrap=document.createElement("div");wrap.className="stage-3d-wrap";
+  var canvas=document.createElement("canvas");canvas.className="stage-3d-canvas";
+  wrap.appendChild(canvas);
+
+  var hud=document.createElement("div");hud.className="stage-hud active";
+  hud.innerHTML="<span class='hud-icon'>📜</span><span class='hud-title'>Özel Kitaplık &bull; Hazine-i Evrak</span><span class='hud-badge' style='cursor:pointer;'>+ PDF Eser Yükle</span>";
+  wrap.appendChild(hud);
+
+  var hint=document.createElement("div");hint.className="stage-hint";
+  hint.innerHTML="<span>✦</span> İlk PDF risalenizi yüklemek için kürsüye tıklayın";
+  wrap.appendChild(hint);
+
+  stageEl.appendChild(wrap);
+
+  var renderer=new THREE.WebGLRenderer({canvas:canvas,antialias:true,alpha:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  renderer.setSize(stageEl.clientWidth,stageEl.clientHeight);
+
+  var scene=new THREE.Scene();
+  var camera=new THREE.PerspectiveCamera(40,stageEl.clientWidth/stageEl.clientHeight,0.1,50);
+  camera.position.set(0,1.3,4.8);camera.lookAt(0,0.1,0);
+
+  var ambient=new THREE.AmbientLight(0x403422,2.0);scene.add(ambient);
+  var dirLight=new THREE.DirectionalLight(0xffeed4,1.4);dirLight.position.set(2,5,4);scene.add(dirLight);
+  var glowLight=new THREE.PointLight(0xD4AF37,2.8,8,2);glowLight.position.set(0,0.4,0);scene.add(glowLight);
+
+  var ringMat=new THREE.MeshStandardMaterial({color:0xD4AF37,roughness:0.25,metalness:0.85});
+  var ring1=new THREE.Mesh(new THREE.TorusGeometry(1.6,0.016,12,64),ringMat);ring1.rotation.x=Math.PI/2;ring1.position.y=-0.85;scene.add(ring1);
+  var ring2=new THREE.Mesh(new THREE.TorusGeometry(1.1,0.012,12,48),ringMat);ring2.rotation.x=Math.PI/2;ring2.position.y=-0.85;scene.add(ring2);
+
+  var discCanvas=document.createElement("canvas");discCanvas.width=256;discCanvas.height=256;
+  var dCtx=discCanvas.getContext("2d");
+  var dG=dCtx.createRadialGradient(128,128,0,128,128,128);
+  dG.addColorStop(0,"rgba(212,175,55,0.4)");dG.addColorStop(0.5,"rgba(212,175,55,0.12)");dG.addColorStop(1,"rgba(212,175,55,0)");
+  dCtx.fillStyle=dG;dCtx.fillRect(0,0,256,256);
+  var discMesh=new THREE.Mesh(new THREE.PlaneGeometry(3.6,3.6),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(discCanvas),transparent:true,opacity:0.8,blending:THREE.AdditiveBlending}));
+  discMesh.rotation.x=-Math.PI/2;discMesh.position.y=-0.85;scene.add(discMesh);
+
+  var STARDUST_COUNT=45,sPos=new Float32Array(STARDUST_COUNT*3);
+  for(var sp=0;sp<STARDUST_COUNT;sp++){
+    var ang=Math.random()*Math.PI*2,rad=Math.random()*1.5;
+    sPos[sp*3]=Math.cos(ang)*rad;sPos[sp*3+1]=Math.random()*2.4-0.8;sPos[sp*3+2]=Math.sin(ang)*rad;
+  }
+  var sGeo=new THREE.BufferGeometry();sGeo.setAttribute("position",new THREE.BufferAttribute(sPos,3));
+  var stardust=new THREE.Points(sGeo,new THREE.PointsMaterial({color:0xF5DC7E,size:0.04,transparent:true,opacity:0.8,blending:THREE.AdditiveBlending}));
+  scene.add(stardust);
+
+  var lecternGroup=new THREE.Group();
+  lecternGroup.position.y=-0.85;
+  var woodMat=new THREE.MeshStandardMaterial({color:0x362112,roughness:0.65,metalness:0.1});
+  var goldTrimMat=new THREE.MeshStandardMaterial({color:0xD4AF37,roughness:0.3,metalness:0.8});
+
+  var pBase=new THREE.Mesh(new THREE.CylinderGeometry(0.55,0.65,0.12,24),goldTrimMat);lecternGroup.add(pBase);
+  var pCol=new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.18,0.9,16),woodMat);pCol.position.y=0.5;lecternGroup.add(pCol);
+  var pTop=new THREE.Mesh(new THREE.CylinderGeometry(0.42,0.3,0.08,24),goldTrimMat);pTop.position.y=0.98;lecternGroup.add(pTop);
+
+  var restMesh=new THREE.Mesh(new THREE.BoxGeometry(1.2,0.85,0.06),woodMat);
+  restMesh.position.set(0,1.15,0.06);restMesh.rotation.x=-0.5;
+  lecternGroup.add(restMesh);
+  var restTrim=new THREE.Mesh(new THREE.BoxGeometry(1.24,0.05,0.1),goldTrimMat);
+  restTrim.position.set(0,0.98,0.22);restTrim.rotation.x=-0.5;
+  lecternGroup.add(restTrim);
+  scene.add(lecternGroup);
+
+  var floatBookGroup=new THREE.Group();
+  floatBookGroup.position.set(0,0.55,0.05);
+  var bCovMat=new THREE.MeshStandardMaterial({color:0x7A1620,roughness:0.35,metalness:0.1});
+  var bPagMat=new THREE.MeshStandardMaterial({color:0xFFF2C8,roughness:0.4,metalness:0.2});
+  var bGoldMat=new THREE.MeshStandardMaterial({color:0xD4AF37,roughness:0.2,metalness:0.85});
+  var fBook=new THREE.Mesh(new THREE.BoxGeometry(0.85,1.2,0.14),[bPagMat,bGoldMat,bPagMat,bPagMat,bCovMat,bCovMat]);
+  floatBookGroup.add(fBook);
+  scene.add(floatBookGroup);
+
+  wrap.style.cursor="pointer";
+  wrap.addEventListener("click",function(){
+    if(window.openPdfModal) window.openPdfModal();
+  });
+
+  var t=0;
+  function animateLectern(){
+    if(!document.body.contains(canvas))return;
+    requestAnimationFrame(animateLectern);
+    t+=0.016;
+    floatBookGroup.position.y=0.52+Math.sin(t*2)*0.06;
+    floatBookGroup.rotation.y=Math.sin(t*1.2)*0.25;
+    floatBookGroup.rotation.x=0.2+Math.sin(t*1.5)*0.05;
+    glowLight.intensity=2.4+Math.sin(t*3)*0.4;
+    ring1.rotation.z=t*0.2;
+    ring2.rotation.z=-t*0.25;
+
+    var posArr=stardust.geometry.attributes.position.array;
+    for(var p=0;p<STARDUST_COUNT;p++){
+      posArr[p*3+1]+=0.005;
+      if(posArr[p*3+1]>1.6)posArr[p*3+1]=-0.8;
+    }
+    stardust.geometry.attributes.position.needsUpdate=true;
+    renderer.render(scene,camera);
+  }
+  animateLectern();
+}
+
 function init3DStage(stageEl,chapterEl){
   var theme=chapterEl.getAttribute("data-theme")||"kulliyat";
+  var isChapter4=(chapterEl.id==="ch4"||stageEl.id==="stage4");
   var oldShelf=stageEl.querySelector(".shelf");
-  if(!oldShelf)return;
 
-  var bookElements=Array.prototype.slice.call(oldShelf.querySelectorAll(".book"));
-  var booksData=bookElements.map(function(b){
-    return {title:b.getAttribute("data-title")||"",desc:b.getAttribute("data-desc")||""};
-  });
+  var booksData=[];
+  if(isChapter4 && window.customBooks && window.customBooks.length > 0){
+    booksData = window.customBooks.map(function(b){
+      return {title:b.title, desc:b.desc||"", color:b.color||"ruby"};
+    });
+  } else if(oldShelf){
+    var bookElements=Array.prototype.slice.call(oldShelf.querySelectorAll(".book"));
+    booksData=bookElements.map(function(b){
+      return {title:b.getAttribute("data-title")||"",desc:b.getAttribute("data-desc")||""};
+    });
+  }
 
   var prevWrap=stageEl.querySelector(".stage-3d-wrap");
   if(prevWrap)prevWrap.remove();
 
   if(!booksData.length){
+    if(isChapter4){
+      render3DEmptyLecternStage(stageEl, chapterEl);
+      return;
+    }
     var emptyMsg=document.createElement("div");emptyMsg.className="added-empty";
-    emptyMsg.textContent="Henüz eklenmiş eser yok. Sağ alttaki + butonuyla PDF yükleyebilirsiniz.";
+    emptyMsg.textContent="Henüz eklenmiş eser yok.";
     stageEl.appendChild(emptyMsg);
     return;
   }
@@ -1091,28 +1219,9 @@ function playTurn(){
   }catch(e){}
 }
 
-var pdfjsLoaded=false,PDFJS_BASE="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.4.456/";
-function loadPdfJs(){
-  return new Promise(function(resolve,reject){
-    if(pdfjsLoaded||window.pdfjsLib){pdfjsLoaded=true;resolve();return;}
-    var s=document.createElement("script");s.src=PDFJS_BASE+"pdf.min.js";
-    s.onload=function(){
-      fetch(PDFJS_BASE+"pdf.worker.min.js").then(function(r){return r.text();}).then(function(code){
-        var u=URL.createObjectURL(new Blob([code],{type:"application/javascript"}));
-        window.pdfjsLib.GlobalWorkerOptions.workerSrc=u;
-      }).catch(function(){window.pdfjsLib.GlobalWorkerOptions.workerSrc=PDFJS_BASE+"pdf.worker.min.js";}).then(function(){pdfjsLoaded=true;resolve();});
-    };
-    s.onerror=function(){reject(new Error("pdf.js yuklenemedi"));};
-    document.head.appendChild(s);
-  });
-}
-async function extractPdfPages(file){
-  await loadPdfJs();
-  var buf=await file.arrayBuffer();
-  var doc=await window.pdfjsLib.getDocument({data:buf}).promise;
-  var pages=[];
-  for(var i=1;i<=doc.numPages;i++){var page=await doc.getPage(i);var content=await page.getTextContent();pages.push(content.items.map(function(it){return it.str;}).join(" ").replace(/\s+/g," ").trim()||" ");}
-  return pages;
+// Modern PDF.js worker setup
+if(window.pdfjsLib){
+  try{ window.pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"; }catch(e){}
 }
 
 var RISALE_TEXTS = {
@@ -1308,13 +1417,24 @@ function generateRisaleChapters(title){
 function getBookPages(title){
   for(var i=0;i<customBooks.length;i++){
     if(customBooks[i].title===title&&customBooks[i].pages&&customBooks[i].pages.length){
+      var cDesc = customBooks[i].desc || "PDF Eseri";
       return customBooks[i].pages.map(function(p,idx){
+        if(typeof p === "object" && p !== null){
+          return {
+            kulliyat: "Hazine-i Evrak · " + cDesc,
+            chapter: title,
+            title: p.title || (title + " · Sayfa " + (idx+1)),
+            pageType: idx===0 ? "mukaddime" : "metin",
+            text: p.text || "",
+            imageData: p.imageData || null
+          };
+        }
         return {
-          kulliyat:"Kitaplığım (PDF)",
-          chapter:title,
-          title:title+" · Sayfa "+(idx+1),
-          pageType:idx===0?"mukaddime":"metin",
-          text:p
+          kulliyat: "Hazine-i Evrak · " + cDesc,
+          chapter: title,
+          title: title + " · Sayfa " + (idx+1),
+          pageType: idx===0 ? "mukaddime" : "metin",
+          text: p
         };
       });
     }
@@ -1328,6 +1448,9 @@ function getBookPages(title){
 function formatTomeHTML(page){
   if(!page)return "";
   var html="";
+  if(page.imageData){
+    html += "<div class='pdf-canvas-wrap' style='margin-bottom:14px;text-align:center;'><img src='" + page.imageData + "' class='pdf-page-render' style='max-width:100%;max-height:480px;height:auto;border-radius:3px;border:1px solid rgba(212,175,55,0.3);box-shadow:0 4px 15px rgba(0,0,0,0.35);' alt='PDF Sayfası'></div>";
+  }
   if(page.title){
     html+="<h4>"+escHTML(page.title)+"</h4>";
   }
@@ -1584,55 +1707,513 @@ window.addEventListener("keydown", function(e){
   }
 });
 
-/* ── 11. LIBRARY PANEL ──────────────────────────────────── */
-var libraryFab=document.getElementById("libraryFab"),fabBadge=document.getElementById("fabBadge"),libraryPanel=document.getElementById("library-panel"),libraryScrim=document.getElementById("library-scrim"),libGrid=document.getElementById("libGrid"),libEmpty=document.getElementById("libEmpty"),libAddToggle=document.getElementById("libAddToggle"),libForm=document.getElementById("lib-form");
-function openPanel(){libraryPanel.classList.add("open");libraryScrim.classList.add("open");}
-function closePanel(){libraryPanel.classList.remove("open");libraryScrim.classList.remove("open");}
-libraryFab.addEventListener("click",openPanel);
-document.getElementById("libClose").addEventListener("click",closePanel);
-libraryScrim.addEventListener("click",closePanel);
-function toggleForm(show){libForm.classList.toggle("show",show);libAddToggle.textContent=show?"- Formu kapat":"+ Yeni kitap ekle (PDF)";}
-libAddToggle.addEventListener("click",function(){toggleForm(!libForm.classList.contains("show"));});
-document.getElementById("libCancel").addEventListener("click",function(){libForm.reset();toggleForm(false);});
+/* ── 11. HAZİNE-İ EVRAK: GELİŞMİŞ PDF KİTAP VE KÜTÜPHANE YÖNETİMİ ─── */
+var customBooks = [];
+window.customBooks = customBooks;
 
-async function saveBooks(){try{if(window.storage)await window.storage.set("nur-koridoru-books",JSON.stringify(customBooks),true);}catch(e){showToast("Kaydedilemedi.");}}
-function renderLibGrid(){
-  libGrid.querySelectorAll(".lib-card").forEach(function(c){c.remove();});libEmpty.style.display=customBooks.length?"none":"block";
-  customBooks.forEach(function(b){
-    var card=document.createElement("div");card.className="lib-card";
-    card.innerHTML="<div class='mini-cover'></div><div class='info'><div class='t'></div><div class='d'></div></div><button class='del' aria-label='Sil'>&times;</button>";
-    card.querySelector(".t").textContent=b.title;card.querySelector(".d").textContent=b.desc||"Aciklama eklenmedi.";
-    card.addEventListener("click",function(e){if(e.target.closest(".del"))return;closePanel();openReader(b.title);});
-    card.querySelector(".del").addEventListener("click",function(e){e.stopPropagation();customBooks=customBooks.filter(function(x){return x.id!==b.id;});saveBooks();renderLibGrid();renderAddedShelf();showToast("Kitap kaldirildi.");});
-    libGrid.appendChild(card);
-  });
-  fabBadge.textContent=customBooks.length;fabBadge.classList.toggle("show",customBooks.length>0);
+// 11.1. IndexedDB + LocalStorage Güçlü Kalıcı Depolama Motoru
+var NurStorage = {
+  db: null,
+  init: function(){
+    return new Promise(function(resolve){
+      try{
+        var req = indexedDB.open("NurKoridoruDB", 1);
+        req.onupgradeneeded = function(e){
+          var db = e.target.result;
+          if(!db.objectStoreNames.contains("books")){
+            db.createObjectStore("books", { keyPath: "id" });
+          }
+        };
+        req.onsuccess = function(e){
+          NurStorage.db = e.target.result;
+          resolve(NurStorage.db);
+        };
+        req.onerror = function(){ resolve(null); };
+      }catch(e){ resolve(null); }
+    });
+  },
+  getAll: function(){
+    return new Promise(function(resolve){
+      if(NurStorage.db){
+        try{
+          var tx = NurStorage.db.transaction("books", "readonly");
+          var store = tx.objectStore("books");
+          var req = store.getAll();
+          req.onsuccess = function(){ resolve(req.result || []); };
+          req.onerror = function(){ fallback(); };
+        }catch(e){ fallback(); }
+      }else{ fallback(); }
+      function fallback(){
+        try{
+          var raw = localStorage.getItem("nur-koridoru-books");
+          resolve(raw ? JSON.parse(raw) : []);
+        }catch(e){ resolve([]); }
+      }
+    });
+  },
+  save: function(book){
+    return new Promise(function(resolve){
+      if(NurStorage.db){
+        try{
+          var tx = NurStorage.db.transaction("books", "readwrite");
+          var store = tx.objectStore("books");
+          store.put(book);
+          tx.oncomplete = function(){ resolve(true); };
+          tx.onerror = function(){ fallback(); };
+        }catch(e){ fallback(); }
+      }else{ fallback(); }
+      function fallback(){
+        try{
+          NurStorage.getAll().then(function(all){
+            var idx = all.findIndex(function(b){ return b.id === book.id; });
+            if(idx >= 0) all[idx] = book; else all.push(book);
+            localStorage.setItem("nur-koridoru-books", JSON.stringify(all));
+            resolve(true);
+          });
+        }catch(e){ resolve(false); }
+      }
+    });
+  },
+  remove: function(id){
+    return new Promise(function(resolve){
+      if(NurStorage.db){
+        try{
+          var tx = NurStorage.db.transaction("books", "readwrite");
+          var store = tx.objectStore("books");
+          store.delete(id);
+          tx.oncomplete = function(){ resolve(true); };
+          tx.onerror = function(){ fallback(); };
+        }catch(e){ fallback(); }
+      }else{ fallback(); }
+      function fallback(){
+        try{
+          var raw = localStorage.getItem("nur-koridoru-books");
+          var all = raw ? JSON.parse(raw) : [];
+          all = all.filter(function(b){ return b.id !== id; });
+          localStorage.setItem("nur-koridoru-books", JSON.stringify(all));
+          resolve(true);
+        }catch(e){ resolve(false); }
+      }
+    });
+  }
+};
+
+// 11.2. DOM Öğeleri
+var pdfModal = document.getElementById("pdf-modal"),
+    pdfModalClose = document.getElementById("pdfModalClose"),
+    pdfCancelBtn = document.getElementById("pdfCancelBtn"),
+    pdfSubmitBtn = document.getElementById("pdfSubmitBtn"),
+    pdfDropzone = document.getElementById("pdfDropzone"),
+    pdfFileInput = document.getElementById("pdfFileInput"),
+    dropzoneText = document.getElementById("dropzoneText"),
+    pdfFileBadge = document.getElementById("pdfFileBadge"),
+    badgeFileName = document.getElementById("badgeFileName"),
+    badgeFileSize = document.getElementById("badgeFileSize"),
+    pdfQuickDemoBtn = document.getElementById("pdfQuickDemoBtn"),
+    pdfBookTitleInput = document.getElementById("pdfBookTitleInput"),
+    pdfBookDescInput = document.getElementById("pdfBookDescInput"),
+    pdfColorPicker = document.getElementById("pdfColorPicker"),
+    liveSpineTitle = document.getElementById("liveSpineTitle"),
+    liveCoverTitle = document.getElementById("liveCoverTitle"),
+    liveSpinePreview = document.getElementById("liveSpinePreview"),
+    liveCoverPreview = document.getElementById("liveCoverPreview"),
+    pdfProgressWrap = document.getElementById("pdfProgressWrap"),
+    pdfProgressText = document.getElementById("pdfProgressText"),
+    pdfProgressPercent = document.getElementById("pdfProgressPercent"),
+    pdfProgressBarFill = document.getElementById("pdfProgressBarFill"),
+    pdfCustomGrid = document.getElementById("pdfCustomGrid"),
+    pdfNoBooks = document.getElementById("pdfNoBooks"),
+    customBooksCount = document.getElementById("customBooksCount"),
+    fabBadge = document.getElementById("fabBadge"),
+    headerPdfBadge = document.getElementById("headerPdfBadge"),
+    libraryFab = document.getElementById("libraryFab"),
+    headerPdfBtn = document.getElementById("headerPdfBtn"),
+    shelfAddPdfBtn = document.getElementById("shelfAddPdfBtn");
+
+var selectedFile = null,
+    selectedColor = "ruby";
+
+var COLOR_PALETTES = {
+  ruby: { start: "#7a1620", end: "#400a11" },
+  emerald: { start: "#1a4d2e", end: "#0c2817" },
+  sapphire: { start: "#162c4a", end: "#0b1728" },
+  leather: { start: "#4a2c16", end: "#27160a" },
+  royal: { start: "#431d4a", end: "#230d27" }
+};
+
+// 11.3. Modal Aç / Kapa
+function openPdfModal(){
+  if(pdfModal) {
+    pdfModal.classList.add("open");
+    renderPdfCustomGrid();
+  }
 }
-var addedShelf=document.getElementById("addedShelf"),addedEmpty=document.getElementById("addedEmpty"),addedCount=document.getElementById("addedCount");
+window.openPdfModal = openPdfModal;
+
+function closePdfModal(){
+  if(pdfModal) {
+    pdfModal.classList.remove("open");
+    resetPdfForm();
+  }
+}
+
+function resetPdfForm(){
+  selectedFile = null;
+  if(pdfFileInput) pdfFileInput.value = "";
+  if(pdfBookTitleInput) pdfBookTitleInput.value = "";
+  if(pdfBookDescInput) pdfBookDescInput.value = "";
+  if(pdfFileBadge) pdfFileBadge.style.display = "none";
+  if(dropzoneText) dropzoneText.textContent = "PDF Dosyasını Buraya Sürükleyin";
+  if(pdfProgressWrap) pdfProgressWrap.style.display = "none";
+  if(pdfProgressBarFill) pdfProgressBarFill.style.width = "0%";
+  updateLivePreview("Yeni Risale", selectedColor);
+}
+
+function updateLivePreview(title, colorKey){
+  var safeTitle = title.trim() || "Yeni Risale";
+  if(liveSpineTitle) liveSpineTitle.textContent = safeTitle;
+  if(liveCoverTitle) liveCoverTitle.textContent = safeTitle;
+  var pal = COLOR_PALETTES[colorKey] || COLOR_PALETTES.ruby;
+  if(liveSpinePreview) liveSpinePreview.style.background = "linear-gradient(180deg, " + pal.start + " 0%, " + pal.end + " 100%)";
+  if(liveCoverPreview) liveCoverPreview.style.background = "linear-gradient(135deg, " + pal.start + " 0%, " + pal.end + " 100%)";
+}
+
+// 11.4. Renk Seçimi
+if(pdfColorPicker){
+  pdfColorPicker.addEventListener("click", function(e){
+    var dot = e.target.closest(".color-dot");
+    if(!dot) return;
+    pdfColorPicker.querySelectorAll(".color-dot").forEach(function(d){ d.classList.remove("active"); });
+    dot.classList.add("active");
+    selectedColor = dot.getAttribute("data-color") || "ruby";
+    updateLivePreview(pdfBookTitleInput.value, selectedColor);
+  });
+}
+
+// 11.5. Başlık Canlı Girişi
+if(pdfBookTitleInput){
+  pdfBookTitleInput.addEventListener("input", function(){
+    updateLivePreview(pdfBookTitleInput.value, selectedColor);
+  });
+}
+
+// 11.6. Drag and Drop & Dosya Seçimi
+function handleFileSelected(file){
+  if(!file) return;
+  if(!file.name.toLowerCase().endsWith(".pdf") && file.type !== "application/pdf"){
+    showToast("Lütfen geçerli bir PDF dosyası seçin.");
+    return;
+  }
+  selectedFile = file;
+  if(pdfFileBadge) {
+    pdfFileBadge.style.display = "inline-flex";
+    if(badgeFileName) badgeFileName.textContent = file.name;
+    if(badgeFileSize) badgeFileSize.textContent = (file.size / (1024 * 1024)).toFixed(2) + " MB";
+  }
+  if(dropzoneText) dropzoneText.textContent = "Seçilen: " + file.name;
+
+  // Akıllı Başlık Çıkarma (Örn: 10._Soz_Hasir_Risalesi.pdf -> 10. Söz Haşir Risalesi)
+  var rawName = file.name.replace(/\.[^/.]+$/, "");
+  rawName = rawName.replace(/[_\-]+/g, " ").trim();
+  if(!pdfBookTitleInput.value.trim()){
+    pdfBookTitleInput.value = rawName;
+    updateLivePreview(rawName, selectedColor);
+  }
+}
+
+if(pdfDropzone){
+  pdfDropzone.addEventListener("click", function(){ if(pdfFileInput) pdfFileInput.click(); });
+  pdfDropzone.addEventListener("dragover", function(e){ e.preventDefault(); pdfDropzone.classList.add("dragover"); });
+  pdfDropzone.addEventListener("dragleave", function(){ pdfDropzone.classList.remove("dragover"); });
+  pdfDropzone.addEventListener("drop", function(e){
+    e.preventDefault();
+    pdfDropzone.classList.remove("dragover");
+    if(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length){
+      handleFileSelected(e.dataTransfer.files[0]);
+    }
+  });
+}
+
+if(pdfFileInput){
+  pdfFileInput.addEventListener("change", function(){
+    if(pdfFileInput.files && pdfFileInput.files.length){
+      handleFileSelected(pdfFileInput.files[0]);
+    }
+  });
+}
+
+// 11.7. Örnek Risale: Haşir Risalesi (Onuncu Söz)
+function getSampleHasirRisalesi(){
+  return [
+    {
+      title: "Mukaddime · Haşir ve Âhiret Hakikati",
+      text: "Bismillâhirrahmânirrahîm.\n'Fenzur ilâ âsâri rahmetillâhi keyfe yuhyi'l-arda ba'de mevtihâ, inne zâlike le-muhyi'l-mevtâ ve hüve alâ külli şey'in kadîr.'\n\nEy kardeşim! Eğer haşir ve kıyametin hakikatini bir parça anlamak istersen, şu temsilî hikâyeciğe bak, dinle:\n\nBir zaman iki adam bir padişahın muhteşem memleketine seyahat için giderler. Biri mütefekkir ve insaflı, diğeri ise gafil ve sersemdir. O memlekette hadsiz harikaları ve saltanat nizamını görürler. İnsaflı olan der: 'Bu nizam ve saltanat gösteriyor ki; bu muazzam mülkün gayet âdil, celâlli ve merhametli bir hâkimi vardır.' Gafil olan ise inkâr eder.",
+      pageNumber: 1
+    },
+    {
+      title: "Birinci Hakikat · Bâb-ı Rubûbiyet ve Saltanat",
+      text: "Hangi bir akıl ve vicdan kabul eder ki: Böyle haşmetli bir saltanatın sahibi, nihayetsiz sehavet ve keremiyle zemin yüzünü nimetlerle tezyin etsin, fakat o misafirleri zeval ve ebedî yokluk ile perişan etsin?\n\nHaşa ve kellâ! Saltanat-ı sermediyye, teb'asının devamını iktiza eder. Şu fani dünyadaki kısa ömür, o ebedî saltanatın yalnız bir talimgâhı ve misafirhanesidir. Arkasında ebedî bir dâr-ı saadet açılacaktır.",
+      pageNumber: 2
+    },
+    {
+      title: "İkinci Hakikat · Bâb-ı Kerem ve Rahmet",
+      text: "Hiç mümkün müdür ki; şu kâinatın Hâlık-ı Rahîmi, bir sineğin gözünü ve kanadını bile intizamla halketsin, onu rahmetiyle rızıklandırsın da, kâinatın en nazenin ve şerefli meyvesi olan insanı dirilmemek üzere kabirde çürütsün?\n\nBahar mevsiminde hadsiz ölmüş ağaçları, kemikleri andıran kuru dalları bir anda diriltip çiçeklerle donatan Zât-ı Zülcelâl; insanları da bir tek nefes gibi kolayca diriltecektir.",
+      pageNumber: 3
+    },
+    {
+      title: "Üçüncü Hakikat · Bâb-ı Hikmet ve Adalet",
+      text: "Görüyoruz ki; bu dünyada zâlim izzetinde, mazlum zilletinde kalıp gidiyorlar. Demek bir mahkeme-i kübrâya bırakılıyor, tehir ediliyor; yoksa ihmal edilmiyor.\n\nZerrece zulüm ve israf yapmayan nihayetsiz bir adalet ve hikmet, elbette büyük bir ceza ve mükâfat meydanı olan haşri açacaktır. Âhiret olmasa, adalet zulme inkılap eder.",
+      pageNumber: 4
+    },
+    {
+      title: "Dördüncü Hakikat · Bâb-ı Cûd ve Cemâl",
+      text: "Cenâb-ı Hak sonsuz cemâl ve kemâlini göstermek ve temaşa ettirmek istiyor. Bu fani dünya ise o cemâlin yalnız gölgelerini ve fani aynalarını taşır.\n\nFani gölgeleri gösterip sonra ebediyen yok etmek, hakikî cemâle yakışmaz. Demek ebedî bir vuslat diyarı, solmayan nurlu çiçeklerin bahçesi olan Cennet vardır.",
+      pageNumber: 5
+    },
+    {
+      title: "Hâtime · İman ve Saadet Müjdesi",
+      text: "İşte ey nefsim ve ey dinleyen kardeşim!\nRisale-i Nur'un Onuncu Söz'ü kat'î bürhanlarla gösterir ki: Haşrin gelmesi, baharın gelmesi kadar muhakkak ve kat'îdir.\n\nİman eden bir mü'min için ölüm, ebedî saadete ve Habib-i Zülcelâl'e kavuşma tezkiresidir. 'Hasbünallâhu ve ni'mel vekîl.'",
+      pageNumber: 6
+    }
+  ];
+}
+
+// 11.8. Hızlı Demo Butonu
+if(pdfQuickDemoBtn){
+  pdfQuickDemoBtn.addEventListener("click", function(){
+    pdfBookTitleInput.value = "Haşir Risalesi (Onuncu Söz)";
+    pdfBookDescInput.value = "Haşir ve âhiret inancını aklen ve naklen ispat eden Risale-i Nur şaheseri.";
+    selectedColor = "ruby";
+    if(pdfColorPicker){
+      pdfColorPicker.querySelectorAll(".color-dot").forEach(function(d){
+        d.classList.toggle("active", d.getAttribute("data-color") === "ruby");
+      });
+    }
+    updateLivePreview(pdfBookTitleInput.value, selectedColor);
+    showToast("Örnek Haşir Risalesi yüklendi. 'Kütüphaneye Ekle' butonuna basabilirsiniz.");
+  });
+}
+
+// 11.9. PDF.js ile Yüksek Performanslı Ayrıştırma
+async function extractPdfDocument(file, onProgress){
+  if(!window.pdfjsLib){
+    throw new Error("pdfjs-missing");
+  }
+  var buf = await file.arrayBuffer();
+  var doc = await window.pdfjsLib.getDocument({ data: buf }).promise;
+  var pages = [];
+  var total = Math.min(doc.numPages, 100);
+
+  for(var i=1; i<=total; i++){
+    if(onProgress) onProgress(i, total);
+    try{
+      var page = await doc.getPage(i);
+      var textContent = await page.getTextContent();
+      var rawLines = textContent.items.map(function(it){ return it.str; }).join(" ").replace(/\s+/g, " ").trim();
+
+      var pageObj = {
+        pageNumber: i,
+        title: "Sayfa " + i,
+        text: rawLines || "",
+        imageData: null
+      };
+
+      if(!rawLines || rawLines.length < 50 || i === 1){
+        try{
+          var viewport = page.getViewport({ scale: 1.0 });
+          var offCanvas = document.createElement("canvas");
+          offCanvas.width = viewport.width;
+          offCanvas.height = viewport.height;
+          var offCtx = offCanvas.getContext("2d");
+          await page.render({ canvasContext: offCtx, viewport: viewport }).promise;
+          pageObj.imageData = offCanvas.toDataURL("image/jpeg", 0.75);
+        }catch(renderErr){}
+      }
+
+      pages.push(pageObj);
+    }catch(pageErr){
+      pages.push({ pageNumber: i, title: "Sayfa " + i, text: "Sayfa içeriği okunamadı." });
+    }
+  }
+  return pages;
+}
+
+// 11.10. Form Gönderimi (Kitap Ekleme)
+if(pdfSubmitBtn){
+  pdfSubmitBtn.addEventListener("click", async function(e){
+    e.preventDefault();
+    var title = pdfBookTitleInput.value.trim();
+    if(!title){
+      showToast("Lütfen eser için bir başlık giriniz.");
+      if(pdfBookTitleInput) pdfBookTitleInput.focus();
+      return;
+    }
+    var desc = pdfBookDescInput.value.trim();
+
+    pdfSubmitBtn.disabled = true;
+    if(pdfProgressWrap) pdfProgressWrap.style.display = "block";
+    if(pdfProgressText) pdfProgressText.textContent = "Eser hazırlanıyor...";
+    if(pdfProgressBarFill) pdfProgressBarFill.style.width = "10%";
+
+    try{
+      var pages = [];
+      if(selectedFile){
+        if(pdfProgressText) pdfProgressText.textContent = "PDF varakları taranıyor...";
+        pages = await extractPdfDocument(selectedFile, function(curr, tot){
+          var pct = Math.round((curr / tot) * 90);
+          if(pdfProgressBarFill) pdfProgressBarFill.style.width = pct + "%";
+          if(pdfProgressPercent) pdfProgressPercent.textContent = pct + "%";
+          if(pdfProgressText) pdfProgressText.textContent = "Varak " + curr + " / " + tot + " taranıyor...";
+        });
+      } else if(title.indexOf("Haşir") >= 0 || title.indexOf("Onuncu Söz") >= 0){
+        pages = getSampleHasirRisalesi();
+      } else {
+        pages = [
+          { title: title + " · Giriş", text: "Bu eser Hazine-i Evrak kütüphanesine ilave edilmiştir.\n\n" + (desc || "Eser detayları ve tefekkür bahsi."), pageNumber: 1 },
+          { title: title + " · İkinci Fasıl", text: "Risale-i Nur nurlarıyla parlayan hakikatler, okuyanın aklını tenvir, kalbini tatmin eder.", pageNumber: 2 }
+        ];
+      }
+
+      if(pdfProgressBarFill) pdfProgressBarFill.style.width = "100%";
+      if(pdfProgressPercent) pdfProgressPercent.textContent = "100%";
+      if(pdfProgressText) pdfProgressText.textContent = "Kitap kaydediliyor...";
+
+      var newBook = {
+        id: "b_" + Date.now() + "_" + Math.floor(Math.random()*1000),
+        title: title,
+        desc: desc || "Hazine-i Evrak · Özel PDF Eseri",
+        color: selectedColor || "ruby",
+        pages: pages,
+        pageCount: pages.length,
+        createdAt: Date.now()
+      };
+
+      await NurStorage.save(newBook);
+      customBooks.push(newBook);
+      window.customBooks = customBooks;
+
+      updatePdfBadges();
+      renderPdfCustomGrid();
+      renderAddedShelf();
+
+      playChime();
+      showToast('"' + title + '" kütüphanenize eklendi (' + pages.length + ' sayfa)!');
+
+      setTimeout(function(){
+        closePdfModal();
+        var ch4 = document.getElementById("ch4");
+        if(ch4) ch4.scrollIntoView({ behavior: "smooth" });
+      }, 550);
+
+    }catch(err){
+      console.error(err);
+      showToast("PDF ayrıştırma sırasında bir hata oluştu: " + (err.message || "Bilinmeyen hata"));
+    }finally{
+      pdfSubmitBtn.disabled = false;
+    }
+  });
+}
+
+// 11.11. Özel Kitaplar Listesi & Rozetler
+function updatePdfBadges(){
+  var count = customBooks.length;
+  if(customBooksCount) customBooksCount.textContent = count;
+  if(fabBadge){
+    fabBadge.textContent = count;
+    fabBadge.classList.toggle("show", count > 0);
+  }
+  if(headerPdfBadge){
+    headerPdfBadge.textContent = count;
+    headerPdfBadge.style.display = count > 0 ? "inline-block" : "none";
+  }
+  var addedCount = document.getElementById("addedCount");
+  if(addedCount) addedCount.textContent = count + " eser";
+}
+
+function renderPdfCustomGrid(){
+  if(!pdfCustomGrid) return;
+  pdfCustomGrid.querySelectorAll(".pdf-item-card").forEach(function(el){ el.remove(); });
+  if(pdfNoBooks) pdfNoBooks.style.display = customBooks.length ? "none" : "block";
+
+  customBooks.forEach(function(book){
+    var card = document.createElement("div");
+    card.className = "pdf-item-card";
+
+    var pal = COLOR_PALETTES[book.color] || COLOR_PALETTES.ruby;
+    card.innerHTML = "<div class='pdf-item-cover' style='background:linear-gradient(135deg," + pal.start + " 0%," + pal.end + " 100%);'></div>" +
+                     "<div class='pdf-item-info'>" +
+                       "<div class='item-t'>" + escHTML(book.title) + "</div>" +
+                       "<div class='item-m'>" + (book.pageCount || (book.pages ? book.pages.length : 1)) + " Sayfa &bull; " + escHTML(book.desc || "Özel Risale") + "</div>" +
+                     "</div>" +
+                     "<div class='pdf-item-actions'>" +
+                       "<button class='pdf-item-btn read' title='İki Sayfalı Ciltte Oku'>📖</button>" +
+                       "<button class='pdf-item-btn delete' title='Kitabı Kaldır'>🗑️</button>" +
+                     "</div>";
+
+    card.querySelector(".read").addEventListener("click", function(){
+      closePdfModal();
+      openReader(book.title);
+    });
+
+    card.querySelector(".delete").addEventListener("click", async function(e){
+      e.stopPropagation();
+      if(confirm('"' + book.title + '" eserini silmek istediğinize emin misiniz?')){
+        await NurStorage.remove(book.id);
+        customBooks = customBooks.filter(function(b){ return b.id !== book.id; });
+        window.customBooks = customBooks;
+        updatePdfBadges();
+        renderPdfCustomGrid();
+        renderAddedShelf();
+        showToast('"' + book.title + '" kütüphaneden kaldırıldı.');
+      }
+    });
+
+    pdfCustomGrid.appendChild(card);
+  });
+}
+
 function renderAddedShelf(){
-  if(!addedShelf)return;
-  addedShelf.querySelectorAll(".book").forEach(function(b){b.remove();});addedShelf.querySelectorAll(".helix-strands").forEach(function(s){s.remove();});
-  addedEmpty.style.display=customBooks.length?"none":"block";addedCount.textContent=customBooks.length+" eser";
-  customBooks.forEach(function(b){
-    var book=document.createElement("div");book.className="book";book.setAttribute("data-title",b.title);book.setAttribute("data-desc",b.desc||"");
-    book.innerHTML="<div class='cover'><span class='spine-kulliyat'>Risale-i Nur</span><span class='spine-title'>"+escHTML(b.title)+"</span><span class='spine-author'>PDF</span><div class='wave'><i></i><i></i><i></i><i></i></div></div><div class='glow'></div>";
-    addedShelf.appendChild(book);attachBook(book);
-  });
-  if(customBooks.length)layoutShelf(addedShelf);
+  var stage4 = document.getElementById("stage4") || (document.getElementById("ch4") ? document.getElementById("ch4").querySelector(".chapter-stage") : null);
+  var ch4 = document.getElementById("ch4");
+  if(stage4 && ch4){
+    init3DStage(stage4, ch4);
+  }
 }
-var libFileInput=document.getElementById("libFile"),libSubmitBtn=document.getElementById("libSubmitBtn");
-libForm.addEventListener("submit",async function(e){
-  e.preventDefault();var title=document.getElementById("libTitle").value.trim(),file=libFileInput.files[0];if(!title||!file)return;
-  var desc=document.getElementById("libDesc").value.trim();libSubmitBtn.disabled=true;libSubmitBtn.textContent="PDF okunuyor...";showToast('"'+file.name+'" okunuyor...');
-  try{
-    var pages=await Promise.race([extractPdfPages(file),new Promise(function(_,rej){setTimeout(function(){rej(new Error("timeout"));},25000);})]);
-    customBooks.push({id:"b"+Date.now()+Math.floor(Math.random()*1000),title:title,desc:desc,pages:pages});
-    saveBooks();renderLibGrid();renderAddedShelf();libForm.reset();toggleForm(false);showToast('"'+title+'" eklendi ('+pages.length+' sayfa).');
-  }catch(err){showToast(err&&err.message==="timeout"?"PDF cok uzun surdu.":"PDF okunamadi.");}
-  finally{libSubmitBtn.disabled=false;libSubmitBtn.textContent="Kutuphhaneye ekle";}
+
+// 11.12. Buton Olay Dinleyicileri
+if(headerPdfBtn) headerPdfBtn.addEventListener("click", openPdfModal);
+if(shelfAddPdfBtn) shelfAddPdfBtn.addEventListener("click", openPdfModal);
+if(libraryFab) libraryFab.addEventListener("click", openPdfModal);
+if(pdfModalClose) pdfModalClose.addEventListener("click", closePdfModal);
+if(pdfCancelBtn) pdfCancelBtn.addEventListener("click", closePdfModal);
+
+if(pdfModal){
+  pdfModal.addEventListener("click", function(e){
+    if(e.target === pdfModal) closePdfModal();
+  });
+}
+
+window.addEventListener("keydown", function(e){
+  if(e.key === "Escape" && pdfModal && pdfModal.classList.contains("open")){
+    closePdfModal();
+  }
 });
-(async function loadBooks(){
-  try{if(window.storage){var res=await window.storage.get("nur-koridoru-books",true);if(res&&res.value)customBooks=JSON.parse(res.value);}}catch(e){customBooks=[];}
-  renderLibGrid();renderAddedShelf();
+
+// 11.13. İlk Yükleme: Kalıcı Depolamadan Çekme
+(async function initLibraryEngine(){
+  try{
+    await NurStorage.init();
+    var loaded = await NurStorage.getAll();
+    if(loaded && loaded.length){
+      customBooks = loaded;
+      window.customBooks = customBooks;
+    }
+  }catch(e){
+    console.error("Library init error:", e);
+  }
+  updatePdfBadges();
+  renderPdfCustomGrid();
+  renderAddedShelf();
 })();
+
 })();
