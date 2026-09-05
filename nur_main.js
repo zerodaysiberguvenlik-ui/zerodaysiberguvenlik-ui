@@ -2928,4 +2928,136 @@ window.addEventListener("keydown", function(e){
   renderAddedShelf();
 })();
 
+// ============================================================
+// 12. SPOTLIGHT ARAMA SİSTEMİ
+// ============================================================
+(function initSearchSystem(){
+  var overlay = document.getElementById("search-overlay");
+  var input   = document.getElementById("searchInput");
+  var results = document.getElementById("searchResults");
+  var searchBtn= document.getElementById("searchBtn");
+  var closeBtn = document.getElementById("searchClose");
+  if(!overlay || !input || !results) return;
+
+  function openSearch(){
+    overlay.classList.add("open");
+    setTimeout(function(){ input.focus(); }, 60);
+    renderSearchResults("");
+  }
+  function closeSearch(){
+    overlay.classList.remove("open");
+    input.value = "";
+    results.innerHTML = "";
+  }
+
+  function renderSearchResults(query){
+    results.innerHTML = "";
+    var q = query.toLowerCase().trim();
+    var books = window.customBooks || [];
+    var filtered = q ? books.filter(function(b){
+      return b.title.toLowerCase().includes(q) || (b.desc||"").toLowerCase().includes(q);
+    }) : books;
+
+    if(!filtered.length){
+      var msg = document.createElement("div");
+      msg.className = "search-empty-msg";
+      msg.textContent = books.length === 0
+        ? "Henüz kütüphanenize kitap eklenmemiş. PDF ekle butonunu kullanın."
+        : "\"" + query + "\" için sonuç bulunamadı.";
+      results.appendChild(msg);
+      return;
+    }
+
+    // Raf etiketi
+    var shelfLabels = { ch1:"Birinci Raf", ch2:"İkinci Raf", ch3:"Üçüncü Raf", ch4:"Dördüncü Raf" };
+
+    filtered.forEach(function(bk, idx){
+      var item = document.createElement("div");
+      item.className = "search-result-item";
+      item.tabIndex = 0;
+      var pages = bk.pageCount || (bk.pages ? bk.pages.length : 0);
+      var shelf  = shelfLabels[bk.shelfId || "ch4"] || "Özel Kitaplık";
+      item.innerHTML =
+        "<div class='search-result-spine'></div>" +
+        "<div class='search-result-info'>" +
+          "<div class='search-result-title'>" + escHTML(bk.title) + "</div>" +
+          "<div class='search-result-meta'>" + shelf + " &bull; " + pages + " sayfa</div>" +
+        "</div>" +
+        "<span class='search-result-arrow'>›</span>";
+
+      item.addEventListener("click", function(){
+        closeSearch();
+        setTimeout(function(){ openTomeReader(bk); }, 180);
+      });
+      item.addEventListener("keydown", function(e){
+        if(e.key === "Enter") item.click();
+      });
+      results.appendChild(item);
+    });
+  }
+
+  // Girdi dinleme
+  input.addEventListener("input", function(){
+    renderSearchResults(input.value);
+  });
+
+  // Kapat
+  closeBtn && closeBtn.addEventListener("click", closeSearch);
+  overlay.addEventListener("click", function(e){
+    if(e.target === overlay) closeSearch();
+  });
+
+  // Header arama butonu
+  searchBtn && searchBtn.addEventListener("click", openSearch);
+
+  // Klavye kısayolları
+  window.addEventListener("keydown", function(e){
+    // Ctrl+K veya Cmd+K
+    if((e.ctrlKey || e.metaKey) && e.key === "k"){
+      e.preventDefault();
+      overlay.classList.contains("open") ? closeSearch() : openSearch();
+    }
+    if(e.key === "Escape" && overlay.classList.contains("open")){
+      closeSearch();
+    }
+  });
+})();
+
+// ============================================================
+// 13. BOŞ RAF MUM EFEKTİ
+// ============================================================
+function renderEmptyShelfCandles(){
+  ["1","2","3","4"].forEach(function(n){
+    var shelfEl = document.getElementById("shelf" + n);
+    if(!shelfEl) return;
+    // Mevcut mumları temizle
+    shelfEl.querySelectorAll(".shelf-candle,.shelf-empty-msg").forEach(function(el){ el.remove(); });
+    // Kitap var mı kontrol et
+    if(shelfEl.querySelector(".book")) return;
+    // 3 titreyen mum ekle
+    for(var i=0; i<3; i++){
+      var candle = document.createElement("div");
+      candle.className = "shelf-candle";
+      candle.style.animationDelay = (i * 0.4) + "s";
+      candle.innerHTML = "<div class='flame'></div><div class='wick'></div><div class='body'></div><div class='drip'></div>";
+      shelfEl.appendChild(candle);
+    }
+    // Boş raf mesajı
+    var msg = document.createElement("div");
+    msg.className = "shelf-empty-msg";
+    msg.innerHTML = "Bu raf sizi bekliyor.<br>Kitap eklemek için + Kitap Ekle butonunu kullanın.";
+    shelfEl.parentNode && shelfEl.parentNode.appendChild(msg);
+  });
+}
+
+// renderShelvesAll çağrıldıktan sonra mumları güncelle
+var _origRenderShelvesAll = renderShelvesAll;
+renderShelvesAll = function(){
+  _origRenderShelvesAll();
+  renderEmptyShelfCandles();
+};
+
+// İlk yüklemede de çağır
+setTimeout(renderEmptyShelfCandles, 800);
+
 })();

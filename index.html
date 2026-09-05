@@ -89,6 +89,41 @@ footer{position:relative;z-index:2;padding:34px 6vw 40px;display:flex;justify-co
 #candle::before{content:"";position:absolute;inset:28%;border-radius:50%;background:radial-gradient(circle,rgba(255,248,220,0.36) 0%,rgba(255,185,60,0.18) 50%,transparent 75%);filter:blur(8px);}
 #candle::after{content:"";position:absolute;top:50%;left:50%;width:14px;height:14px;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,#ffffff 0%,#ffe299 45%,#ff9e22 80%);box-shadow:0 0 24px 8px rgba(255,180,45,0.72),0 0 54px 20px rgba(255,130,20,0.38);animation:candle-flicker 2.1s ease-in-out infinite alternate;}
 @keyframes candle-flicker{0%{transform:translate(-50%,-50%) scale(0.85);opacity:0.82;}40%{transform:translate(-50%,-50%) scale(1.18);opacity:1;}70%{transform:translate(-50%,-50%) scale(0.94);opacity:0.88;}100%{transform:translate(-50%,-50%) scale(1.08);opacity:0.96;}}
+/* ============ ARAMA SPOTLIGHT ============ */
+#search-overlay{position:fixed;inset:0;z-index:95;background:rgba(5,4,3,0.88);backdrop-filter:blur(14px);display:flex;flex-direction:column;align-items:center;padding-top:14vh;opacity:0;visibility:hidden;transition:opacity .28s ease,visibility .28s ease;}
+#search-overlay.open{opacity:1;visibility:visible;}
+.search-box-wrap{width:100%;max-width:620px;padding:0 20px;}
+.search-input-row{display:flex;align-items:center;gap:12px;background:rgba(30,22,12,0.92);border:1px solid rgba(212,175,55,0.5);border-radius:8px;padding:14px 20px;box-shadow:0 0 40px rgba(212,175,55,0.18),0 24px 60px rgba(0,0,0,0.7);}
+.search-icon-lbl{font-size:1.25rem;color:var(--gold);opacity:0.8;}
+#searchInput{flex:1;background:none;border:none;outline:none;color:var(--parchment);font-family:"Instrument Sans",sans-serif;font-size:1.15rem;caret-color:var(--gold);}
+#searchInput::placeholder{color:rgba(239,230,207,0.35);}
+.search-kbd-close{font-size:0.7rem;color:rgba(239,230,207,0.4);border:1px solid rgba(239,230,207,0.2);border-radius:4px;padding:3px 8px;cursor:pointer;white-space:nowrap;}
+.search-results{margin-top:18px;width:100%;max-width:620px;padding:0 20px;max-height:55vh;overflow-y:auto;}
+.search-result-item{display:flex;align-items:center;gap:16px;padding:14px 18px;border-radius:6px;cursor:pointer;transition:background .18s ease;border:1px solid transparent;margin-bottom:6px;}
+.search-result-item:hover,.search-result-item.focused{background:rgba(212,175,55,0.1);border-color:rgba(212,175,55,0.3);}
+.search-result-spine{width:10px;height:52px;border-radius:3px;background:linear-gradient(180deg,#7a1620 0%,#400a11 100%);flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,0.4);}
+.search-result-info{flex:1;}
+.search-result-title{font-family:"Fraunces",serif;font-size:1rem;color:var(--parchment);margin-bottom:4px;}
+.search-result-meta{font-size:0.78rem;color:var(--parchment-dim);}
+.search-result-arrow{color:var(--gold);opacity:0.5;font-size:1.1rem;}
+.search-empty-msg{text-align:center;color:rgba(239,230,207,0.35);font-style:italic;padding:40px 0;font-family:"Fraunces",serif;}
+/* Arama butonu header'a */
+#searchBtn{background:none;border:1px solid rgba(212,175,55,0.3);border-radius:50%;width:34px;height:34px;color:var(--gold);font-size:0.95rem;cursor:pointer;display:flex;align-items:center;justify-content:center;margin-right:10px;transition:all .25s ease;pointer-events:auto;}
+#searchBtn:hover{border-color:var(--gold);background:rgba(212,175,55,0.15);transform:scale(1.1);box-shadow:0 0 12px rgba(212,175,55,0.3);}
+/* ============ BOŞ RAF MUM EFEKTİ ============ */
+.shelf-candle{display:flex;flex-direction:column;align-items:center;gap:0;opacity:0.7;animation:candle-appear 1.2s ease forwards;}
+@keyframes candle-appear{from{opacity:0;transform:translateY(8px)}to{opacity:0.65;transform:translateY(0)}}
+.shelf-candle .flame{width:8px;height:16px;border-radius:50% 50% 35% 35%;background:radial-gradient(ellipse at 50% 80%,#fff 0%,#ffe299 30%,#ff9e22 70%,transparent 100%);box-shadow:0 0 8px 4px rgba(255,170,30,0.55),0 0 20px 6px rgba(255,120,15,0.25);animation:flame-dance 1.8s ease-in-out infinite alternate;transform-origin:bottom center;}
+@keyframes flame-dance{0%{transform:scaleX(0.82) scaleY(0.95) rotate(-3deg);opacity:0.85;}33%{transform:scaleX(1.1) scaleY(1.08) rotate(2deg);opacity:1;}66%{transform:scaleX(0.9) scaleY(0.92) rotate(-1deg);opacity:0.9;}100%{transform:scaleX(1.05) scaleY(1.04) rotate(3deg);opacity:0.95;}}
+.shelf-candle .wick{width:1.5px;height:6px;background:#555;margin-bottom:-1px;}
+.shelf-candle .body{width:12px;height:38px;border-radius:2px 2px 1px 1px;background:linear-gradient(180deg,#efe6cf 0%,#d4b87a 60%,#b8954a 100%);box-shadow:0 2px 8px rgba(0,0,0,0.5);}
+.shelf-candle .drip{width:8px;height:5px;background:rgba(239,230,207,0.6);border-radius:0 0 4px 4px;margin-top:-2px;}
+.shelf-empty-msg{font-family:"Fraunces",serif;font-style:italic;font-size:0.88rem;color:rgba(239,230,207,0.38);text-align:center;margin-top:18px;line-height:1.5;}
+/* ============ KİTAP PARLAKLAMA (SHIMMER) ============ */
+.book .cover::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(125deg,transparent 30%,rgba(255,255,255,0.06) 50%,transparent 70%);background-size:200% 200%;opacity:0;transition:opacity .3s ease;animation:none;}
+.book:hover .cover::after{opacity:1;animation:shimmer-slide 1.2s ease infinite;}
+@keyframes shimmer-slide{0%{background-position:200% 0}100%{background-position:-200% 0}}
+/* ============ EXISTING ============ */
 .hikmet-seal-btn{display:inline-flex;align-items:center;gap:8px;padding:7px 16px;margin-right:16px;border-radius:24px;border:1px solid rgba(212,175,55,0.45);background:linear-gradient(135deg,rgba(35,26,14,0.85) 0%,rgba(20,15,8,0.92) 100%);color:var(--gold);font-family:"Fraunces",serif;font-size:0.88rem;font-weight:500;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.4),inset 0 0 10px rgba(212,175,55,0.12),0 0 12px rgba(212,175,55,0.15);transition:all .3s cubic-bezier(0.2,0.8,0.2,1);pointer-events:auto;}
 .hikmet-seal-btn:hover{transform:translateY(-1px) scale(1.04);border-color:var(--gold);background:linear-gradient(135deg,rgba(50,38,18,0.95) 0%,rgba(28,21,11,0.95) 100%);box-shadow:0 6px 22px rgba(0,0,0,0.6),inset 0 0 14px rgba(212,175,55,0.25),0 0 20px rgba(212,175,55,0.4);color:#fff2b8;}
 .hikmet-seal-btn .seal-icon{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:radial-gradient(circle,#ffd466 0%,#b88614 100%);color:#1e1405;font-size:0.75rem;font-weight:bold;box-shadow:0 0 8px rgba(212,175,55,0.6);animation:seal-rotate 8s linear infinite;}
@@ -329,6 +364,7 @@ footer{position:relative;z-index:2;padding:34px 6vw 40px;display:flex;justify-co
 <header>
   <span class="brand">Nur Koridoru</span>
   <div class="header-right">
+    <button id="searchBtn" title="Kitap Ara (Ctrl+K)">🔍</button>
     <button id="hikmetBtn" class="hikmet-seal-btn" title="Günün Vecizesi / Hikmet Mührü">
       <span class="seal-icon">✦</span>
       <span class="seal-text">Hikmet Mührü</span>
@@ -451,6 +487,19 @@ footer{position:relative;z-index:2;padding:34px 6vw 40px;display:flex;justify-co
     <span id="readerPageLabel"></span>
   </div>
 </div>
+
+<!-- 🔍 SPOTLIGHT ARAMA MODALI -->
+<div id="search-overlay" role="dialog" aria-label="Kitap Ara">
+  <div class="search-box-wrap">
+    <div class="search-input-row">
+      <span class="search-icon-lbl">🔍</span>
+      <input type="text" id="searchInput" placeholder="Kitap adı ile ara..." autocomplete="off" spellcheck="false">
+      <span class="search-kbd-close" id="searchClose">ESC ile kapat</span>
+    </div>
+  </div>
+  <div class="search-results" id="searchResults"></div>
+</div>
+
 <main>
 <section class="hero" id="hero">
   <span class="kicker">Sesli Risale-i Nur Kutuphanesi</span>
