@@ -2213,36 +2213,83 @@ function updateChrome(){
   }
 }
 
-function openReader(title,isDirect3D){
+function openReader(titleOrBook, isDirect3D){
+  var title = "";
+  var customBookObj = null;
+
+  if(typeof titleOrBook === "object" && titleOrBook !== null){
+    customBookObj = titleOrBook;
+    title = titleOrBook.title || "Risale";
+  } else {
+    title = (typeof titleOrBook === "string") ? titleOrBook.trim() : "Risale";
+    var found = (window.customBooks || []).find(function(b){
+      return b.title === title || b.id === title;
+    });
+    if(found) customBookObj = found;
+  }
+
   var canonicalTitle = normalizeBookTitle(title) || title;
-  currentBookTitle = canonicalTitle;
-  currentPages = getBookPages(canonicalTitle);
+  currentBookTitle = (customBookObj && customBookObj.title) ? customBookObj.title : canonicalTitle;
+
+  if(customBookObj && customBookObj.pages && customBookObj.pages.length){
+    var cDesc = customBookObj.desc || "Hazine-i Evrak";
+    currentPages = customBookObj.pages.map(function(p, idx){
+      if(typeof p === "object" && p !== null){
+        return {
+          kulliyat: "Hazine-i Evrak · " + cDesc,
+          chapter: currentBookTitle,
+          title: p.title || (currentBookTitle + " · Sayfa " + (idx+1)),
+          pageType: idx === 0 ? "mukaddime" : "metin",
+          text: p.text || "",
+          arabicVerse: p.arabicVerse || null,
+          imageData: p.imageData || null
+        };
+      }
+      return {
+        kulliyat: "Hazine-i Evrak · " + cDesc,
+        chapter: currentBookTitle,
+        title: currentBookTitle + " · Sayfa " + (idx+1),
+        pageType: idx === 0 ? "mukaddime" : "metin",
+        text: p
+      };
+    });
+  } else {
+    currentPages = getBookPages(canonicalTitle);
+  }
+
   pageIdx = 0;
-  if(readerTitle)readerTitle.textContent = canonicalTitle;
+  if(readerTitle) readerTitle.textContent = currentBookTitle;
   renderSpread();
   closeModal();
-  readerEl.classList.add("open");
+  if(readerEl) readerEl.classList.add("open");
+
   if(isDirect3D){
-    readerStage.classList.remove("reveal-pending");
-    dnaTransition.classList.remove("active");
+    if(readerStage) readerStage.classList.remove("reveal-pending");
+    if(dnaTransition) dnaTransition.classList.remove("active");
     return;
   }
   if(reduceMotion){
-    readerStage.classList.remove("reveal-pending");
+    if(readerStage) readerStage.classList.remove("reveal-pending");
     return;
   }
-  dnaRig.classList.remove("collapse");
-  readerStage.classList.add("reveal-pending");
-  dnaTransition.classList.add("active");
+  if(dnaRig) dnaRig.classList.remove("collapse");
+  if(readerStage) readerStage.classList.add("reveal-pending");
+  if(dnaTransition) dnaTransition.classList.add("active");
   setTimeout(function(){
-    dnaRig.classList.add("collapse");
-    readerStage.classList.remove("reveal-pending");
+    if(dnaRig) dnaRig.classList.add("collapse");
+    if(readerStage) readerStage.classList.remove("reveal-pending");
     playChime();
   },1250);
   setTimeout(function(){
-    dnaTransition.classList.remove("active");
+    if(dnaTransition) dnaTransition.classList.remove("active");
   },2050);
 }
+
+function openTomeReader(bookOrTitle){
+  openReader(bookOrTitle, true);
+}
+window.openReader = openReader;
+window.openTomeReader = openTomeReader;
 
 function closeReader(){
   readerEl.classList.remove("open");
