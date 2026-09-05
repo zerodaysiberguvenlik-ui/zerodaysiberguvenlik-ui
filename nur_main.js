@@ -2848,10 +2848,28 @@ function renderShelvesAll(){
         "<span class='spine-author'>PDF</span>",
         "<div class='wave'><i></i><i></i><i></i><i></i></div>",
         "</div>",
-        "<div class='glow'></div>"
+        "<div class='glow'></div>",
+        "<button class='shelf-delete-btn' title='Kitabı Sil' aria-label='Sil'>✕</button>"
       ].join("");
-      // Kitaba tıklayarak okuyucu açılsın
-      div.addEventListener("click", function(){
+
+      // Silme butonu
+      var delBtn = div.querySelector(".shelf-delete-btn");
+      delBtn.addEventListener("click", async function(e){
+        e.stopPropagation();
+        if(confirm('"' + bk.title + '" eserini silmek istediğinize emin misiniz?')){
+          await NurStorage.remove(bk.id);
+          customBooks = customBooks.filter(function(b){ return b.id !== bk.id; });
+          window.customBooks = customBooks;
+          updatePdfBadges();
+          renderPdfCustomGrid();
+          renderShelvesAll();
+          showToast('"' + bk.title + '" raftan kaldırıldı.');
+        }
+      });
+
+      // Kitaba tıklayarak okuyucu açılsın (silme butonuna tıklanmadıysa)
+      div.addEventListener("click", function(e){
+        if(e.target.closest(".shelf-delete-btn")) return;
         var found = customBooks.find(function(cb){ return cb.id === bk.id; });
         if(found) openTomeReader(found);
       });
