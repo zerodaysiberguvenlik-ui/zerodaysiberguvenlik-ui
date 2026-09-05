@@ -656,16 +656,25 @@ function render3DEmptyLecternStage(stageEl, chapterEl){
   var prevWrap=stageEl.querySelector(".stage-3d-wrap");
   if(prevWrap)prevWrap.remove();
 
+  var shelfNames = {
+    ch1: "Birinci Raf · Ana Külliyat",
+    ch2: "İkinci Raf · Hayat & Lâhikalar",
+    ch3: "Üçüncü Raf · Diğer Risaleler",
+    ch4: "Dördüncü Fasıl · Hazine-i Evrak"
+  };
+  var chId = chapterEl ? chapterEl.id : (stageEl.id==="stage4"?"ch4":"ch1");
+  var curShelfName = shelfNames[chId] || "Özel Kitaplık";
+
   var wrap=document.createElement("div");wrap.className="stage-3d-wrap";
   var canvas=document.createElement("canvas");canvas.className="stage-3d-canvas";
   wrap.appendChild(canvas);
 
   var hud=document.createElement("div");hud.className="stage-hud active";
-  hud.innerHTML="<span class='hud-icon'>📜</span><span class='hud-title'>Özel Kitaplık &bull; Hazine-i Evrak</span><span class='hud-badge' style='cursor:pointer;'>+ PDF Eser Yükle</span>";
+  hud.innerHTML="<span class='hud-icon'>📜</span><span class='hud-title'>" + curShelfName + "</span><span class='hud-badge' style='cursor:pointer;'>+ Bu Rafa Eser Ekle</span>";
   wrap.appendChild(hud);
 
   var hint=document.createElement("div");hint.className="stage-hint";
-  hint.innerHTML="<span>✦</span> İlk PDF risalenizi yüklemek için kürsüye tıklayın";
+  hint.innerHTML="<span>✦</span> Bu rafa PDF risalesi eklemek için kürsüye tıklayın";
   wrap.appendChild(hint);
 
   stageEl.appendChild(wrap);
@@ -731,7 +740,13 @@ function render3DEmptyLecternStage(stageEl, chapterEl){
 
   wrap.style.cursor="pointer";
   wrap.addEventListener("click",function(){
-    if(window.openPdfModal) window.openPdfModal();
+    if(window.openPdfModal){
+      window.openPdfModal();
+      var shelfSel = document.getElementById("pdfShelfSelect");
+      if(shelfSel && chId){
+        shelfSel.value = chId;
+      }
+    }
   });
 
   var t=0;
@@ -759,32 +774,38 @@ function render3DEmptyLecternStage(stageEl, chapterEl){
 
 function init3DStage(stageEl,chapterEl){
   var theme=chapterEl.getAttribute("data-theme")||"kulliyat";
-  var isChapter4=(chapterEl.id==="ch4"||stageEl.id==="stage4");
+  var chapterId=chapterEl.id||"ch1";
   var oldShelf=stageEl.querySelector(".shelf");
 
-  var booksData=[];
-  if(isChapter4 && window.customBooks && window.customBooks.length > 0){
-    booksData = window.customBooks.map(function(b){
-      return {title:b.title, desc:b.desc||"", color:b.color||"ruby"};
-    });
-  } else if(oldShelf){
+  // Bu rafa ait kitapları customBooks'tan al (shelfId)
+  var shelfBooks = (window.customBooks || []).filter(function(b){
+    return (b.shelfId || "ch4") === chapterId;
+  });
+
+  var booksData = shelfBooks.map(function(b){
+    return { id: b.id, title: b.title, desc: b.desc||"", color: "ruby", raw: b };
+  });
+
+  // Geriye dönük uyumluluk: customBooks boşsa ve DOM'da eski .book varsa
+  if(!booksData.length && oldShelf){
     var bookElements=Array.prototype.slice.call(oldShelf.querySelectorAll(".book"));
-    booksData=bookElements.map(function(b){
-      return {title:b.getAttribute("data-title")||"",desc:b.getAttribute("data-desc")||""};
-    });
+    if(bookElements.length > 0){
+      booksData=bookElements.map(function(b){
+        return {
+          id: b.getAttribute("data-book-id") || "",
+          title: b.getAttribute("data-title") || "",
+          desc: b.getAttribute("data-desc") || "",
+          color: "ruby"
+        };
+      });
+    }
   }
 
   var prevWrap=stageEl.querySelector(".stage-3d-wrap");
   if(prevWrap)prevWrap.remove();
 
   if(!booksData.length){
-    if(isChapter4){
-      render3DEmptyLecternStage(stageEl, chapterEl);
-      return;
-    }
-    var emptyMsg=document.createElement("div");emptyMsg.className="added-empty";
-    emptyMsg.textContent="Henüz eklenmiş eser yok.";
-    stageEl.appendChild(emptyMsg);
+    render3DEmptyLecternStage(stageEl, chapterEl);
     return;
   }
 
@@ -798,7 +819,7 @@ function init3DStage(stageEl,chapterEl){
   wrap.appendChild(nextBtn);
 
   var hud=document.createElement("div");hud.className="stage-hud";
-  hud.innerHTML="<span class='hud-icon'>&#10022;</span><span class='hud-title'></span><span class='hud-badge'>Kitabı Aç & Dinle</span>";
+  hud.innerHTML="<span class='hud-icon'>&#10022;</span><span class='hud-title'></span><button type='button' class='hud-badge hud-open-btn'>Kitabı Aç</button><button type='button' class='hud-delete-btn' title='Bu Kitabı Sil'>🗑️ Sil</button>";
   wrap.appendChild(hud);
 
   var hint=document.createElement("div");hint.className="stage-hint";
@@ -900,6 +921,8 @@ function init3DStage(stageEl,chapterEl){
     }
 
     rig.userData={
+      id:item.id,
+      raw:item.raw,
       index:idx,
       title:item.title,
       desc:item.desc,
@@ -990,7 +1013,46 @@ function init3DStage(stageEl,chapterEl){
     }
   });
 
+  // HUD butonları: Kitabı Aç ve Sil
+  var openBtn = hud.querySelector(".hud-open-btn");
+  if(openBtn){
+    openBtn.addEventListener("click", function(e){
+      e.stopPropagation();
+      if(hoveredRig && !activeOpeningRig){
+        triggerOpenBook3D(hoveredRig);
+      }
+    });
+  }
+
+  var delBtn = hud.querySelector(".hud-delete-btn");
+  if(delBtn){
+    delBtn.addEventListener("click", async function(e){
+      e.stopPropagation();
+      if(!hoveredRig) return;
+      var bId = hoveredRig.userData.id;
+      var bTitle = hoveredRig.userData.title;
+      if(confirm('"' + bTitle + '" eserini kütüphaneden ve bu raftan silmek istediğinize emin misiniz?')){
+        if(bId){
+          await NurStorage.remove(bId);
+          customBooks = customBooks.filter(function(b){ return b.id !== bId; });
+        } else {
+          var found = customBooks.find(function(b){ return b.title === bTitle; });
+          if(found){
+            await NurStorage.remove(found.id);
+            customBooks = customBooks.filter(function(b){ return b.id !== found.id; });
+          }
+        }
+        window.customBooks = customBooks;
+        updatePdfBadges();
+        renderPdfCustomGrid();
+        renderShelvesAll();
+        showToast('"' + bTitle + '" kütüphaneden silindi.');
+      }
+    });
+  }
+
   hud.addEventListener("click",function(e){
+    if(e.target.closest(".hud-delete-btn")) return;
     e.stopPropagation();
     if(hoveredRig&&!activeOpeningRig){
       triggerOpenBook3D(hoveredRig);
@@ -1028,7 +1090,13 @@ function init3DStage(stageEl,chapterEl){
       activeOpeningRig.userData.openProgress=1-Math.pow(1-p2,3);
 
       if(elapsed>=1.05&&!readerEl.classList.contains("open")){
-        openReader(activeOpeningRig.userData.title,true);
+        if(activeOpeningRig.userData.raw){
+          openTomeReader(activeOpeningRig.userData.raw);
+        } else {
+          var found = (window.customBooks||[]).find(function(b){ return b.id === activeOpeningRig.userData.id || b.title === activeOpeningRig.userData.title; });
+          if(found) openTomeReader(found);
+          else openReader(activeOpeningRig.userData.title,true);
+        }
       }
     }
 
@@ -2825,13 +2893,15 @@ function updateShelfCounts(){
     var el = document.getElementById(id+"Count");
     if(el) el.textContent = counts[id] + " eser";
   });
+  var addedCount = document.getElementById("addedCount");
+  if(addedCount) addedCount.textContent = counts.ch4 + " eser";
 }
 
 // Tüm rafları render et (ch1-ch4)
 function renderShelvesAll(){
   var shelfIds = ["ch1","ch2","ch3","ch4"];
   shelfIds.forEach(function(sid){
-    var shelfEl = document.getElementById("shelf" + sid.replace("ch",""));
+    var shelfEl = document.getElementById("shelf" + sid.replace("ch","")) || (sid === "ch4" ? document.getElementById("addedShelf") : null);
     if(!shelfEl) return;
     shelfEl.innerHTML = "";
     var booksForShelf = customBooks.filter(function(b){ return (b.shelfId || "ch4") === sid; });
@@ -2877,14 +2947,11 @@ function renderShelvesAll(){
     });
   });
   // Stage'leri yeniden başlat
-  [["ch1","stage1"],["ch2","stage2"],["ch3","stage3"]].forEach(function(pair){
+  [["ch1","stage1"],["ch2","stage2"],["ch3","stage3"],["ch4","stage4"]].forEach(function(pair){
     var chEl = document.getElementById(pair[0]);
     var stEl = document.getElementById(pair[1]);
     if(chEl && stEl) init3DStage(stEl, chEl);
   });
-  var ch4 = document.getElementById("ch4");
-  var stage4 = document.getElementById("stage4") || (ch4 ? ch4.querySelector(".chapter-stage") : null);
-  if(stage4 && ch4) init3DStage(stage4, ch4);
   updateShelfCounts();
 }
 
@@ -2898,6 +2965,27 @@ if(shelfAddPdfBtn) shelfAddPdfBtn.addEventListener("click", openPdfModal);
 if(libraryFab) libraryFab.addEventListener("click", openPdfModal);
 if(pdfModalClose) pdfModalClose.addEventListener("click", closePdfModal);
 if(pdfCancelBtn) pdfCancelBtn.addEventListener("click", closePdfModal);
+
+var clearAllBooksBtn = document.getElementById("clearAllBooksBtn");
+if(clearAllBooksBtn){
+  clearAllBooksBtn.addEventListener("click", async function(){
+    if(!customBooks.length){
+      showToast("Kütüphanede silinecek kitap yok.");
+      return;
+    }
+    if(confirm("DİKKAT: Kütüphanenizdeki TÜM kitapları (" + customBooks.length + " eser) silmek istediğinize emin misiniz? Bu işlem geri alınamaz.")){
+      for(var i=0; i<customBooks.length; i++){
+        await NurStorage.remove(customBooks[i].id);
+      }
+      customBooks = [];
+      window.customBooks = customBooks;
+      updatePdfBadges();
+      renderPdfCustomGrid();
+      renderShelvesAll();
+      showToast("Tüm kitaplar kütüphaneden ve raflardan temizlendi.");
+    }
+  });
+}
 
 if(pdfModal){
   pdfModal.addEventListener("click", function(e){
@@ -2983,14 +3071,38 @@ window.addEventListener("keydown", function(e){
           "<div class='search-result-title'>" + escHTML(bk.title) + "</div>" +
           "<div class='search-result-meta'>" + shelf + " &bull; " + pages + " sayfa</div>" +
         "</div>" +
-        "<span class='search-result-arrow'>›</span>";
+        "<div class='search-result-actions'>" +
+          "<button type='button' class='search-del-btn' title='Bu Kitabı Sil'>🗑️ Sil</button>" +
+          "<span class='search-result-arrow'>›</span>" +
+        "</div>";
 
-      item.addEventListener("click", function(){
+      var delBtn = item.querySelector(".search-del-btn");
+      if(delBtn){
+        delBtn.addEventListener("click", async function(e){
+          e.stopPropagation();
+          if(confirm('"' + bk.title + '" eserini kütüphaneden silmek istediğinize emin misiniz?')){
+            await NurStorage.remove(bk.id);
+            customBooks = customBooks.filter(function(b){ return b.id !== bk.id; });
+            window.customBooks = customBooks;
+            updatePdfBadges();
+            renderPdfCustomGrid();
+            renderShelvesAll();
+            renderSearchResults(input.value);
+            showToast('"' + bk.title + '" kütüphaneden silindi.');
+          }
+        });
+      }
+
+      item.addEventListener("click", function(e){
+        if(e.target.closest(".search-del-btn")) return;
         closeSearch();
         setTimeout(function(){ openTomeReader(bk); }, 180);
       });
       item.addEventListener("keydown", function(e){
-        if(e.key === "Enter") item.click();
+        if(e.key === "Enter") {
+          closeSearch();
+          setTimeout(function(){ openTomeReader(bk); }, 180);
+        }
       });
       results.appendChild(item);
     });
