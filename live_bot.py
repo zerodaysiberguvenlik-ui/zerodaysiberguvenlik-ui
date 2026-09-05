@@ -59,7 +59,8 @@ ARBITRAGE_MARKETS = [
         "borrow_token": USDC_ADDRESS,
         "borrow_decimals": 6,
         "target_token": WETH_ADDRESS,
-        "target_decimals": 18,
+        "token0_decimals": 18,
+        "token1_decimals": 6,
         "pools": {
             "BaseSwap": "0xab067c01c7f5734da168c699ae9d23a4512c9fdb",
             "SushiSwap": "0x2f8818d1b0f3e3e295440c1c0cddf40aaa21fa87",
@@ -71,7 +72,8 @@ ARBITRAGE_MARKETS = [
         "borrow_token": WETH_ADDRESS,
         "borrow_decimals": 18,
         "target_token": BRETT_ADDRESS,
-        "target_decimals": 18,
+        "token0_decimals": 18,
+        "token1_decimals": 18,
         "pools": {
             "BaseSwap": "0x78b9a3e9b16391df3a379ea0c5b9c1aef4b55ab7",
             "SushiSwap": "0x404e927b203375779a6abd52a2049ce0adf6609b",
@@ -83,7 +85,8 @@ ARBITRAGE_MARKETS = [
         "borrow_token": WETH_ADDRESS,
         "borrow_decimals": 18,
         "target_token": TOSHI_ADDRESS,
-        "target_decimals": 18,
+        "token0_decimals": 18,
+        "token1_decimals": 18,
         "pools": {
             "BaseSwap": "0xcefb04d884c9414140286b01754126b61df6b247",
             "SushiSwap": "0xbfc74e1de81e81b0a807469502f6662cc238795e",
@@ -95,7 +98,8 @@ ARBITRAGE_MARKETS = [
         "borrow_token": WETH_ADDRESS,
         "borrow_decimals": 18,
         "target_token": DEGEN_ADDRESS,
-        "target_decimals": 18,
+        "token0_decimals": 18,
+        "token1_decimals": 18,
         "pools": {
             "BaseSwap": "0x152375ed731bd67717fe3a12f62a9a2a27f46400",
             "SushiSwap": "0x5636c6f5ade81b63da945ba4c9f504c7eaa9ea61",
@@ -165,12 +169,9 @@ class AnalyticalArbitrageEngine:
             return 0.0, 0.0
 
         ratio = (r_a_y * r_b_x * fee_a * fee_b) / (r_a_x * r_b_y)
-        if ratio <= 1.002: # Minimum %0.2 net marj
+        if ratio <= 1.002:
             return 0.0, 0.0
 
-        # Optimal dx* formülü:
-        # num = sqrt(r_a_x * r_b_y * fee_a * fee_b * r_a_y * r_b_x) - (r_a_x * r_b_y)
-        # den = fee_a * r_b_y + fee_a * fee_b * r_a_y
         num = math.sqrt(r_a_x * r_b_y * fee_a * fee_b * r_a_y * r_b_x) - (r_a_x * r_b_y)
         den = (fee_a * r_b_y) + (fee_a * fee_b * r_a_y)
         if den <= 0:
@@ -180,7 +181,6 @@ class AnalyticalArbitrageEngine:
         if dx_opt <= 0:
             return 0.0, 0.0
 
-        # Gerçek çıktı hesaplaması
         y_out = (r_a_y * fee_a * dx_opt) / (r_a_x + fee_a * dx_opt)
         x_out = (r_b_x * fee_b * y_out) / (r_b_y + fee_b * y_out)
         expected_profit = x_out - dx_opt
@@ -189,12 +189,26 @@ class AnalyticalArbitrageEngine:
 
 # 📱 TELEGRAM BİLDİRİM VE İNTERAKTİF KOMUT SİSTEMİ
 class TelegramNotifier:
+    _last_send_ts = 0.0
+    _retry_after_ts = 0.0
+
     @classmethod
     def send_alert(cls, message: str, force: bool = False):
         if not TELEGRAM_ENABLED or not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
             return
         if not force:
             return
+        
+        now = time.time()
+        if now < cls._retry_after_ts:
+            remaining = int(cls._retry_after_ts - now)
+            logger.warning(f"⏳ Telegram API geçici rate limit devrede ({remaining}s kaldı).")
+            return
+
+        # Minimum 2.5 saniye aralık koruması
+        if now - cls._last_send_ts < 2.5:
+            time.sleep(2.5 - (now - cls._last_send_ts))
+
         try:
             url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
             payload = urllib.parse.urlencode({
@@ -204,9 +218,21 @@ class TelegramNotifier:
                 "disable_web_page_preview": "true"
             }).encode("utf-8")
             req = urllib.request.Request(url, data=payload, headers={"User-Agent": "BaseMEVBot/2.0"})
-            urllib.request.urlopen(req, timeout=4)
-        except Exception:
-            pass
+            urllib.request.urlopen(req, timeout=5)
+            cls._last_send_ts = time.time()
+        except urllib.error.HTTPError as http_err:
+            if http_err.code == 429:
+                try:
+                    err_body = json.loads(http_err.read().decode())
+                    retry_sec = err_body.get("parameters", {}).get("retry_after", 60)
+                    cls._retry_after_ts = time.time() + retry_sec
+                    logger.warning(f"⚠️ Telegram 429 (Too Many Requests): Telegram {retry_sec} saniye bekleme istedi.")
+                except Exception:
+                    cls._retry_after_ts = time.time() + 60
+            else:
+                logger.warning(f"⚠️ Telegram HTTP Hatası: {http_err}")
+        except Exception as e:
+            logger.warning(f"⚠️ Telegram Bildirim Hatası: {e}")
 
 BOT_IS_PAUSED = False
 
@@ -422,7 +448,8 @@ def start_institutional_master_engine():
                 "borrow_token": m["borrow_token"],
                 "borrow_decimals": m["borrow_decimals"],
                 "target_token": m["target_token"],
-                "target_decimals": m["target_decimals"]
+                "token0_decimals": m["token0_decimals"],
+                "token1_decimals": m["token1_decimals"]
             })
 
     # Multicall calldata hazırla (getReserves: 0x0902f1ac)
@@ -469,8 +496,8 @@ def start_institutional_master_engine():
                 if res[0] and len(res[1]) >= 64:
                     hex_data = res[1].hex()
                     # Tüm havuzlarda token0 = WETH, token1 = Hedef Token
-                    r0 = int(hex_data[0:64], 16) / (10 ** 18) # WETH
-                    r1 = int(hex_data[64:128], 16) / (10 ** p_info["target_decimals"]) # Hedef Token
+                    r0 = int(hex_data[0:64], 16) / (10 ** p_info["token0_decimals"])
+                    r1 = int(hex_data[64:128], 16) / (10 ** p_info["token1_decimals"])
                     market_reserves[m_name][dex_name] = {"r0": r0, "r1": r1}
 
             # Canlı WETH fiyatını belirle (WETH/USDC BaseSwap havuzundan)
