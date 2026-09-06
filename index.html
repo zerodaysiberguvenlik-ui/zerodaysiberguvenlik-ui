@@ -17,10 +17,28 @@ h1,h2,h3{font-family:"Fraunces",serif;font-weight:450;margin:0;letter-spacing:-0
 #scene-canvas{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;display:block;}
 #scene-veil{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse at 50% 45%,rgba(20,17,13,0) 0%,rgba(20,17,13,0.35) 62%,rgba(20,17,13,0.92) 100%);}
 main{position:relative;z-index:2;}
-header{position:fixed;top:0;left:0;right:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:28px 5vw;pointer-events:none;}
-header .brand{font-family:"Fraunces",serif;font-style:italic;font-size:1.05rem;color:var(--parchment);pointer-events:auto;}
-header .prog{width:130px;height:1px;background:var(--line);position:relative;pointer-events:auto;}
-header .prog i{position:absolute;left:0;top:0;bottom:0;width:0%;background:var(--brass);display:block;}
+header{position:fixed;top:0;left:0;right:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:18px 4vw;pointer-events:none;gap:14px;}
+header .brand{font-family:"Fraunces",serif;font-style:italic;font-size:1.08rem;color:var(--parchment);pointer-events:auto;white-space:nowrap;}
+header .header-right{display:flex;align-items:center;gap:12px;pointer-events:auto;}
+header .prog{width:110px;height:2px;background:var(--line);position:relative;pointer-events:auto;border-radius:1px;}
+header .prog i{position:absolute;left:0;top:0;bottom:0;width:0%;background:var(--gold);display:block;}
+
+/* 🔮 3D KAVRAM ARAMA MOTORU STİLLERİ */
+.header-3d-search{position:relative;pointer-events:auto;display:flex;align-items:center;gap:8px;background:rgba(22,16,11,0.85);backdrop-filter:blur(12px);border:1px solid rgba(212,175,55,0.45);border-radius:30px;padding:4px 6px 4px 14px;box-shadow:0 8px 25px rgba(0,0,0,0.6),inset 0 0 15px rgba(212,175,55,0.08);transition:all 0.3s ease;max-width:440px;flex:1;margin:0 10px;}
+.header-3d-search:focus-within{border-color:var(--gold);box-shadow:0 0 25px rgba(212,175,55,0.45),inset 0 0 16px rgba(212,175,55,0.18);transform:translateY(-1px);}
+.header-3d-search .search-3d-icon{font-size:1.05rem;color:var(--gold);animation:pulse-gem 3s ease-in-out infinite;cursor:pointer;}
+@keyframes pulse-gem{0%,100%{filter:drop-shadow(0 0 2px rgba(212,175,55,0.4));}50%{filter:drop-shadow(0 0 8px rgba(255,215,0,0.8));}}
+.header-3d-search input{flex:1;background:transparent;border:none;outline:none;color:var(--parchment);font-family:"Instrument Sans",sans-serif;font-size:0.86rem;caret-color:var(--gold);min-width:140px;}
+.header-3d-search input::placeholder{color:rgba(239,230,207,0.42);font-style:italic;}
+.header-3d-search .search-3d-btn{background:linear-gradient(135deg,rgba(212,175,55,0.3) 0%,rgba(180,135,30,0.5) 100%);border:1px solid rgba(212,175,55,0.6);color:#fff;border-radius:20px;padding:4px 12px;font-size:0.75rem;font-weight:600;font-family:"Instrument Sans",sans-serif;cursor:pointer;display:flex;align-items:center;gap:4px;transition:all 0.25s ease;white-space:nowrap;}
+.header-3d-search .search-3d-btn:hover{background:linear-gradient(135deg,rgba(255,215,0,0.5) 0%,rgba(212,175,55,0.7) 100%);box-shadow:0 0 14px rgba(212,175,55,0.6);transform:scale(1.04);}
+.concept-tags-bar{position:absolute;top:100%;left:0;right:0;margin-top:6px;display:flex;align-items:center;gap:5px;padding:7px 12px;background:rgba(18,13,9,0.96);border:1px solid rgba(212,175,55,0.38);border-radius:16px;box-shadow:0 12px 30px rgba(0,0,0,0.8);opacity:0;visibility:hidden;transform:translateY(-4px);transition:all 0.25s ease;flex-wrap:wrap;z-index:30;}
+.header-3d-search:focus-within .concept-tags-bar,.header-3d-search:hover .concept-tags-bar{opacity:1;visibility:visible;transform:translateY(0);}
+.concept-tag-title{font-size:0.68rem;color:rgba(212,175,55,0.7);font-family:"Fraunces",serif;font-style:italic;}
+.concept-tag{font-size:0.72rem;padding:2px 8px;border-radius:10px;background:rgba(212,175,55,0.12);border:1px solid rgba(212,175,55,0.28);color:var(--gold);cursor:pointer;transition:all 0.2s ease;}
+.concept-tag:hover{background:rgba(212,175,55,0.38);color:#fff;border-color:var(--gold);transform:scale(1.06);box-shadow:0 0 8px rgba(212,175,55,0.4);}
+@media(max-width:920px){.header-3d-search{max-width:260px;margin:0 6px;}.concept-tags-bar{display:none;}}
+@media(max-width:680px){.header-3d-search{display:none;}}
 .hero{height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 6vw;}
 .hero .kicker{font-style:italic;font-family:"Fraunces",serif;color:var(--brass-soft);font-size:1.05rem;margin-bottom:22px;opacity:.9;}
 .hero h1{font-size:clamp(2.6rem,7vw,6.4rem);line-height:.98;max-width:16em;}
@@ -373,6 +391,24 @@ footer{position:relative;z-index:2;padding:34px 6vw 40px;display:flex;justify-co
 </div>
 <header>
   <span class="brand">Nur Koridoru</span>
+
+  <!-- 🔮 3D KAVRAM ARAMA MOTORU -->
+  <div class="header-3d-search" id="header3DSearch">
+    <span class="search-3d-icon" id="search3DIcon" title="3D Arama Motoru">🔮</span>
+    <input type="text" id="conceptSearchInput" placeholder="Kavram veya konu ara (örn. İhlas, Haşir, Uhuvvet, Kader)..." autocomplete="off" spellcheck="false" aria-label="3D Kavram Arama">
+    <button id="conceptSearchBtn" class="search-3d-btn" title="3D Çarkı Döndür ve Eseri Parlat">Çarkı Döndür ↵</button>
+    <div class="concept-tags-bar" id="conceptTagsBar">
+      <span class="concept-tag-title">Örnekler:</span>
+      <span class="concept-tag" data-concept="Haşir">✦ Haşir</span>
+      <span class="concept-tag" data-concept="İhlas">✦ İhlas</span>
+      <span class="concept-tag" data-concept="Uhuvvet">✦ Uhuvvet</span>
+      <span class="concept-tag" data-concept="Kader">✦ Kader</span>
+      <span class="concept-tag" data-concept="Namaz">✦ Namaz</span>
+      <span class="concept-tag" data-concept="Tabiat">✦ Tabiat</span>
+      <span class="concept-tag" data-concept="Musa">✦ Asa-yı Musa</span>
+    </div>
+  </div>
+
   <div class="header-right">
     <button id="searchBtn" title="Kitap Ara (Ctrl+K)">🔍</button>
     <button id="hikmetBtn" class="hikmet-seal-btn" title="Günün Vecizesi / Hikmet Mührü">

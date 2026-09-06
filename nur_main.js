@@ -926,6 +926,9 @@ function init3DStage(stageEl,chapterEl){
       index:idx,
       title:item.title,
       desc:item.desc,
+      coverMat:coverMat,
+      isConceptHighlighted:false,
+      highlightStartTime:0,
       hoverVal:0,
       scaleVal:1.0,
       coverPivot:coverPivot,
@@ -946,6 +949,45 @@ function init3DStage(stageEl,chapterEl){
 
   var curAngle=0,targetAngle=0,isDragging=false,dragStartX=0,dragVel=0,hoveredRig=null,isChapterVisible=true;
   var activeOpeningRig=null,isAnimatingOpen=false,openStartTime=0;
+
+  function spinToBook(index, conceptQuery){
+    if(index < 0 || index >= bookRigs.length) return;
+    
+    // Diğer kitapların parlamasını söndür
+    bookRigs.forEach(function(r){
+      r.userData.isConceptHighlighted = false;
+      if(r.userData.coverMat) r.userData.coverMat.emissiveIntensity = 0;
+    });
+
+    var targetRig = bookRigs[index];
+    targetRig.userData.isConceptHighlighted = true;
+    targetRig.userData.highlightStartTime = performance.now();
+    targetRig.userData.conceptQuery = conceptQuery;
+
+    // Hedef kitabın açısı: theta = curAngle + (index / n) * 2 * PI
+    // Kamera önü: theta = 0 => curAngle = - (index / n) * 2 * PI
+    var twoPi = Math.PI * 2;
+    var desiredAngle = - (index / n) * twoPi;
+    
+    // Hızlı dönüş (2 tam 360 tur + hedefe oturma)
+    var diff = ((desiredAngle - curAngle) % twoPi + twoPi) % twoPi;
+    if(diff < Math.PI * 0.4) diff += twoPi;
+    
+    targetAngle = curAngle + (2 * twoPi) + diff;
+    dragVel = 0.36; // Hızlı fırlama ivmesi (çark hızla döner!)
+    
+    // HUD'ı parlayan başlıkla güncelle
+    setTimeout(function(){
+      hoveredRig = targetRig;
+      if(hud){
+        var titleEl = hud.querySelector(".hud-title");
+        if(titleEl) {
+          titleEl.innerHTML = "<span style='color:#ffe885;font-weight:700;'>✦ " + escHTML(conceptQuery) + " ✦</span> " + escHTML(targetRig.userData.title);
+        }
+        hud.classList.add("active");
+      }
+    }, 1100);
+  }
 
   function triggerOpenBook3D(rig){
     if(activeOpeningRig||isAnimatingOpen)return;
@@ -1139,8 +1181,27 @@ function init3DStage(stageEl,chapterEl){
       var flyP=rig.userData.flyProgress||0;
       var openP=rig.userData.openProgress||0;
 
+      var isHighlighted = !!rig.userData.isConceptHighlighted;
+      if(isHighlighted){
+        var hElap = (performance.now() - (rig.userData.highlightStartTime || 0)) / 1000;
+        if(hElap < 10.0){
+          var glowPulse = 0.55 + 0.45 * Math.sin(t * 7.5);
+          if(rig.userData.coverMat){
+            rig.userData.coverMat.emissive.setHex(0xffd54f);
+            rig.userData.coverMat.emissiveIntensity = glowPulse;
+          }
+          rig.userData.hoverVal = Math.max(rig.userData.hoverVal, 1.25);
+          rig.userData.scaleVal = Math.max(rig.userData.scaleVal, 1.30 + 0.08 * Math.sin(t * 5.0));
+        } else {
+          rig.userData.isConceptHighlighted = false;
+          if(rig.userData.coverMat){
+            rig.userData.coverMat.emissiveIntensity = 0;
+          }
+        }
+      }
+
       var theta=curAngle+(i/n)*Math.PI*2;
-      var isHover=(hoveredRig===rig)&&!activeOpeningRig;
+      var isHover=((hoveredRig===rig) || isHighlighted)&&!activeOpeningRig;
       rig.userData.hoverVal+=((isHover?1:0)-rig.userData.hoverVal)*0.14;
       rig.userData.scaleVal+=((isHover?1.2:1.0)-rig.userData.scaleVal)*0.12;
 
@@ -1171,7 +1232,7 @@ function init3DStage(stageEl,chapterEl){
       rig.userData.flyPivots[1].rotation.y=-openP*1.45+pFlap*1.5;
       rig.userData.flyPivots[2].rotation.y=-openP*0.55+pFlap*0.8;
 
-      if(isHover||isOpenTarget){spotLight.target=rig;}
+      if(isHover||isOpenTarget||isHighlighted){spotLight.target=rig;}
     });
 
     renderer.render(scene,camera);
@@ -1179,8 +1240,24 @@ function init3DStage(stageEl,chapterEl){
   animate();
 
   stageManagers.set(stageEl,{
-    destroy:function(){renderer.dispose();wrap.remove();}
+    destroy:function(){
+      if(window.nur3DStages && window.nur3DStages[chapterId]){
+        delete window.nur3DStages[chapterId];
+      }
+      renderer.dispose();
+      wrap.remove();
+    }
   });
+
+  window.nur3DStages = window.nur3DStages || {};
+  window.nur3DStages[chapterId] = {
+    chapterId: chapterId,
+    stageEl: stageEl,
+    chapterEl: chapterEl,
+    bookRigs: bookRigs,
+    booksData: booksData,
+    spinToBook: spinToBook
+  };
 }
 
 function initAll3DStages(){
@@ -3294,5 +3371,198 @@ renderShelvesAll = function(){
 
 // İlk yüklemede de çağır
 setTimeout(renderEmptyShelfCandles, 800);
+
+// ============================================================
+// 14. 3D KAVRAM ARAMA MOTORU (3D CONCEPT SEARCH ENGINE)
+// ============================================================
+var RISALE_CONCEPTS = {
+  "ihlas": ["İhlas Risalesi", "Yirmi Birinci Lem'a", "Lem'alar", "On Yedinci Lem'a"],
+  "hasir": ["Haşir Risalesi", "Onuncu Söz", "Sözler", "Dokuzuncu Şua"],
+  "kader": ["Kader Risalesi", "Yirmi Altıncı Söz", "Sözler"],
+  "uhuvvet": ["Uhuvvet Risalesi", "Yirmi İkinci Mektup", "Mektubat"],
+  "namaz": ["Dördüncü Söz", "Dokuzuncu Söz", "Yirmi Birinci Söz", "Sözler"],
+  "oruc": ["Ramazan Risalesi", "Yirmi Dokuzuncu Mektup", "Mektubat"],
+  "ramazan": ["Ramazan Risalesi", "Yirmi Dokuzuncu Mektup", "Mektubat"],
+  "olum": ["Hastalar Risalesi", "Yirmi Beşinci Lem'a", "On Yedinci Söz", "Haşir Risalesi"],
+  "hastalik": ["Hastalar Risalesi", "Yirmi Beşinci Lem'a", "Lem'alar"],
+  "sifa": ["Hastalar Risalesi", "Lem'alar"],
+  "genc": ["Gençlik Rehberi", "Sözler", "On Üçüncü Söz"],
+  "genclik": ["Gençlik Rehberi", "Sözler", "On Üçüncü Söz"],
+  "kainat": ["Ayetü'l-Kübra", "Yedinci Şua", "Şualar", "Sözler"],
+  "tabiat": ["Tabiat Risalesi", "Yirmi Üçüncü Lem'a", "Lem'alar"],
+  "ene": ["Otuzuncu Söz", "Ene ve Zerre Risalesi", "Sözler"],
+  "zerre": ["Otuzuncu Söz", "Ene ve Zerre Risalesi", "Sözler"],
+  "mirac": ["Otuz Birinci Söz", "Miraç Risalesi", "Sözler"],
+  "adalet": ["Yirmi Dokuzuncu Lem'a", "Sözler"],
+  "iman": ["Birinci Söz", "Yirmi Üçüncü Söz", "Ayetü'l-Kübra", "Haşir Risalesi", "Asa-yı Musa", "Sözler"],
+  "tevhid": ["Yirmi İkinci Söz", "Otuz İkinci Söz", "Ayetü'l-Kübra", "Sözler", "Asa-yı Musa"],
+  "bismillah": ["Birinci Söz", "Sözler"],
+  "mucize": ["On Dokuzuncu Mektup", "Mu'cizat-ı Ahmediye", "Mektubat"],
+  "peygamber": ["On Dokuzuncu Mektup", "On Dokuzuncu Söz", "Sözler", "Mektubat"],
+  "kuran": ["Yirmi Beşinci Söz", "Mu'cizat-ı Kur'aniye", "Sözler"],
+  "asa": ["Asa-yı Musa"],
+  "musa": ["Asa-yı Musa"],
+  "asayi musa": ["Asa-yı Musa"],
+  "meyve": ["Meyve Risalesi", "On Birinci Şua", "Şualar"],
+  "sua": ["Şualar", "Yedinci Şua", "Ayetü'l-Kübra"],
+  "lema": ["Lem'alar", "Hastalar Risalesi", "İhlas Risalesi"],
+  "sozler": ["Sözler", "Küçük Sözler", "Haşir Risalesi"],
+  "mektubat": ["Mektubat", "Uhuvvet Risalesi"]
+};
+
+function normalizeConcept(str){
+  if(!str) return "";
+  return str.toLowerCase()
+    .replace(/ı/g, "i")
+    .replace(/ğ/g, "g")
+    .replace(/ü/g, "u")
+    .replace(/ş/g, "s")
+    .replace(/ö/g, "o")
+    .replace(/ç/g, "c")
+    .replace(/â/g, "a")
+    .replace(/î/g, "i")
+    .replace(/û/g, "u")
+    .trim();
+}
+
+function searchConceptIn3D(rawQuery){
+  if(!rawQuery) return false;
+  var q = rawQuery.trim();
+  if(!q) return false;
+  var nq = normalizeConcept(q);
+
+  var candidateBookTitles = [];
+  var matchedConceptName = q;
+
+  // 1. Kavram tablosundan aday kitapları al
+  for(var cKey in RISALE_CONCEPTS){
+    var ncKey = normalizeConcept(cKey);
+    if(ncKey === nq || ncKey.indexOf(nq) >= 0 || nq.indexOf(ncKey) >= 0){
+      candidateBookTitles = candidateBookTitles.concat(RISALE_CONCEPTS[cKey]);
+      matchedConceptName = cKey.charAt(0).toUpperCase() + cKey.slice(1);
+      break;
+    }
+  }
+
+  // 2. 3D Sahne çarklarında tara (ch1, ch2, ch3, ch4)
+  var matchedChapterId = null;
+  var matchedBookIndex = -1;
+  var matchedBookTitle = "";
+  var stagesMap = window.nur3DStages || {};
+
+  var stageOrder = ["ch1", "ch2", "ch3", "ch4"];
+  for(var s = 0; s < stageOrder.length; s++){
+    var sid = stageOrder[s];
+    var stageObj = stagesMap[sid];
+    if(!stageObj || !stageObj.booksData || !stageObj.booksData.length) continue;
+
+    for(var bIdx = 0; bIdx < stageObj.booksData.length; bIdx++){
+      var b = stageObj.booksData[bIdx];
+      var nbTitle = normalizeConcept(b.title);
+      var nbDesc  = normalizeConcept(b.desc || "");
+
+      // Kavram listesi ile örtüşüyor mu?
+      var candMatch = candidateBookTitles.some(function(cand){
+        var nCand = normalizeConcept(cand);
+        return nbTitle.indexOf(nCand) >= 0 || nCand.indexOf(nbTitle) >= 0;
+      });
+
+      // Doğrudan başlık veya açıklamada geçiyor mu?
+      var directMatch = nbTitle.indexOf(nq) >= 0 || nbDesc.indexOf(nq) >= 0 || (b.title && b.title.toLowerCase().indexOf(q.toLowerCase()) >= 0);
+
+      if(candMatch || directMatch){
+        matchedChapterId = sid;
+        matchedBookIndex = bIdx;
+        matchedBookTitle = b.title;
+        break;
+      }
+    }
+    if(matchedChapterId) break;
+  }
+
+  // 3. Eğer halihazırda 3D sahnede yoksa ama customBooks'ta varsa
+  if(!matchedChapterId && window.customBooks && window.customBooks.length){
+    for(var c = 0; c < window.customBooks.length; c++){
+      var cb = window.customBooks[c];
+      var ncbTitle = normalizeConcept(cb.title);
+      var ncbDesc  = normalizeConcept(cb.desc || "");
+      if(ncbTitle.indexOf(nq) >= 0 || ncbDesc.indexOf(nq) >= 0){
+        var targetSid = cb.shelfId || "ch4";
+        var stg = stagesMap[targetSid];
+        if(stg && stg.booksData){
+          var foundIdx = stg.booksData.findIndex(function(x){ return x.id === cb.id || x.title === cb.title; });
+          if(foundIdx >= 0){
+            matchedChapterId = targetSid;
+            matchedBookIndex = foundIdx;
+            matchedBookTitle = cb.title;
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  // 4. Eşleşme bulunduysa: Çarkı döndür, kitabı parlat, rafa kaydır!
+  if(matchedChapterId && matchedBookIndex >= 0){
+    var stgObj = stagesMap[matchedChapterId];
+    if(stgObj){
+      // Rafa doğru akıcı kaydırma
+      var chapEl = document.getElementById(matchedChapterId);
+      if(chapEl){
+        chapEl.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+
+      // Çarkı yüksek hızla döndür ve kitabı altın renginde parlat
+      stgObj.spinToBook(matchedBookIndex, matchedConceptName);
+
+      playChime();
+      showToast('🔮 "' + matchedConceptName + '" kavramı bulundu! 3D Çark döndü ve "' + matchedBookTitle + '" parlatıldı.');
+      return true;
+    }
+  }
+
+  // 5. Eşleşme sahnede bulunamadıysa bilgi ver
+  if(candidateBookTitles.length){
+    showToast('✦ "' + q + '" kavramı Risale-i Nur\'da ' + candidateBookTitles.slice(0,2).join(" ve ") + ' eserlerinde geçer.');
+  } else {
+    showToast('✦ "' + q + '" kavramı için rafta uygun bir eser bulunamadı.');
+  }
+  return false;
+}
+window.searchConceptIn3D = searchConceptIn3D;
+
+// Arama kutusu ve buton dinleyicileri
+var conceptInput = document.getElementById("conceptSearchInput");
+var conceptBtn   = document.getElementById("conceptSearchBtn");
+var conceptTags  = document.querySelectorAll(".concept-tag");
+var search3DIcon = document.getElementById("search3DIcon");
+
+if(conceptBtn && conceptInput){
+  conceptBtn.addEventListener("click", function(){
+    searchConceptIn3D(conceptInput.value);
+  });
+  conceptInput.addEventListener("keydown", function(e){
+    if(e.key === "Enter"){
+      e.preventDefault();
+      searchConceptIn3D(conceptInput.value);
+      conceptInput.blur();
+    }
+  });
+}
+
+if(search3DIcon && conceptInput){
+  search3DIcon.addEventListener("click", function(){
+    conceptInput.focus();
+  });
+}
+
+conceptTags.forEach(function(tag){
+  tag.addEventListener("click", function(e){
+    e.stopPropagation();
+    var concept = tag.getAttribute("data-concept") || tag.textContent.replace("✦","").trim();
+    if(conceptInput) conceptInput.value = concept;
+    searchConceptIn3D(concept);
+  });
+});
 
 })();
