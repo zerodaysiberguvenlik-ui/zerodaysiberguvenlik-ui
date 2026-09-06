@@ -2186,6 +2186,16 @@ function updateChrome(){
   var progress=Math.min(100,(curNum/total)*100);
 
   if(readerProgressFill)readerProgressFill.style.width=progress.toFixed(1)+"%";
+  
+  var pageInput=document.getElementById("readerPageInput");
+  var totalPagesEl=document.getElementById("readerTotalPages");
+  if(pageInput){
+    pageInput.value=curNum;
+    pageInput.max=total;
+  }
+  if(totalPagesEl){
+    totalPagesEl.textContent=total;
+  }
   if(readerPageLabel)readerPageLabel.textContent="Sayfa "+curNum+" / "+total;
   if(readerPrev)readerPrev.disabled=pageIdx<=0;
   if(readerNext)readerNext.disabled=pageIdx>=total-1;
@@ -2284,6 +2294,35 @@ function closeReader(){
   }
 }
 
+function goToPage(targetIdx){
+  if(!currentPages||!currentPages.length)return;
+  if(targetIdx<0)targetIdx=0;
+  if(targetIdx>=currentPages.length)targetIdx=currentPages.length-1;
+  if(targetIdx===pageIdx)return;
+  if(isFlipping)return;
+
+  var dir=targetIdx>pageIdx?1:-1;
+  isFlipping=true;
+  playTurn();
+
+  var tomeBook=document.getElementById("tomeBook");
+  if(tomeBook){
+    tomeBook.style.transition="opacity 0.15s ease, transform 0.15s ease";
+    tomeBook.style.opacity="0.35";
+    tomeBook.style.transform=dir>0?"scale(0.985) translateX(-6px)":"scale(0.985) translateX(6px)";
+  }
+
+  setTimeout(function(){
+    pageIdx=targetIdx;
+    renderSpread();
+    if(tomeBook){
+      tomeBook.style.opacity="1";
+      tomeBook.style.transform="none";
+    }
+    isFlipping=false;
+  },160);
+}
+
 function turnSpread(dir){
   if(isFlipping)return;
   var newIdx=pageIdx+dir;
@@ -2295,25 +2334,51 @@ function turnSpread(dir){
     showToast("Kitabın son sayfasına ulaştınız.");
     return;
   }
-  isFlipping=true;
-  playTurn();
+  goToPage(newIdx);
+}
 
-  var tomeBook=document.getElementById("tomeBook");
-  if(tomeBook){
-    tomeBook.style.transition="opacity 0.15s ease, transform 0.15s ease";
-    tomeBook.style.opacity="0.4";
-    tomeBook.style.transform=dir>0?"scale(0.985) translateX(-6px)":"scale(0.985) translateX(6px)";
+function executePageJump(){
+  var input=document.getElementById("readerPageInput");
+  if(!input||!currentPages||!currentPages.length)return;
+  var val=parseInt(input.value,10);
+  if(isNaN(val)||val<1||val>currentPages.length){
+    showToast("Lütfen 1 ile "+currentPages.length+" arasında geçerli bir sayfa numarası girin.");
+    input.value=pageIdx+1;
+    return;
   }
+  goToPage(val-1);
+}
 
-  setTimeout(function(){
-    pageIdx=newIdx;
-    renderSpread();
-    if(tomeBook){
-      tomeBook.style.opacity="1";
-      tomeBook.style.transform="none";
+var pageJumpBtn=document.getElementById("readerPageJumpBtn");
+if(pageJumpBtn){
+  pageJumpBtn.addEventListener("click",executePageJump);
+}
+
+var readerPageInput=document.getElementById("readerPageInput");
+if(readerPageInput){
+  readerPageInput.addEventListener("keydown",function(e){
+    if(e.key==="Enter"){
+      e.preventDefault();
+      executePageJump();
+      readerPageInput.blur();
     }
-    isFlipping=false;
-  },160);
+  });
+  readerPageInput.addEventListener("focus",function(){
+    readerPageInput.select();
+  });
+}
+
+// İlerleme çubuğuna tıklayarak doğrudan o sayfaya atlama
+var readerProgressBar=document.getElementById("readerProgressBar")||document.querySelector(".reader-progress");
+if(readerProgressBar){
+  readerProgressBar.addEventListener("click",function(e){
+    if(!currentPages||!currentPages.length)return;
+    var rect=readerProgressBar.getBoundingClientRect();
+    var clickRatio=(e.clientX-rect.left)/rect.width;
+    clickRatio=Math.max(0,Math.min(1,clickRatio));
+    var targetPage=Math.min(currentPages.length-1,Math.floor(clickRatio*currentPages.length));
+    goToPage(targetPage);
+  });
 }
 
 document.getElementById("modalOpenReader").addEventListener("click",function(){openReader(modalTitle.textContent);});
@@ -2339,7 +2404,21 @@ document.getElementById("fontDec").addEventListener("click",function(){readerFon
 document.getElementById("fontInc").addEventListener("click",function(){readerFontSize=Math.min(1.35,readerFontSize+0.08);readerEl.style.setProperty("--reader-font",readerFontSize+"rem");});
 toneBtn.addEventListener("click",function(){readerEl.classList.toggle("tone-gece");toneBtn.classList.toggle("active");});
 bookmarkBtn.addEventListener("click",function(){var key=currentBookTitle+":"+pageIdx;bookmarks[key]=!bookmarks[key];updateChrome();});
-window.addEventListener("keydown",function(e){if(!readerEl.classList.contains("open"))return;if(e.key==="ArrowRight")turnSpread(1);else if(e.key==="ArrowLeft")turnSpread(-1);else if(e.key==="Escape")closeReader();});
+window.addEventListener("keydown",function(e){
+  if(!readerEl.classList.contains("open"))return;
+  if(document.activeElement===document.getElementById("readerPageInput")){
+    if(e.key==="Escape")document.getElementById("readerPageInput").blur();
+    return;
+  }
+  if(e.key==="ArrowRight")turnSpread(1);
+  else if(e.key==="ArrowLeft")turnSpread(-1);
+  else if(e.key==="Escape")closeReader();
+  else if(e.key==="g"||e.key==="G"){
+    e.preventDefault();
+    var inp=document.getElementById("readerPageInput");
+    if(inp){inp.focus();inp.select();}
+  }
+});
 
 
 
