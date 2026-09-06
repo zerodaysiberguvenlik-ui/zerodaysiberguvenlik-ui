@@ -28,47 +28,163 @@ var CORRIDOR_LEN=130,SEG=6,HALF_W=3.4,SEGMENTS=Math.floor(CORRIDOR_LEN/SEG);
 var floor=new THREE.Mesh(new THREE.PlaneGeometry(HALF_W*2+2,CORRIDOR_LEN+20),floorMat);
 floor.rotation.x=-Math.PI/2;floor.position.set(0,0,-CORRIDOR_LEN/2+8);scene.add(floor);
 var ceil=floor.clone();ceil.material=ceilMat;ceil.position.y=4.6;ceil.rotation.x=Math.PI/2;scene.add(ceil);
-var bookColors=[0x7A1620,0xD4AF37,0x8a1420,0xC98A3C,0x5c0f16,0xb8952f,0x6b1018,0x9c7a2e];
-var TITLES=["Sozler","Mektubat","Lemlalar","Sualar","Tarihce-i Hayat","Barla Lahikasi","Kastamonu Lahikasi","Emirdag Lahikasi","Asa-yi Musa","Sikke-i Tasdik","Mesnevi-i Nuriye","Isarat-ul Icaz","Muhakemat"];
+var TITLES=["Sözler","Mektubat","Lem'alar","Şualar","Asa-yı Musa","Tarihçe-i Hayat","Barla Lâhikası","Kastamonu Lâhikası","Emirdağ Lâhikası","Sikke-i Tasdik","Mesnevi-i Nuriye","İşaratü'l-İ'caz","Muhakemat"];
 var texCache={},tCtr=0;
-function getSpineTex(title){
-  if(texCache[title])return texCache[title];
+function getSpineTex(title, isCustom){
+  var key = title + (isCustom ? "_custom" : "");
+  if(texCache[key]) return texCache[key];
   var c=document.createElement("canvas");c.width=96;c.height=512;
   var ctx=c.getContext("2d");
-  var g=ctx.createLinearGradient(0,0,0,512);g.addColorStop(0,"#8a1c28");g.addColorStop(1,"#3c0a10");
+  
+  // Asil Yakut / Yakut Kırmızısı Cilt Tonu
+  var g=ctx.createLinearGradient(0,0,0,512);
+  g.addColorStop(0, isCustom ? "#991c28" : "#8a1c28");
+  g.addColorStop(0.5, isCustom ? "#6c121c" : "#5a0f16");
+  g.addColorStop(1, "#3c0a10");
   ctx.fillStyle=g;ctx.fillRect(0,0,96,512);
-  ctx.strokeStyle="#D4AF37";ctx.lineWidth=5;ctx.strokeRect(8,8,80,496);
-  ctx.fillStyle="#e9cb75";ctx.font="italic 36px Georgia,serif";
-  ctx.textAlign="center";ctx.textBaseline="middle";
-  ctx.save();ctx.translate(48,256);ctx.rotate(Math.PI/2);ctx.fillText(title,0,0);ctx.restore();
+  
+  // Varaklı Altın Çerçeve
+  ctx.strokeStyle = isCustom ? "#FFD700" : "#D4AF37";
+  ctx.lineWidth = isCustom ? 6 : 5;
+  ctx.strokeRect(8,8,80,496);
+  ctx.strokeRect(12,12,72,488);
+  
+  // Tepe ve Dip Varak İşlemeleri
+  ctx.fillStyle = isCustom ? "#FFEAA5" : "#e9cb75";
+  ctx.font="bold 20px serif";ctx.textAlign="center";ctx.textBaseline="middle";
+  ctx.fillText("✦", 48, 30);
+  ctx.fillText("✦", 48, 482);
+  
+  if(isCustom){
+    ctx.font="bold 12px 'Instrument Sans',sans-serif";
+    ctx.fillText("Ö Z E L", 48, 52);
+  }
+  
+  // Yaldızlı Dikey Başlık
+  ctx.fillStyle = isCustom ? "#FFF0B0" : "#f1db8b";
+  ctx.font="italic bold 31px Georgia,serif";
+  ctx.save();ctx.translate(48,256);ctx.rotate(Math.PI/2);
+  var displayTitle = title || "Risale";
+  if(displayTitle.length > 22) displayTitle = displayTitle.slice(0, 20) + "..";
+  ctx.fillText(displayTitle,0,0);
+  ctx.restore();
+  
   var t=new THREE.CanvasTexture(c);t.anisotropy=4;t.needsUpdate=true;
-  texCache[title]=t;return t;
+  texCache[key]=t;return t;
 }
-function buildWall(x,dir){
+
+function buildWallFrames(x,dir){
   var group=new THREE.Group();
   var frame=new THREE.Mesh(new THREE.BoxGeometry(0.5,4.2,SEG*0.94),woodMat);
   frame.position.set(x,2.1,0);group.add(frame);
   for(var s=0;s<3;s++){
     var sb=new THREE.Mesh(new THREE.BoxGeometry(0.62,0.06,SEG*0.9),brassMat);
     sb.position.set(x+dir*0.06,0.9+s*1.15,0);group.add(sb);
-    for(var i=0;i<9;i++){
-      var bw=0.09+Math.random()*0.05,bh=0.55+Math.random()*0.35;
-      var title=TITLES[tCtr%TITLES.length];tCtr++;
-      var sm=new THREE.MeshStandardMaterial({map:getSpineTex(title),roughness:0.55,metalness:0.05});
-      var pm=new THREE.MeshStandardMaterial({color:bookColors[Math.floor(Math.random()*bookColors.length)],roughness:0.6,metalness:0.05});
-      var mats=[pm,pm,pm,pm,pm,pm];mats[dir>0?0:1]=sm;
-      var bk=new THREE.Mesh(new THREE.BoxGeometry(bw,bh,0.32),mats);
-      bk.position.set(x+dir*0.28,0.9+s*1.15+bh/2+0.03,-SEG*0.42+i*(SEG*0.84/9)+(Math.random()-0.5)*0.03);
-      bk.rotation.y=(Math.random()-0.5)*0.05;group.add(bk);
-    }
   }
   return group;
 }
+
+var corridorBooksGroup = new THREE.Group();
+scene.add(corridorBooksGroup);
+var corridorBookMeshes = [];
+
+var rubyRedMat = new THREE.MeshStandardMaterial({
+  color: 0x7A1620,
+  roughness: 0.6,
+  metalness: 0.08
+});
+
+function rebuildCorridorShelves(){
+  while(corridorBooksGroup.children.length > 0){
+    var child = corridorBooksGroup.children[0];
+    corridorBooksGroup.remove(child);
+    if(child.geometry) child.geometry.dispose();
+  }
+  corridorBookMeshes = [];
+
+  var customList = (window.customBooks || []).slice();
+  var customIdx = 0;
+  var canonIdx = 0;
+
+  for(var segIdx = 0; segIdx < SEGMENTS; segIdx++){
+    var segZ = -segIdx * SEG - 3;
+    
+    // Sol Duvar (-HALF_W, dir=1) ve Sağ Duvar (HALF_W, dir=-1)
+    [-1, 1].forEach(function(wallSide){
+      var x = (wallSide < 0) ? -HALF_W : HALF_W;
+      var dir = (wallSide < 0) ? 1 : -1;
+
+      // 3 Raf Katı (s=0 alt, s=1 göz hizası, s=2 üst)
+      for(var s = 0; s < 3; s++){
+        var shelfY = 0.9 + s * 1.15;
+        var bookCount = 9;
+
+        for(var i = 0; i < bookCount; i++){
+          var bw = 0.09 + (i % 3) * 0.02;
+          var bh = 0.62 + (i % 4) * 0.08;
+          var bz = -SEG * 0.42 + i * (SEG * 0.84 / bookCount);
+
+          var isCustom = false;
+          var bookData = null;
+          var title = "";
+
+          // Kullanıcının manuel eklediği özel kitaplar öncelikli olarak
+          // koridorun başındaki göz hizası (s=1) ve alt (s=0) raflara sol ve sağ dönüşümlü yerleştirilir
+          if(customIdx < customList.length && (s === 1 || s === 0)){
+            bookData = customList[customIdx++];
+            title = bookData.title || "Özel Kitap";
+            isCustom = true;
+          } else {
+            title = TITLES[canonIdx % TITLES.length];
+            canonIdx++;
+            isCustom = false;
+          }
+
+          var spineMat = new THREE.MeshStandardMaterial({
+            map: getSpineTex(title, isCustom),
+            roughness: 0.52,
+            metalness: 0.08,
+            emissive: new THREE.Color(0x000000)
+          });
+
+          var mats = [rubyRedMat, rubyRedMat, rubyRedMat, rubyRedMat, rubyRedMat, rubyRedMat];
+          mats[dir > 0 ? 0 : 1] = spineMat;
+
+          var bk = new THREE.Mesh(new THREE.BoxGeometry(bw, bh, 0.32), mats);
+          var posX = x + dir * 0.28;
+          var posY = shelfY + bh / 2 + 0.03;
+          var posZ = segZ + bz;
+
+          bk.position.set(posX, posY, posZ);
+          bk.rotation.y = (wallSide < 0 ? 0.02 : -0.02);
+
+          bk.userData = {
+            isCorridorBook: true,
+            title: title,
+            bookData: bookData,
+            isCustom: isCustom,
+            baseX: posX,
+            baseY: posY,
+            baseZ: posZ,
+            dir: dir,
+            pullT: 0,
+            spineMat: spineMat
+          };
+
+          corridorBooksGroup.add(bk);
+          corridorBookMeshes.push(bk);
+        }
+      }
+    });
+  }
+}
+window.rebuildCorridorShelves = rebuildCorridorShelves;
+
 var lamps=[];
 for(var i=0;i<SEGMENTS;i++){
   var z=-i*SEG-3;
-  var L=buildWall(-HALF_W,1);L.position.z=z;scene.add(L);
-  var R=buildWall(HALF_W,-1);R.position.z=z;scene.add(R);
+  var L=buildWallFrames(-HALF_W,1);L.position.z=z;scene.add(L);
+  var R=buildWallFrames(HALF_W,-1);R.position.z=z;scene.add(R);
   if(i%2===0){
     var bulb=new THREE.Mesh(new THREE.SphereGeometry(0.09,12,12),new THREE.MeshBasicMaterial({color:0xffdca0}));
     bulb.position.set(0,3.9,z);scene.add(bulb);
@@ -76,6 +192,7 @@ for(var i=0;i<SEGMENTS;i++){
     lamps.push({light:pl,base:1.4,phase:Math.random()*10});
   }
 }
+rebuildCorridorShelves();
 
 /* ── KORİDORUN SONU: BEDİÜZZAMAN SAİD NURSÎ POSTERİ & ÇERÇEVE ── */
 var endWallZ = -CORRIDOR_LEN + 3.0; // yaklaşık -127.0
@@ -385,11 +502,29 @@ function animate(){
   for(var k=0;k<lamps.length;k++){var lp=lamps[k];lp.light.intensity=lp.base+Math.sin(t*3+lp.phase)*0.18+(reduceMotion?0:(Math.random()-0.5)*0.05);}
   var pos=dust.geometry.attributes.position;
   for(var j=0;j<DUST_N;j++){pos.array[j*3+1]+=0.0025;if(pos.array[j*3+1]>4.3)pos.array[j*3+1]=0;}
-  pos.needsUpdate=true;renderer.render(scene,camera);
+  pos.needsUpdate=true;
+
+  // ── KORİDORDAKİ KİTAPLARIN ÖNE DOĞRU ÇEKİLME VE ETKİLEŞİM ANİMASYONU ──
+  for(var bi = 0; bi < corridorBookMeshes.length; bi++){
+    var cbk = corridorBookMeshes[bi];
+    var u = cbk.userData;
+    var targetPull = (cbk === hoveredCorridorBook) ? 0.24 : 0;
+    u.pullT += (targetPull - u.pullT) * 0.22;
+    if(Math.abs(u.pullT) > 0.001){
+      cbk.position.x = u.baseX + u.dir * u.pullT;
+    } else {
+      cbk.position.x = u.baseX;
+    }
+  }
+
+  renderer.render(scene,camera);
 }
 animate();
 
 var corridorRaycaster = new THREE.Raycaster();
+var hoveredCorridorBook = null;
+var corridorTooltipEl = null;
+
 window.addEventListener("pointermove", function(e){
   targetMouseX = e.clientX;
   targetMouseY = e.clientY;
@@ -401,25 +536,111 @@ window.addEventListener("pointermove", function(e){
   targetLanternY = 1.6 + ny * 1.2;
   targetLanternZ = curZ - 3.2;
 
-  if(window.scrollY < window.innerHeight * 1.4){
+  if(!corridorTooltipEl) corridorTooltipEl = document.getElementById("corridorBookTooltip");
+
+  var overInteractive = e.target.closest("button, input, textarea, a, #book-reader, #pdf-modal, #hikmet-modal, #book-modal, #search-overlay, .stage-3d-wrap, header, .shelf, .shelf-book, .custom-book-card, .chapter-stage, .chapter-copy");
+
+  if(!overInteractive){
     corridorRaycaster.setFromCamera({ x: nx, y: ny }, camera);
-    var hits = corridorRaycaster.intersectObject(sealMesh);
-    if(hits.length > 0){
-      canvas.style.cursor = "pointer";
-    } else if(canvas.style.cursor === "pointer"){
-      canvas.style.cursor = "default";
+
+    // 1. Önce Hikmet Mührü kontrolü (girişte)
+    if(window.scrollY < window.innerHeight * 1.4){
+      var sealHits = corridorRaycaster.intersectObject(sealMesh);
+      if(sealHits.length > 0){
+        canvas.style.cursor = "pointer";
+        if(hoveredCorridorBook){
+          if(hoveredCorridorBook.userData && hoveredCorridorBook.userData.spineMat){
+            hoveredCorridorBook.userData.spineMat.emissive.setHex(0x000000);
+          }
+          hoveredCorridorBook = null;
+        }
+        if(corridorTooltipEl) corridorTooltipEl.classList.remove("active");
+        return;
+      }
     }
+
+    // 2. Koridordaki sağ ve sol raflardaki kitapların kontrolü
+    var bookHits = corridorRaycaster.intersectObjects(corridorBookMeshes);
+    if(bookHits.length > 0){
+      var hitBook = bookHits[0].object;
+      if(hitBook !== hoveredCorridorBook){
+        if(hoveredCorridorBook && hoveredCorridorBook.userData && hoveredCorridorBook.userData.spineMat){
+          hoveredCorridorBook.userData.spineMat.emissive.setHex(0x000000);
+        }
+        hoveredCorridorBook = hitBook;
+        if(hoveredCorridorBook.userData && hoveredCorridorBook.userData.spineMat){
+          hoveredCorridorBook.userData.spineMat.emissive.setHex(hoveredCorridorBook.userData.isCustom ? 0x775511 : 0x553811);
+        }
+      }
+      canvas.style.cursor = "pointer";
+
+      if(corridorTooltipEl){
+        var u = hitBook.userData;
+        var badgeEl = document.getElementById("cbtBadge");
+        var titleEl = document.getElementById("cbtTitle");
+        if(badgeEl){
+          badgeEl.textContent = u.isCustom ? "✦ ÖZEL KİTAPLIĞINIZ ✦" : "✦ RİSALE-İ NUR KÜLLİYATI ✦";
+          badgeEl.className = "cbt-badge" + (u.isCustom ? " custom" : "");
+        }
+        if(titleEl) titleEl.textContent = u.title;
+
+        corridorTooltipEl.style.left = e.clientX + "px";
+        corridorTooltipEl.style.top = (e.clientY - 14) + "px";
+        corridorTooltipEl.classList.add("active");
+      }
+      return;
+    }
+  }
+
+  // Kitap veya mühür üzerinde değilse
+  if(hoveredCorridorBook){
+    if(hoveredCorridorBook.userData && hoveredCorridorBook.userData.spineMat){
+      hoveredCorridorBook.userData.spineMat.emissive.setHex(0x000000);
+    }
+    hoveredCorridorBook = null;
+  }
+  if(corridorTooltipEl) corridorTooltipEl.classList.remove("active");
+  if(canvas.style.cursor === "pointer" && !overInteractive){
+    canvas.style.cursor = "default";
   }
 });
 
-canvas.addEventListener("click", function(e){
-  if(window.scrollY > window.innerHeight * 1.4) return;
+// Koridordaki raflardan kitap seçme veya mühür tıklama
+window.addEventListener("click", function(e){
+  var overInteractive = e.target.closest("button, input, textarea, a, #book-reader, #pdf-modal, #hikmet-modal, #book-modal, #search-overlay, .stage-3d-wrap, header, .shelf, .shelf-book, .custom-book-card, .chapter-stage, .chapter-copy");
+  if(overInteractive) return;
+
   var nx = (e.clientX / window.innerWidth) * 2 - 1;
   var ny = -(e.clientY / window.innerHeight) * 2 + 1;
   corridorRaycaster.setFromCamera({ x: nx, y: ny }, camera);
-  var hits = corridorRaycaster.intersectObject(sealMesh);
-  if(hits.length > 0){
-    if(typeof window.openHikmetModal === "function") window.openHikmetModal();
+
+  // 1. Mühür tıklandı mı?
+  if(window.scrollY < window.innerHeight * 1.4){
+    var hits = corridorRaycaster.intersectObject(sealMesh);
+    if(hits.length > 0){
+      if(typeof window.openHikmetModal === "function") window.openHikmetModal();
+      return;
+    }
+  }
+
+  // 2. Koridordaki sağ veya sol raftan bir kitap tıklandı mı?
+  var bookHits = corridorRaycaster.intersectObjects(corridorBookMeshes);
+  if(bookHits.length > 0){
+    var targetBook = bookHits[0].object;
+    var u = targetBook.userData;
+    if(corridorTooltipEl) corridorTooltipEl.classList.remove("active");
+    if(u.spineMat) u.spineMat.emissive.setHex(0x000000);
+
+    // Seçilen kitabın öne sıçraması
+    u.pullT = 0.36;
+    targetBook.position.x = u.baseX + u.dir * u.pullT;
+
+    // Okuyucuyu aç
+    if(u.isCustom && u.bookData){
+      openReader(u.bookData);
+    } else {
+      openReader(u.title);
+    }
   }
 });
 }catch(err){console.error("3D hata:",err);}
@@ -1088,6 +1309,7 @@ function init3DStage(stageEl,chapterEl){
         updatePdfBadges();
         renderPdfCustomGrid();
         renderShelvesAll();
+        if(typeof rebuildCorridorShelves === "function") rebuildCorridorShelves();
         showToast('"' + bTitle + '" kütüphaneden silindi.');
       }
     });
@@ -3008,6 +3230,7 @@ if(pdfSubmitBtn){
       updatePdfBadges();
       renderPdfCustomGrid();
       renderAddedShelf();
+      if(typeof rebuildCorridorShelves === "function") rebuildCorridorShelves();
 
       playChime();
       showToast('"' + title + '" kütüphanenize eklendi (' + pages.length + ' sayfa)!');
@@ -3077,6 +3300,7 @@ function renderPdfCustomGrid(){
         updatePdfBadges();
         renderPdfCustomGrid();
         renderAddedShelf();
+        if(typeof rebuildCorridorShelves === "function") rebuildCorridorShelves();
         showToast('"' + book.title + '" kütüphaneden kaldırıldı.');
       }
     });
@@ -3133,6 +3357,7 @@ function renderShelvesAll(){
           updatePdfBadges();
           renderPdfCustomGrid();
           renderShelvesAll();
+          if(typeof rebuildCorridorShelves === "function") rebuildCorridorShelves();
           showToast('"' + bk.title + '" raftan kaldırıldı.');
         }
       });
@@ -3141,7 +3366,10 @@ function renderShelvesAll(){
       div.addEventListener("click", function(e){
         if(e.target.closest(".shelf-delete-btn")) return;
         var found = customBooks.find(function(cb){ return cb.id === bk.id; });
-        if(found) openTomeReader(found);
+        if(found) {
+          if(typeof openTomeReader === "function") openTomeReader(found);
+          else openReader(found);
+        }
       });
       shelfEl.appendChild(div);
     });
@@ -3182,6 +3410,7 @@ if(clearAllBooksBtn){
       updatePdfBadges();
       renderPdfCustomGrid();
       renderShelvesAll();
+      if(typeof rebuildCorridorShelves === "function") rebuildCorridorShelves();
       showToast("Tüm kitaplar kütüphaneden ve raflardan temizlendi.");
     }
   });
@@ -3214,6 +3443,7 @@ window.addEventListener("keydown", function(e){
   updatePdfBadges();
   renderPdfCustomGrid();
   renderAddedShelf();
+  if(typeof rebuildCorridorShelves === "function") rebuildCorridorShelves();
 })();
 
 // ============================================================

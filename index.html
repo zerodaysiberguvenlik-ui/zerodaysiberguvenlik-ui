@@ -375,14 +375,64 @@ footer{position:relative;z-index:2;padding:34px 6vw 40px;display:flex;justify-co
 .pdf-item-btn:hover{color:var(--gold);background:rgba(212,175,55,0.15);}
 .pdf-item-btn.delete:hover{color:#e64b56;background:rgba(230,75,86,0.15);}
 
-#lib-toast{position:fixed;bottom:85px;right:26px;z-index:102;background:rgba(25,18,12,0.95);border:1px solid var(--gold);color:var(--parchment);font-size:.88rem;padding:12px 20px;border-radius:30px;box-shadow:0 8px 25px rgba(0,0,0,0.7);opacity:0;transform:translateY(12px);transition:opacity .35s ease,transform .35s ease;pointer-events:none;display:flex;align-items:center;gap:8px;}
-#lib-toast.show{opacity:1;transform:translateY(0);}
+/* ── KARANLIK KORİDOR RAFLARINDAN KİTAP SEÇME TOOLTİP ── */
+.corridor-book-tooltip{
+  position:fixed;
+  z-index:35;
+  pointer-events:none;
+  opacity:0;
+  transform:translate(-50%,-100%) scale(0.92);
+  background:rgba(18,13,9,0.94);
+  backdrop-filter:blur(12px);
+  border:1px solid rgba(212,175,55,0.7);
+  box-shadow:0 12px 35px rgba(0,0,0,0.9),0 0 25px rgba(212,175,55,0.35),inset 0 0 12px rgba(212,175,55,0.15);
+  border-radius:10px;
+  padding:9px 18px;
+  text-align:center;
+  white-space:nowrap;
+  transition:opacity 0.22s ease, transform 0.22s cubic-bezier(0.2,0.8,0.2,1);
+}
+.corridor-book-tooltip.active{
+  opacity:1;
+  transform:translate(-50%,-125%) scale(1);
+}
+.corridor-book-tooltip .cbt-badge{
+  font-size:0.68rem;
+  letter-spacing:0.14em;
+  text-transform:uppercase;
+  color:var(--gold);
+  font-weight:600;
+  margin-bottom:3px;
+}
+.corridor-book-tooltip .cbt-badge.custom{
+  color:#ff9e42;
+  text-shadow:0 0 8px rgba(255,158,66,0.6);
+}
+.corridor-book-tooltip .cbt-title{
+  font-family:"Fraunces",serif;
+  font-size:1.15rem;
+  color:#fff;
+  font-weight:500;
+  text-shadow:0 0 10px rgba(212,175,55,0.4);
+}
+.corridor-book-tooltip .cbt-hint{
+  font-size:0.72rem;
+  font-style:italic;
+  color:var(--parchment-dim);
+  margin-top:4px;
+}
 </style>
 </head>
 <body>
 <canvas id="scene-canvas"></canvas>
 <div id="scene-veil"></div>
 <div id="candle"></div>
+<!-- 3D Koridordaki Raflardan Kitap Seçme Tooltipi -->
+<div id="corridorBookTooltip" class="corridor-book-tooltip">
+  <div class="cbt-badge" id="cbtBadge">✦ RİSALE-İ NUR KÜLLİYATI ✦</div>
+  <div class="cbt-title" id="cbtTitle">Sözler</div>
+  <div class="cbt-hint">Raftan Seç &amp; Oku ↵</div>
+</div>
 <div id="intro">
   <span class="drop">Nur Koridoru</span>
   <div class="door"></div>
