@@ -2101,15 +2101,12 @@ function formatTomeHTML(page){
   if(!page)return "";
   var html="";
 
-  // PDF görüntüsü varsa SADECE onu göster – bozuk metin görünmez
+  // PDF görüntüsü varsa SADECE onu göster – bozuk metin görünmez, tek sayfaya tam sığar
   if(page.imageData){
-    html += "<div class='pdf-canvas-wrap' style='margin:0;text-align:center;padding:4px 0;'>";
+    html += "<div class='pdf-canvas-wrap'>";
     html += "<img src='" + page.imageData + "' class='pdf-page-render' ";
-    html += "style='max-width:100%;width:100%;height:auto;display:block;border-radius:4px;";
-    html += "border:1px solid rgba(212,175,55,0.25);box-shadow:0 2px 12px rgba(0,0,0,0.28);";
-    html += "image-rendering:crisp-edges;' alt='PDF Sayfası " + (page.pageNumber||'') + "'>";
+    html += "alt='PDF Sayfası " + (page.pageNumber||'') + "'>";
     html += "</div>";
-    // Görüntü varsa başlık ve metin gösterme – sayfa görüntünün içindedir
     return html;
   }
 
@@ -2149,47 +2146,35 @@ function formatTomeHTML(page){
 
 function renderSpread(){
   if(!currentPages||!currentPages.length)return;
-  var leftIdx=pageIdx;
-  var rightIdx=pageIdx+1;
-  var leftPage=currentPages[leftIdx];
-  var rightPage=currentPages[rightIdx];
+  var curIdx=pageIdx;
+  var page=currentPages[curIdx];
 
-  var leftKulliyatEl=document.getElementById("leftKulliyat");
-  var leftRunningHeadEl=document.getElementById("leftRunningHead");
-  var leftPageBodyEl=document.getElementById("leftPageBody");
-  var leftPageNumEl=document.getElementById("leftPageNum");
+  var singlePageBodyEl=document.getElementById("singlePageBody")||document.getElementById("leftPageBody");
+  var singleKulliyatEl=document.getElementById("singleKulliyat")||document.getElementById("leftKulliyat");
+  var singleRunningHeadEl=document.getElementById("singleRunningHead")||document.getElementById("leftRunningHead");
+  var singlePageNumEl=document.getElementById("singlePageNum")||document.getElementById("leftPageNum");
+  var tomeCasingEl=document.getElementById("tomeCasing");
+  var tomePaperEl=document.getElementById("tomePaper");
+  var singleHeaderEl=document.getElementById("singleHeader");
+  var singleFooterEl=document.getElementById("singleFooter");
 
-  var rightChapterTagEl=document.getElementById("rightChapterTag");
-  var rightPageBodyEl=document.getElementById("rightPageBody");
-  var rightPageNumEl=document.getElementById("rightPageNum");
+  if(page){
+    var isPdf = !!page.imageData;
+    if(tomeCasingEl) tomeCasingEl.classList.toggle("pdf-mode", isPdf);
+    if(tomePaperEl) tomePaperEl.classList.toggle("has-pdf", isPdf);
+    if(singleHeaderEl) singleHeaderEl.style.display = isPdf ? "none" : "flex";
+    if(singleFooterEl) singleFooterEl.style.display = isPdf ? "none" : "flex";
 
-  if(leftPage){
-    if(leftKulliyatEl)leftKulliyatEl.textContent=leftPage.kulliyat||("Risale-i Nur · "+currentBookTitle);
-    if(leftRunningHeadEl)leftRunningHeadEl.textContent=leftPage.chapter||currentBookTitle;
-    if(leftPageBodyEl){
-      leftPageBodyEl.innerHTML=formatTomeHTML(leftPage);
-      leftPageBodyEl.scrollTop=0;
+    if(singleKulliyatEl) singleKulliyatEl.textContent = page.kulliyat || ("Risale-i Nur · " + currentBookTitle);
+    if(singleRunningHeadEl) singleRunningHeadEl.textContent = page.chapter || currentBookTitle;
+    if(singlePageBodyEl){
+      singlePageBodyEl.innerHTML = formatTomeHTML(page);
+      singlePageBodyEl.scrollTop = 0;
     }
-    if(leftPageNumEl)leftPageNumEl.textContent=leftIdx+1;
-  }else{
-    if(leftPageBodyEl)leftPageBodyEl.innerHTML="";
-    if(leftPageNumEl)leftPageNumEl.textContent="";
-  }
-
-  if(rightPage){
-    if(rightChapterTagEl)rightChapterTagEl.textContent=rightPage.chapter||currentBookTitle;
-    if(rightPageBodyEl){
-      rightPageBodyEl.innerHTML=formatTomeHTML(rightPage);
-      rightPageBodyEl.scrollTop=0;
-    }
-    if(rightPageNumEl)rightPageNumEl.textContent=rightIdx+1;
-  }else{
-    if(rightChapterTagEl)rightChapterTagEl.textContent="";
-    if(rightPageBodyEl){
-      rightPageBodyEl.innerHTML="<div style='display:flex;align-items:center;justify-content:center;height:100%;color:#a08246;font-style:italic;padding:40px;text-align:center;'>Faslın Sonu · Külliyat'ın bir sonraki risalesine geçebilirsiniz.</div>";
-      rightPageBodyEl.scrollTop=0;
-    }
-    if(rightPageNumEl)rightPageNumEl.textContent="";
+    if(singlePageNumEl) singlePageNumEl.textContent = curIdx + 1;
+  } else {
+    if(singlePageBodyEl) singlePageBodyEl.innerHTML = "<div style='display:flex;align-items:center;justify-content:center;height:100%;color:#a08246;font-style:italic;padding:40px;text-align:center;'>Faslın Sonu</div>";
+    if(singlePageNumEl) singlePageNumEl.textContent = "";
   }
 
   updateChrome();
@@ -2197,14 +2182,13 @@ function renderSpread(){
 
 function updateChrome(){
   var total=currentPages.length;
-  var rightNum=Math.min(pageIdx+2,total);
-  var leftNum=pageIdx+1;
-  var progress=Math.min(100,(rightNum/total)*100);
+  var curNum=pageIdx+1;
+  var progress=Math.min(100,(curNum/total)*100);
 
   if(readerProgressFill)readerProgressFill.style.width=progress.toFixed(1)+"%";
-  if(readerPageLabel)readerPageLabel.textContent="Sayfa "+leftNum+(rightNum>leftNum?(" - "+rightNum):"")+" / "+total;
+  if(readerPageLabel)readerPageLabel.textContent="Sayfa "+curNum+" / "+total;
   if(readerPrev)readerPrev.disabled=pageIdx<=0;
-  if(readerNext)readerNext.disabled=pageIdx+2>=total;
+  if(readerNext)readerNext.disabled=pageIdx>=total-1;
 
   var key=currentBookTitle+":"+pageIdx;
   if(bookmarkBtn){
@@ -2242,7 +2226,8 @@ function openReader(titleOrBook, isDirect3D){
           pageType: idx === 0 ? "mukaddime" : "metin",
           text: p.text || "",
           arabicVerse: p.arabicVerse || null,
-          imageData: p.imageData || null
+          imageData: p.imageData || null,
+          pageNumber: idx + 1
         };
       }
       return {
@@ -2250,7 +2235,8 @@ function openReader(titleOrBook, isDirect3D){
         chapter: currentBookTitle,
         title: currentBookTitle + " · Sayfa " + (idx+1),
         pageType: idx === 0 ? "mukaddime" : "metin",
-        text: p
+        text: p,
+        pageNumber: idx + 1
       };
     });
   } else {
@@ -2300,7 +2286,7 @@ function closeReader(){
 
 function turnSpread(dir){
   if(isFlipping)return;
-  var newIdx=pageIdx+dir*2;
+  var newIdx=pageIdx+dir;
   if(newIdx<0){
     showToast("İlk sayfadasınız.");
     return;
@@ -2314,9 +2300,9 @@ function turnSpread(dir){
 
   var tomeBook=document.getElementById("tomeBook");
   if(tomeBook){
-    tomeBook.style.transition="opacity 0.2s ease, transform 0.2s ease";
-    tomeBook.style.opacity="0.5";
-    tomeBook.style.transform=dir>0?"scale(0.985) translateX(-8px)":"scale(0.985) translateX(8px)";
+    tomeBook.style.transition="opacity 0.15s ease, transform 0.15s ease";
+    tomeBook.style.opacity="0.4";
+    tomeBook.style.transform=dir>0?"scale(0.985) translateX(-6px)":"scale(0.985) translateX(6px)";
   }
 
   setTimeout(function(){
@@ -2327,7 +2313,7 @@ function turnSpread(dir){
       tomeBook.style.transform="none";
     }
     isFlipping=false;
-  },200);
+  },160);
 }
 
 document.getElementById("modalOpenReader").addEventListener("click",function(){openReader(modalTitle.textContent);});
@@ -2335,22 +2321,27 @@ document.getElementById("readerClose").addEventListener("click",closeReader);
 if(readerPrev)readerPrev.addEventListener("click",function(){turnSpread(-1);});
 if(readerNext)readerNext.addEventListener("click",function(){turnSpread(1);});
 
-var tomePageLeft=document.getElementById("tomePageLeft");
-var tomePageRight=document.getElementById("tomePageRight");
-if(tomePageLeft)tomePageLeft.addEventListener("click",function(e){
-  if(window.getSelection && window.getSelection().toString().length > 0) return;
-  turnSpread(-1);
-});
-if(tomePageRight)tomePageRight.addEventListener("click",function(e){
-  if(window.getSelection && window.getSelection().toString().length > 0) return;
-  turnSpread(1);
-});
+var tomePageSingle=document.getElementById("tomePageSingle");
+if(tomePageSingle){
+  tomePageSingle.addEventListener("click",function(e){
+    if(window.getSelection && window.getSelection().toString().length > 0) return;
+    var rect=tomePageSingle.getBoundingClientRect();
+    var clickX=e.clientX - rect.left;
+    if(clickX < rect.width * 0.35){
+      turnSpread(-1);
+    } else {
+      turnSpread(1);
+    }
+  });
+}
 
 document.getElementById("fontDec").addEventListener("click",function(){readerFontSize=Math.max(0.75,readerFontSize-0.08);readerEl.style.setProperty("--reader-font",readerFontSize+"rem");});
 document.getElementById("fontInc").addEventListener("click",function(){readerFontSize=Math.min(1.35,readerFontSize+0.08);readerEl.style.setProperty("--reader-font",readerFontSize+"rem");});
 toneBtn.addEventListener("click",function(){readerEl.classList.toggle("tone-gece");toneBtn.classList.toggle("active");});
 bookmarkBtn.addEventListener("click",function(){var key=currentBookTitle+":"+pageIdx;bookmarks[key]=!bookmarks[key];updateChrome();});
 window.addEventListener("keydown",function(e){if(!readerEl.classList.contains("open"))return;if(e.key==="ArrowRight")turnSpread(1);else if(e.key==="ArrowLeft")turnSpread(-1);else if(e.key==="Escape")closeReader();});
+
+
 
 
 /* ── TOAST NOTIFICATION HELPER ───────────────────────────── */

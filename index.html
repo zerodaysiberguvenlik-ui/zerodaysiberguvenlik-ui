@@ -200,21 +200,20 @@ footer{position:relative;z-index:2;padding:34px 6vw 40px;display:flex;justify-co
 .page-nav{width:48px;height:48px;border-radius:50%;border:1px solid rgba(212,175,55,0.4);background:rgba(20,15,10,0.75);color:var(--gold);font-size:1.6rem;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(0,0,0,0.6);transition:all .25s ease;z-index:10;}
 .page-nav:hover{border-color:var(--gold);background:rgba(212,175,55,0.25);transform:scale(1.1);box-shadow:0 0 20px rgba(212,175,55,0.4);}
 .page-nav:disabled{opacity:0.18;cursor:default;transform:none !important;box-shadow:none;}
-.tome-casing{position:relative;width:min(1160px,88vw);height:min(660px,76vh);display:flex;align-items:center;justify-content:center;border-radius:8px;background:linear-gradient(135deg,#4a0f15 0%,#29080c 45%,#180407 100%);padding:14px;box-shadow:0 34px 80px rgba(0,0,0,0.92),0 0 45px rgba(212,175,55,0.12),inset 0 0 0 1px rgba(212,175,55,0.35);}
+.tome-casing{position:relative;width:auto;max-width:min(860px,92vw);height:min(84vh,880px);display:flex;align-items:center;justify-content:center;border-radius:8px;background:linear-gradient(135deg,#4a0f15 0%,#29080c 45%,#180407 100%);padding:12px;box-shadow:0 30px 80px rgba(0,0,0,0.92),0 0 40px rgba(212,175,55,0.12),inset 0 0 0 1px rgba(212,175,55,0.35);transition:all .3s ease;}
+.tome-casing.pdf-mode{background:rgba(18,14,10,0.85);backdrop-filter:blur(10px);padding:8px;border:1px solid rgba(212,175,55,0.35);box-shadow:0 24px 60px rgba(0,0,0,0.9);}
 .tome-casing::before{content:"";position:absolute;inset:6px;border:1px solid rgba(212,175,55,0.28);border-radius:6px;pointer-events:none;}
-.tome-ribbon{position:absolute;top:-2px;left:50%;transform:translateX(-50%);width:18px;height:72%;background:linear-gradient(180deg,#961822 0%,#bd1e2b 60%,#7d121b 100%);border-left:1px solid rgba(255,255,255,0.25);border-right:1px solid rgba(0,0,0,0.4);box-shadow:2px 6px 14px rgba(0,0,0,0.55);z-index:25;pointer-events:none;transform-origin:top center;animation:ribbon-sway 4s ease-in-out infinite alternate;}
-.tome-ribbon::after{content:"";position:absolute;bottom:0;left:0;right:0;height:10px;background:linear-gradient(135deg,transparent 50%,#7d121b 50%),linear-gradient(225deg,transparent 50%,#7d121b 50%);}
-@keyframes ribbon-sway{0%{transform:translateX(-50%) rotate(0.4deg);}100%{transform:translateX(-50%) rotate(-0.6deg);}}
-.tome-book{position:relative;width:100%;height:100%;display:grid;grid-template-columns:1fr 1fr;border-radius:4px;overflow:hidden;background:#f6f0df;box-shadow:0 12px 35px rgba(0,0,0,0.6);}
-.tome-page{position:relative;height:100%;overflow:hidden;cursor:pointer;user-select:none;}
-.tome-page-left{background:linear-gradient(to right,#ece4cf 0%,#f7f2e4 92%,#e5ddca 100%);border-right:1px solid rgba(0,0,0,0.06);}
-.tome-page-right{background:linear-gradient(to left,#ece4cf 0%,#f7f2e4 92%,#e5ddca 100%);}
-.tome-paper{position:relative;height:100%;display:flex;flex-direction:column;padding:30px 40px 22px;box-sizing:border-box;}
-.tome-page-left .tome-paper{padding-right:36px;}
-.tome-page-right .tome-paper{padding-left:36px;}
+.tome-casing.pdf-mode::before{display:none;}
+.tome-book{position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;border-radius:4px;overflow:hidden;background:#f6f0df;box-shadow:0 10px 30px rgba(0,0,0,0.5);}
+.tome-casing.pdf-mode .tome-book{background:transparent;box-shadow:none;}
+.tome-page{position:relative;width:100%;height:100%;display:flex;flex-direction:column;overflow:hidden;cursor:pointer;user-select:none;background:linear-gradient(to right,#ece4cf 0%,#f7f2e4 50%,#ece4cf 100%);}
+.tome-casing.pdf-mode .tome-page{background:transparent;}
+.tome-paper{position:relative;width:100%;height:100%;display:flex;flex-direction:column;padding:26px 36px 18px;box-sizing:border-box;overflow:hidden;}
+.tome-paper.has-pdf{padding:0 !important;background:transparent !important;display:flex;align-items:center;justify-content:center;}
 .tome-filigree-rim{position:absolute;inset:14px;border:1px solid rgba(190,145,45,0.32);pointer-events:none;}
 .tome-filigree-rim::before{content:"❖";position:absolute;top:-9px;left:-7px;font-size:12px;color:#b88b2a;}
 .tome-filigree-rim::after{content:"❖";position:absolute;top:-9px;right:-7px;font-size:12px;color:#b88b2a;}
+.tome-paper.has-pdf .tome-filigree-rim{display:none;}
 .tome-header{display:flex;align-items:center;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid rgba(184,139,42,0.22);margin-bottom:14px;font-size:0.75rem;letter-spacing:0.04em;color:#735b2a;text-transform:uppercase;}
 .tome-header span{font-weight:600;opacity:0.88;}
 .tome-content{flex:1;overflow-y:auto;color:#261d12;font-family:"Fraunces","Amiri","Noto Naskh Arabic",Georgia,serif;font-size:var(--reader-font,1.04rem);line-height:1.78;padding-right:8px;}
@@ -226,26 +225,21 @@ footer{position:relative;z-index:2;padding:34px 6vw 40px;display:flex;justify-co
 .tome-content .arabic-inline{font-family:"Amiri","Noto Naskh Arabic",serif;font-size:1.24em;direction:rtl;color:#821c25;padding:0 3px;display:inline-block;}
 .tome-content p{margin:0 0 14px;text-indent:1.8em;text-align:justify;}
 .tome-content p:first-of-type::first-letter{font-size:2.8em;float:left;line-height:0.85;padding:4px 8px 0 0;color:#821c25;font-weight:bold;font-family:"Fraunces",serif;}
-/* PDF görüntülü sayfalar – padding ve overflow düzeni */
-.tome-content .pdf-canvas-wrap{display:block;margin:0;padding:2px 0;}
-.tome-content .pdf-page-render{max-width:100%;width:100%;height:auto;display:block;border-radius:4px;border:1px solid rgba(212,175,55,0.2);box-shadow:0 2px 10px rgba(0,0,0,0.25);}
-/* PDF sayfası olan tome-paper'da ekstra padding kaldır */
-.tome-paper:has(.pdf-canvas-wrap){padding-top:10px;padding-bottom:10px;}
+/* PDF TEK SAYFA GÖRÜNTÜSÜ – EKRANA VE KUTUYA TAM SIĞMA */
+.tome-content .pdf-canvas-wrap{width:100%;height:100%;display:flex;align-items:center;justify-content:center;margin:0;padding:0;}
+.tome-content .pdf-page-render{max-height:calc(84vh - 40px);max-width:min(90vw,850px);width:auto;height:auto;object-fit:contain;display:block;border-radius:4px;border:1px solid rgba(212,175,55,0.3);box-shadow:0 12px 35px rgba(0,0,0,0.65);image-rendering:crisp-edges;}
+.tome-paper.has-pdf .tome-content{overflow:hidden;display:flex;align-items:center;justify-content:center;padding:0;}
 .tome-footer{display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid rgba(184,139,42,0.18);font-size:0.78rem;color:#735b2a;margin-top:10px;}
 .tome-turn-hint{font-size:0.74rem;font-style:italic;color:#a17822;opacity:0.8;}
 .tome-page-num{font-weight:bold;font-family:"Fraunces",serif;font-size:0.9rem;}
-.tome-gutter{position:absolute;top:0;bottom:0;left:50%;transform:translateX(-50%);width:44px;pointer-events:none;z-index:20;display:flex;}
-.gutter-shadow-l{flex:1;background:linear-gradient(to right,transparent 0%,rgba(0,0,0,0.16) 75%,rgba(0,0,0,0.32) 100%);}
-.gutter-spine{width:2px;background:rgba(40,25,12,0.45);box-shadow:0 0 6px rgba(0,0,0,0.6);}
-.gutter-shadow-r{flex:1;background:linear-gradient(to left,transparent 0%,rgba(0,0,0,0.16) 75%,rgba(0,0,0,0.32) 100%);}
 .reader-bottom{width:100%;max-width:540px;padding:10px 20px 20px;display:flex;flex-direction:column;align-items:center;gap:6px;}
 .reader-progress{width:100%;height:3px;background:rgba(212,175,55,0.18);border-radius:2px;position:relative;overflow:hidden;}
 .reader-progress i{position:absolute;left:0;top:0;bottom:0;width:0%;background:linear-gradient(90deg,#c9a227,#ffd56b);display:block;transition:width .4s ease;}
 #readerPageLabel{font-size:0.82rem;color:var(--gold);font-family:"Fraunces",serif;letter-spacing:0.04em;}
 #book-reader.tone-gece .tome-casing{background:linear-gradient(135deg,#1f1a14 0%,#100d0a 100%);box-shadow:0 34px 80px rgba(0,0,0,0.98),0 0 35px rgba(0,0,0,0.9);}
+#book-reader.tone-gece .tome-casing.pdf-mode{background:rgba(12,9,7,0.92);}
 #book-reader.tone-gece .tome-book{background:#16120e;}
-#book-reader.tone-gece .tome-page-left{background:linear-gradient(to right,#130f0b 0%,#1b1612 92%,#110e0a 100%);border-right-color:rgba(255,255,255,0.04);}
-#book-reader.tone-gece .tome-page-right{background:linear-gradient(to left,#130f0b 0%,#1b1612 92%,#110e0a 100%);}
+#book-reader.tone-gece .tome-page{background:linear-gradient(to right,#130f0b 0%,#1b1612 50%,#130f0b 100%);}
 #book-reader.tone-gece .tome-content{color:#e6ddcb;}
 #book-reader.tone-gece .tome-content h4{color:#e0b246;}
 #book-reader.tone-gece .tome-content p:first-of-type::first-letter{color:#e0b246;}
@@ -255,7 +249,7 @@ footer{position:relative;z-index:2;padding:34px 6vw 40px;display:flex;justify-co
 #book-reader.tone-gece .bismillah-art{color:#f1c75c !important;text-shadow:0 0 12px rgba(241,199,92,0.35);}
 #book-reader.tone-gece .arabic-block,#book-reader.tone-gece .arabic-verse{color:#f1c75c !important;background:rgba(212,175,55,0.06);border-color:rgba(212,175,55,0.22);}
 #book-reader.tone-gece .arabic-inline{color:#f1c75c !important;}
-@media(max-width:640px){.tome-casing{width:95vw;height:76vh;padding:8px;}.tome-book{grid-template-columns:1fr;}.tome-page-right{display:none;}.tome-page-left .tome-paper{padding:20px 16px;}.tome-gutter{display:none;}.tome-ribbon{display:none;}}
+@media(max-width:640px){.tome-casing{width:95vw;height:78vh;padding:6px;}.tome-paper{padding:16px 14px;}}
 .dna-transition{position:absolute;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,rgba(20,17,13,.55) 0%,rgba(6,5,4,.7) 70%);opacity:0;visibility:hidden;transition:opacity .5s ease,visibility .5s ease;pointer-events:none;perspective:700px;}
 .dna-transition.active{opacity:1;visibility:visible;}
 .dna-spin-wrap{transform-style:preserve-3d;animation:dna-spin 2.4s linear infinite;}
@@ -441,54 +435,29 @@ footer{position:relative;z-index:2;padding:34px 6vw 40px;display:flex;justify-co
     </div>
   </div>
   <div class="reader-stage" id="readerStage">
-    <button class="page-nav prev" id="readerPrev" title="Önceki Sayfalar">&#8249;</button>
+    <button class="page-nav prev" id="readerPrev" title="Önceki Sayfa">&#8249;</button>
     
-    <!-- ÇİFT SAYFALI AÇIK RİSALE CİLDİ (TWO-PAGE OPEN TOME SPREAD) -->
-    <div class="tome-casing" id="tomeCasing">
-      <div class="tome-ribbon"></div>
+    <!-- TEK SAYFALI AÇIK RİSALE CİLDİ & PDF OKUYUCU -->
+    <div class="tome-casing single-casing" id="tomeCasing">
       <div class="tome-book" id="tomeBook">
-        <!-- SOL SAYFA -->
-        <div class="tome-page tome-page-left" id="tomePageLeft" title="Önceki Sayfa">
-          <div class="tome-paper">
+        <div class="tome-page tome-page-single" id="tomePageSingle" title="Sonraki / Önceki sayfa için tıklayın">
+          <div class="tome-paper" id="tomePaper">
             <div class="tome-filigree-rim"></div>
-            <div class="tome-header">
-              <span class="tome-kulliyat-tag" id="leftKulliyat">Risale-i Nur Külliyatı</span>
-              <span class="tome-running-head" id="leftRunningHead">Şualar</span>
+            <div class="tome-header" id="singleHeader">
+              <span class="tome-kulliyat-tag" id="singleKulliyat">Risale-i Nur Külliyatı</span>
+              <span class="tome-running-head" id="singleRunningHead"></span>
             </div>
-            <div class="tome-content" id="leftPageBody"></div>
-            <div class="tome-footer">
-              <span class="tome-turn-hint">&lsaquo; Önceki sayfa</span>
-              <span class="tome-page-num" id="leftPageNum">1</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- ORTA CİLT DERİNLİK VE DİKİŞ GÖLGESİ (GUTTER) -->
-        <div class="tome-gutter">
-          <div class="gutter-shadow-l"></div>
-          <div class="gutter-spine"></div>
-          <div class="gutter-shadow-r"></div>
-        </div>
-
-        <!-- SAĞ SAYFA -->
-        <div class="tome-page tome-page-right" id="tomePageRight" title="Sonraki Sayfa">
-          <div class="tome-paper">
-            <div class="tome-filigree-rim"></div>
-            <div class="tome-header">
-              <span class="tome-chapter-tag" id="rightChapterTag">Yedinci Şua</span>
-              <span class="tome-author-tag">Bediüzzaman Said Nursî</span>
-            </div>
-            <div class="tome-content" id="rightPageBody"></div>
-            <div class="tome-footer">
-              <span class="tome-turn-hint">Sonraki sayfa &rsaquo;</span>
-              <span class="tome-page-num" id="rightPageNum">2</span>
+            <div class="tome-content" id="singlePageBody"></div>
+            <div class="tome-footer" id="singleFooter">
+              <span class="tome-turn-hint">‹ Önceki &nbsp;|&nbsp; Sonraki ›</span>
+              <span class="tome-page-num" id="singlePageNum">1</span>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <button class="page-nav next" id="readerNext" title="Sonraki Sayfalar">&#8250;</button>
+    <button class="page-nav next" id="readerNext" title="Sonraki Sayfa">&#8250;</button>
   </div>
   <div class="reader-bottom">
     <div class="reader-progress"><i id="readerProgressFill"></i></div>
