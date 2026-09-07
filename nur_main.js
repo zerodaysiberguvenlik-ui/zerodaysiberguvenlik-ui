@@ -430,6 +430,18 @@ window.addEventListener("scroll",updateSF,{passive:true});updateSF();
 var clock=new THREE.Clock();
 var walkerZ = 1.5, walkerX = 0, walkPhase = 0;
 
+/* ── SİNEMATİK TAKDİM: ÜSTAD'IN KİTABI GETİRME DURUMU ── */
+var isPresentingBook = false;
+var presentationStartTime = 0;
+var presentationDuration = 2.4;
+var presentationBookData = null;
+var presentationMesh = null;
+var presentationHaloLight = null;
+var presentationParticles = null;
+var presentationOrigin = { x: 0, y: 0, z: 0, dir: 1 };
+var presentationInitialWalker = { x: 0, y: 0, z: 0 };
+var presentationBookSourceMesh = null;
+
 function animate(){
   requestAnimationFrame(animate);
   var t=clock.getElapsedTime();
@@ -445,37 +457,132 @@ function animate(){
   var lookY=1.55+endBlend*0.65; // Portre merkezine bakar
   camera.lookAt(Math.sin(t*0.2)*0.3*(1-endBlend),lookY,curZ-8);
 
-  // ── YÜRÜYEN ŞAHIS ANİMASYONU VE KORİDORDA İLERLEME ──
-  var distAhead = 6.2;
-  var targetWalkerZ = curZ - distAhead;
-  
-  var finalApproach = Math.max(0, Math.min(1, (-curZ - 88) / 26));
-  var targetWalkerX = finalApproach * 1.15;
-  var maxZ = endWallZ + 1.8;
-  if (targetWalkerZ < maxZ) targetWalkerZ = maxZ;
+  // ── YÜRÜYEN ŞAHIS ANİMASYONU VE KORİDORDA İLERLEME / TAKDİM ──
+  if(isPresentingBook && presentationMesh){
+    var pElapsed = (performance.now() - presentationStartTime) / 1000;
+    var dir = presentationOrigin.dir; // 1: sol duvar, -1: sağ duvar
 
-  walkerZ += (targetWalkerZ - walkerZ) * 0.07;
-  walkerX += (targetWalkerX - walkerX) * 0.055;
+    if(pElapsed < 0.8){
+      // Faz 1: Üstad rafa döner, kitap raftan süzülerek Üstad'ın göğüs hizasına gelir
+      var t1 = pElapsed / 0.8;
+      var ease1 = Math.sin(t1 * Math.PI / 2);
 
-  var scrollDelta = Math.abs(curZ - prevZ);
-  var speed = scrollDelta * 36 + (reduceMotion ? 0 : 0.028);
-  walkPhase += speed;
+      var targetTurn = (dir > 0) ? -0.42 : 0.42;
+      walkerMesh.rotation.y = THREE.MathUtils.lerp(0, targetTurn, ease1);
+      walkerMesh.rotation.z = 0;
+      walkerMesh.rotation.x = 0;
 
-  var stepBob = (finalApproach < 0.96 ? Math.abs(Math.sin(walkPhase * 2)) * 0.045 : 0);
-  var stepSway = (finalApproach < 0.96 ? Math.sin(walkPhase) * 0.032 : 0);
+      walkerGroup.position.x = THREE.MathUtils.lerp(presentationInitialWalker.x, -dir * 0.35, ease1);
+      walkerGroup.position.z = THREE.MathUtils.lerp(presentationInitialWalker.z, presentationOrigin.z + 1.1, ease1);
+      walkerGroup.position.y = 0;
+      walkerLight.intensity = 2.4 + ease1 * 1.6;
 
-  walkerGroup.position.set(walkerX + stepSway, stepBob, walkerZ);
+      var targetBookMidX = walkerGroup.position.x + (dir * 0.32);
+      var targetBookMidY = 1.35;
+      var targetBookMidZ = walkerGroup.position.z - 0.42;
 
-  walkerMesh.rotation.z = (finalApproach < 0.96 ? Math.sin(walkPhase) * 0.018 : 0);
-  walkerMesh.rotation.x = (finalApproach < 0.96 ? Math.sin(walkPhase * 2) * 0.012 : 0);
+      presentationMesh.position.x = THREE.MathUtils.lerp(presentationOrigin.x, targetBookMidX, ease1);
+      presentationMesh.position.y = THREE.MathUtils.lerp(presentationOrigin.y, targetBookMidY, ease1);
+      presentationMesh.position.z = THREE.MathUtils.lerp(presentationOrigin.z, targetBookMidZ, ease1);
 
-  shadowMesh.scale.set(
-    1.0 + Math.sin(walkPhase * 2) * 0.08,
-    1.0 - Math.sin(walkPhase * 2) * 0.06,
-    1.0
-  );
+      var startRotY = (dir > 0) ? -Math.PI / 2 : Math.PI / 2;
+      presentationMesh.rotation.y = THREE.MathUtils.lerp(startRotY, (dir > 0) ? -0.2 : 0.2, ease1);
+      presentationMesh.rotation.x = ease1 * 0.28;
+      presentationMesh.rotation.z = ease1 * (dir * 0.08);
 
-  walkerLight.intensity = 2.4 + Math.sin(t * 3.5) * 0.25;
+      if(presentationHaloLight){
+        presentationHaloLight.position.copy(presentationMesh.position);
+        presentationHaloLight.intensity = ease1 * 3.2;
+      }
+
+    } else if(pElapsed < 2.0){
+      // Faz 2: Üstad bize yönelir ve kameraya doğru yürür, kitap refakatinde öne doğru süzülür
+      var t2 = (pElapsed - 0.8) / 1.2;
+      var ease2 = 0.5 - 0.5 * Math.cos(t2 * Math.PI);
+
+      var prevTurn = (dir > 0) ? -0.42 : 0.42;
+      walkerMesh.rotation.y = THREE.MathUtils.lerp(prevTurn, 0, Math.min(1, t2 * 2.2));
+
+      var walkStartZ = presentationOrigin.z + 1.1;
+      var walkTargetZ = camera.position.z - 2.3;
+      walkerGroup.position.z = THREE.MathUtils.lerp(walkStartZ, walkTargetZ, ease2);
+      walkerGroup.position.x = THREE.MathUtils.lerp(-dir * 0.35, 0, ease2);
+
+      walkPhase += 0.14;
+      walkerGroup.position.y = Math.abs(Math.sin(walkPhase * 2)) * 0.045;
+      walkerMesh.rotation.z = Math.sin(walkPhase) * 0.016;
+      walkerLight.intensity = 3.6;
+
+      var bookStartZ = walkStartZ - 0.42;
+      var bookTargetZ = camera.position.z - 0.88;
+      presentationMesh.position.z = THREE.MathUtils.lerp(bookStartZ, bookTargetZ, ease2);
+      presentationMesh.position.x = THREE.MathUtils.lerp(walkerGroup.position.x + (dir * 0.32), 0, ease2);
+      presentationMesh.position.y = THREE.MathUtils.lerp(1.35, 1.55, ease2);
+
+      presentationMesh.rotation.y = THREE.MathUtils.lerp((dir > 0) ? -0.2 : 0.2, 0, ease2);
+      presentationMesh.rotation.x = THREE.MathUtils.lerp(0.28, 0.06, ease2);
+      presentationMesh.rotation.z = THREE.MathUtils.lerp(dir * 0.08, 0, ease2);
+
+      var scaleVal = 1.0 + ease2 * 1.25;
+      presentationMesh.scale.set(scaleVal, scaleVal, scaleVal);
+
+      if(presentationHaloLight){
+        presentationHaloLight.position.copy(presentationMesh.position);
+        presentationHaloLight.intensity = 3.2 + Math.sin(pElapsed * 8) * 0.6;
+      }
+      if(presentationParticles){
+        presentationParticles.rotation.y += 0.03;
+      }
+
+    } else if(pElapsed < 2.4){
+      // Faz 3: Kitap tam karşımızda parıldayarak açılma anı
+      var t3 = (pElapsed - 2.0) / 0.4;
+      var ease3 = Math.sin(t3 * Math.PI / 2);
+
+      presentationMesh.position.z = camera.position.z - 0.88 + (ease3 * 0.06);
+      presentationMesh.scale.setScalar(2.25 + ease3 * 0.15);
+      if(presentationHaloLight){
+        presentationHaloLight.intensity = 3.8 + ease3 * 1.5;
+      }
+    } else {
+      finishPresentationAndOpenReader();
+    }
+
+    shadowMesh.scale.set(1.0, 1.0, 1.0);
+
+  } else {
+    var distAhead = 6.2;
+    var targetWalkerZ = curZ - distAhead;
+    
+    var finalApproach = Math.max(0, Math.min(1, (-curZ - 88) / 26));
+    var targetWalkerX = finalApproach * 1.15;
+    var maxZ = endWallZ + 1.8;
+    if (targetWalkerZ < maxZ) targetWalkerZ = maxZ;
+
+    walkerZ += (targetWalkerZ - walkerZ) * 0.07;
+    walkerX += (targetWalkerX - walkerX) * 0.055;
+
+    var scrollDelta = Math.abs(curZ - prevZ);
+    var speed = scrollDelta * 36 + (reduceMotion ? 0 : 0.028);
+    walkPhase += speed;
+
+    var stepBob = (finalApproach < 0.96 ? Math.abs(Math.sin(walkPhase * 2)) * 0.045 : 0);
+    var stepSway = (finalApproach < 0.96 ? Math.sin(walkPhase) * 0.032 : 0);
+
+    walkerGroup.position.set(walkerX + stepSway, stepBob, walkerZ);
+
+    walkerMesh.rotation.z = (finalApproach < 0.96 ? Math.sin(walkPhase) * 0.018 : 0);
+    walkerMesh.rotation.x = (finalApproach < 0.96 ? Math.sin(walkPhase * 2) * 0.012 : 0);
+    walkerMesh.rotation.y = 0;
+
+    shadowMesh.scale.set(
+      1.0 + Math.sin(walkPhase * 2) * 0.08,
+      1.0 - Math.sin(walkPhase * 2) * 0.06,
+      1.0
+    );
+
+    walkerLight.intensity = 2.4 + Math.sin(t * 3.5) * 0.25;
+  }
 
   // ── FAREYE BAĞLI GAZ LAMBASI IŞIĞI GÜNCELLEMESİ ──
   mouseLantern.position.x += (targetLanternX - mouseLantern.position.x) * 0.08;
@@ -610,6 +717,12 @@ window.addEventListener("click", function(e){
   var overInteractive = e.target.closest("button, input, textarea, a, #book-reader, #pdf-modal, #hikmet-modal, #book-modal, #search-overlay, .stage-3d-wrap, header, .shelf, .shelf-book, .custom-book-card, .chapter-stage, .chapter-copy");
   if(overInteractive) return;
 
+  // Takdim animasyonu sırasında herhangi bir yere tıklanırsa hemen okuyucuya geç
+  if(isPresentingBook){
+    finishPresentationAndOpenReader();
+    return;
+  }
+
   var nx = (e.clientX / window.innerWidth) * 2 - 1;
   var ny = -(e.clientY / window.innerHeight) * 2 + 1;
   corridorRaycaster.setFromCamera({ x: nx, y: ny }, camera);
@@ -631,16 +744,8 @@ window.addEventListener("click", function(e){
     if(corridorTooltipEl) corridorTooltipEl.classList.remove("active");
     if(u.spineMat) u.spineMat.emissive.setHex(0x000000);
 
-    // Seçilen kitabın öne sıçraması
-    u.pullT = 0.36;
-    targetBook.position.x = u.baseX + u.dir * u.pullT;
-
-    // Okuyucuyu aç
-    if(u.isCustom && u.bookData){
-      openReader(u.bookData);
-    } else {
-      openReader(u.title);
-    }
+    // Sinematik Takdim: Üstad'ın rafa yönelip kitabı getirme animasyonunu başlat
+    startBookPresentation(targetBook);
   }
 });
 }catch(err){console.error("3D hata:",err);}
@@ -786,6 +891,127 @@ function getBookTextures(title,theme,customColor){
   texBookCache[key]=res;
   return res;
 }
+
+/* ── SİNEMATİK TAKDİM: ÜSTAD'IN KİTABI GETİRME FONKSİYONLARI ── */
+function startBookPresentation(targetBook){
+  if(isPresentingBook) return;
+  var u = targetBook.userData;
+  if(!u) return;
+
+  presentationBookSourceMesh = targetBook;
+  presentationBookData = (u.isCustom && u.bookData) ? u.bookData : u.title;
+  var title = u.title || "Risale-i Nur";
+
+  // Kitabın dünya koordinatları
+  var worldPos = new THREE.Vector3();
+  targetBook.getWorldPosition(worldPos);
+
+  presentationOrigin = {
+    x: worldPos.x,
+    y: worldPos.y,
+    z: worldPos.z,
+    dir: u.dir || 1
+  };
+
+  presentationInitialWalker = {
+    x: walkerGroup.position.x,
+    y: walkerGroup.position.y,
+    z: walkerGroup.position.z
+  };
+
+  // 3D Takdim Kitabı Modeli
+  var texs = getBookTextures(title, "kulliyat", "ruby");
+  var bw = 0.52, bh = 0.76, bd = 0.14; // En, boy, kalınlık
+  
+  var frontCoverMat = new THREE.MeshStandardMaterial({ map: texs.cover, roughness: 0.42, metalness: 0.12 });
+  var spineMat = new THREE.MeshStandardMaterial({ map: texs.spine, roughness: 0.45, metalness: 0.1 });
+  var pageMat = new THREE.MeshStandardMaterial({ map: texs.pages, roughness: 0.8, metalness: 0.05 });
+  var rubyBackMat = new THREE.MeshStandardMaterial({ color: 0x480b12, roughness: 0.6, metalness: 0.08 });
+
+  // 6 yüz: [0: +X, 1: -X, 2: +Y, 3: -Y, 4: +Z, 5: -Z]
+  // Sırt: dir > 0 ise +X, dir < 0 ise -X
+  var bookMats = [
+    (presentationOrigin.dir > 0) ? spineMat : pageMat,
+    (presentationOrigin.dir < 0) ? spineMat : pageMat,
+    pageMat,
+    pageMat,
+    frontCoverMat,
+    rubyBackMat
+  ];
+
+  presentationMesh = new THREE.Mesh(new THREE.BoxGeometry(bw, bh, bd), bookMats);
+  presentationMesh.position.set(presentationOrigin.x, presentationOrigin.y, presentationOrigin.z);
+  presentationMesh.rotation.y = (presentationOrigin.dir > 0) ? -Math.PI / 2 : Math.PI / 2;
+  scene.add(presentationMesh);
+
+  // Altın Nur Halesi Işığı
+  presentationHaloLight = new THREE.PointLight(0xFFD700, 0, 6.0, 1.8);
+  presentationHaloLight.position.copy(presentationMesh.position);
+  scene.add(presentationHaloLight);
+
+  // Kitabın çevresindeki ışıltılı altın zerrecikler
+  var haloCount = 48;
+  var haloPos = new Float32Array(haloCount * 3);
+  for(var hi = 0; hi < haloCount; hi++){
+    var angle = (hi / haloCount) * Math.PI * 2;
+    var rad = 0.42 + Math.random() * 0.28;
+    haloPos[hi * 3] = Math.cos(angle) * rad;
+    haloPos[hi * 3 + 1] = (Math.random() - 0.5) * 0.7;
+    haloPos[hi * 3 + 2] = Math.sin(angle) * rad;
+  }
+  var haloGeo = new THREE.BufferGeometry();
+  haloGeo.setAttribute("position", new THREE.BufferAttribute(haloPos, 3));
+  presentationParticles = new THREE.Points(haloGeo, new THREE.PointsMaterial({
+    color: 0xFFE082,
+    size: 0.045,
+    transparent: true,
+    opacity: 0.95
+  }));
+  presentationMesh.add(presentationParticles);
+
+  // Raftaki kitabı geçici olarak gizle
+  targetBook.visible = false;
+
+  isPresentingBook = true;
+  presentationStartTime = performance.now();
+
+  // Manevi ney / çan tınısı
+  if(typeof playChime === "function") playChime();
+}
+
+function finishPresentationAndOpenReader(){
+  if(!isPresentingBook) return;
+  isPresentingBook = false;
+
+  if(presentationBookSourceMesh){
+    presentationBookSourceMesh.visible = true;
+    presentationBookSourceMesh = null;
+  }
+
+  if(presentationMesh){
+    scene.remove(presentationMesh);
+    if(presentationMesh.geometry) presentationMesh.geometry.dispose();
+    presentationMesh = null;
+  }
+  if(presentationHaloLight){
+    scene.remove(presentationHaloLight);
+    presentationHaloLight = null;
+  }
+
+  // Üstad duruşunu sıfırla
+  walkerMesh.rotation.y = 0;
+  walkerMesh.rotation.z = 0;
+  walkerMesh.rotation.x = 0;
+
+  var bookToOpen = presentationBookData;
+  presentationBookData = null;
+
+  if(bookToOpen){
+    openReader(bookToOpen);
+  }
+}
+window.startBookPresentation = startBookPresentation;
+window.finishPresentationAndOpenReader = finishPresentationAndOpenReader;
 
 var parchmentCache={};
 function getParchmentTexture(title){
@@ -3423,6 +3649,10 @@ if(pdfModal){
 }
 
 window.addEventListener("keydown", function(e){
+  if(isPresentingBook && (e.key === "Escape" || e.key === " " || e.key === "Enter")){
+    finishPresentationAndOpenReader();
+    return;
+  }
   if(e.key === "Escape" && pdfModal && pdfModal.classList.contains("open")){
     closePdfModal();
   }
