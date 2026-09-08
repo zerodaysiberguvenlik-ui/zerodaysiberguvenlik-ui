@@ -10,3 +10,6 @@ npm-debug.log*
 # Temporary files
 *.tmp
 *.bak
+
+# Local raw books cache (full multi-hundred MB extracted images)
+books_data/

@@ -6,6 +6,11 @@
 "use strict";
 var reduceMotion=window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches;
 
+// Varsayılan / Yerleşik Kitaplar Kataloğunu (34 Eser) Doğrudan Başlat
+var defaultCatalog = (window.DEFAULT_BOOKS_CATALOG && Array.isArray(window.DEFAULT_BOOKS_CATALOG)) ? window.DEFAULT_BOOKS_CATALOG.slice() : [];
+var customBooks = (window.customBooks && window.customBooks.length) ? window.customBooks : defaultCatalog.slice();
+window.customBooks = customBooks;
+
 /* ── 1. THREE.JS CORRIDOR ─────────────────────────────────── */
 try{
 var canvas=document.getElementById("scene-canvas");
@@ -1763,7 +1768,7 @@ function init3DStage(stageEl,chapterEl){
         window.customBooks = customBooks;
         updatePdfBadges();
         renderPdfCustomGrid();
-        renderShelvesAll();
+        if(typeof initAll3DStages === "function") initAll3DStages();
         if(typeof rebuildCorridorShelves === "function") rebuildCorridorShelves();
         showToast('"' + bTitle + '" kütüphaneden silindi.');
       }
@@ -2989,6 +2994,49 @@ function openReader(titleOrBook, isDirect3D){
         pageNumber: idx + 1
       };
     });
+
+    // Eğer kitap sadece kapak/önizleme sayfasına sahipse (ör. gizli sekme ilk açılışı),
+    // arka planda books_data/'dan tam sayfaları çekip okuyucuya aktar
+    if(customBookObj.id && customBookObj.pages.length < (customBookObj.pageCount || 1)){
+      var bId = customBookObj.id;
+      var activeTitle = currentBookTitle;
+      fetch("books_data/" + bId + ".json")
+        .then(function(res){
+          if(res.ok) return res.json();
+          throw new Error("books_data not found");
+        })
+        .then(function(fullDoc){
+          if(fullDoc && fullDoc.pages && fullDoc.pages.length){
+            customBookObj.pages = fullDoc.pages;
+            if(currentBookTitle === activeTitle){
+              var dDesc = customBookObj.desc || "Hazine-i Evrak";
+              currentPages = customBookObj.pages.map(function(p, idx){
+                if(typeof p === "object" && p !== null){
+                  return {
+                    kulliyat: "Hazine-i Evrak · " + dDesc,
+                    chapter: currentBookTitle,
+                    title: p.title || (currentBookTitle + " · Sayfa " + (idx+1)),
+                    pageType: idx === 0 ? "mukaddime" : "metin",
+                    text: p.text || "",
+                    arabicVerse: p.arabicVerse || null,
+                    imageData: p.imageData || null,
+                    pageNumber: idx + 1
+                  };
+                }
+                return {
+                  kulliyat: "Hazine-i Evrak · " + dDesc,
+                  chapter: currentBookTitle,
+                  title: currentBookTitle + " · Sayfa " + (idx+1),
+                  pageType: idx === 0 ? "mukaddime" : "metin",
+                  text: p,
+                  pageNumber: idx + 1
+                };
+              });
+              updateChrome();
+            }
+          }
+        }).catch(function(){});
+    }
   } else {
     currentPages = getBookPages(canonicalTitle);
   }
@@ -3273,8 +3321,10 @@ window.addEventListener("keydown", function(e){
 });
 
 /* ── 11. HAZİNE-İ EVRAK: GELİŞMİŞ PDF KİTAP VE KÜTÜPHANE YÖNETİMİ ─── */
-var customBooks = [];
-window.customBooks = customBooks;
+if(!window.customBooks || !window.customBooks.length){
+  window.customBooks = (window.DEFAULT_BOOKS_CATALOG && Array.isArray(window.DEFAULT_BOOKS_CATALOG)) ? window.DEFAULT_BOOKS_CATALOG.slice() : [];
+}
+customBooks = window.customBooks;
 
 // 11.1. IndexedDB + LocalStorage Güçlü Kalıcı Depolama Motoru
 var NurStorage = {
@@ -3880,15 +3930,45 @@ window.addEventListener("keydown", function(e){
   }
 });
 
-// 11.13. İlk Yükleme: Kalıcı Depolamadan Çekme
+// 11.13. İlk Yükleme: Kalıcı Depolamadan Çekme ve Varsayılan Eserleri Entegre Etme
 (async function initLibraryEngine(){
   try{
     await NurStorage.init();
     var loaded = await NurStorage.getAll();
-    if(loaded && loaded.length){
+    var defaults = window.DEFAULT_BOOKS_CATALOG || [];
+
+    if(!loaded || loaded.length === 0){
+      // Gizli sekme veya temiz tarayıcı: Varsayılan katalogdan 34 eseri doğrudan yükle
+      loaded = defaults.map(function(b){ return Object.assign({}, b); });
       loaded.forEach(function(b){
         b.color = "ruby";
-        // Eğer shelfId yoksa veya genel ch4 ise, başlığına göre kanonik rafa eşleştir
+        var canon = getCanonicalInfo(b.title);
+        if(canon && (!b.shelfId || b.shelfId === "ch4")){
+          b.shelfId = canon.shelfId;
+        }
+        NurStorage.save(b);
+      });
+      customBooks = loaded;
+      window.customBooks = customBooks;
+    } else {
+      // Mevcut depolama var: Eksik olan varsayılan eserleri ekle
+      defaults.forEach(function(def){
+        var exists = loaded.some(function(b){
+          return b.id === def.id || getCleanKey(b.title) === getCleanKey(def.title);
+        });
+        if(!exists){
+          var newBook = Object.assign({}, def);
+          newBook.color = "ruby";
+          var canon = getCanonicalInfo(newBook.title);
+          if(canon && (!newBook.shelfId || newBook.shelfId === "ch4")){
+            newBook.shelfId = canon.shelfId;
+          }
+          loaded.push(newBook);
+          NurStorage.save(newBook);
+        }
+      });
+      loaded.forEach(function(b){
+        b.color = "ruby";
         var canon = getCanonicalInfo(b.title);
         if(canon && (!b.shelfId || b.shelfId === "ch4")){
           b.shelfId = canon.shelfId;
@@ -3903,6 +3983,7 @@ window.addEventListener("keydown", function(e){
   updatePdfBadges();
   renderPdfCustomGrid();
   renderAddedShelf();
+  if(typeof initAll3DStages === "function") initAll3DStages();
   if(typeof rebuildCorridorShelves === "function") rebuildCorridorShelves();
 })();
 
