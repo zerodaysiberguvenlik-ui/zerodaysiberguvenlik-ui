@@ -84,6 +84,186 @@ function buildWallFrames(x,dir){
   return group;
 }
 
+// ============================================================
+// 1.1. HARF VE BAŞLIK EŞLEŞTİRME SİSTEMİ (FUZZY NORMALIZATION & CANON CATALOG)
+// Kullanıcının eklediği eserlerdeki harf farklılıklarını (Sozler/Sözler, Lemalar/Lem'alar,
+// Asayi Musa/Asa-yı Musa vb.) gidererek karanlık koridor ve raflarla tam eşleştirir.
+// ============================================================
+function getCleanKey(str){
+  if(!str) return "";
+  return String(str)
+    .toLowerCase()
+    .replace(/\.pdf$/i, "")
+    .replace(/['’`\-_.,;:()\/\\\[\]]/g, "")
+    .replace(/ı/g, "i")
+    .replace(/ğ/g, "g")
+    .replace(/ü/g, "u")
+    .replace(/ş/g, "s")
+    .replace(/ö/g, "o")
+    .replace(/ç/g, "c")
+    .replace(/â/g, "a")
+    .replace(/î/g, "i")
+    .replace(/û/g, "u")
+    .replace(/\s+/g, "");
+}
+window.getCleanKey = getCleanKey;
+
+var CANON_CATALOG = [
+  // 1. Raf · Ana Külliyat
+  {
+    title: "Sözler",
+    shelfId: "ch1",
+    shelfName: "Birinci Raf · Ana Külliyat",
+    desc: "İman Hakikatleri, Haşir ve Kâinat Muammaları",
+    aliases: ["sozler", "soz", "hasir", "hasirrisalesi", "kucuksozler", "onuncusoz", "23soz", "yirmiucuncusoz"]
+  },
+  {
+    title: "Mektubat",
+    shelfId: "ch1",
+    shelfName: "Birinci Raf · Ana Külliyat",
+    desc: "Manevi Mektuplar ve Kudsî Hakikatler",
+    aliases: ["mektubat", "mektup", "yirmincimektup"]
+  },
+  {
+    title: "Lem'alar",
+    shelfId: "ch1",
+    shelfName: "Birinci Raf · Ana Külliyat",
+    desc: "İhlas, Uhuvvet, Şifa ve Sünnet Nurları",
+    aliases: ["lemalar", "lema", "ihlas", "ihlasrisalesi", "uhuvvet", "uhuvvetrisalesi", "hastalar", "hastalarrisalesi", "ihtiyarlar", "tabiat", "tabiatrisalesi"]
+  },
+  {
+    title: "Şualar",
+    shelfId: "ch1",
+    shelfName: "Birinci Raf · Ana Külliyat",
+    desc: "Tevhid Bürhanları, Münacat ve Ayetü'l-Kübra",
+    aliases: ["sualar", "sua", "munacat", "ayetulkubra", "yedincisua"]
+  },
+  {
+    title: "Asa-yı Musa",
+    shelfId: "ch1",
+    shelfName: "Birinci Raf · Ana Külliyat",
+    desc: "Meyve Risalesi ve Hüccetü'l-Bâliğa",
+    aliases: ["asayimusa", "asaymusa", "asaimusa", "asayimusa", "asay-imusa", "meyve", "meyverisalesi", "huccet", "huccetulbaliga"]
+  },
+
+  // 2. Raf · Hayat & Lâhikalar
+  {
+    title: "Tarihçe-i Hayat",
+    shelfId: "ch2",
+    shelfName: "İkinci Raf · Hayat & Lâhikalar",
+    desc: "Bediüzzaman'ın İlmî, Fikrî ve Mücahidane Hayatı",
+    aliases: ["tarihceihayat", "tarihce", "hayat", "bediuzzamaninhayati"]
+  },
+  {
+    title: "Barla Lâhikası",
+    shelfId: "ch2",
+    shelfName: "İkinci Raf · Hayat & Lâhikalar",
+    desc: "İlk Hizmet Mektupları ve İhlas Çerağları",
+    aliases: ["barlalahikasi", "barla", "barlamektuplari"]
+  },
+  {
+    title: "Kastamonu Lâhikası",
+    shelfId: "ch2",
+    shelfName: "İkinci Raf · Hayat & Lâhikalar",
+    desc: "Hizmet Düsturları, İhlâs ve Teavün Mektupları",
+    aliases: ["kastamonulahikasi", "kastamonu"]
+  },
+  {
+    title: "Emirdağ Lâhikası",
+    shelfId: "ch2",
+    shelfName: "İkinci Raf · Hayat & Lâhikalar",
+    desc: "Son Devir Mektupları, İrşad ve Müjdeler",
+    aliases: ["emirdaglahikasi", "emirdag", "emirdag1", "emirdag2"]
+  },
+  {
+    title: "Sikke-i Tasdik",
+    shelfId: "ch2",
+    shelfName: "İkinci Raf · Hayat & Lâhikalar",
+    desc: "Gaybî Tasdikler ve Risale-i Nur'un Manevî Kerametleri",
+    aliases: ["sikkeitasdik", "sikkeitasdikigaybi", "sikke", "tasdik", "sikkeitastik"]
+  },
+
+  // 3. Raf · Diğer Risaleler
+  {
+    title: "Mesnevi-i Nuriye",
+    shelfId: "ch3",
+    shelfName: "Üçüncü Raf · Diğer Risaleler",
+    desc: "Tevhid Fidanlığı ve Marifetullah Çekirdekleri",
+    aliases: ["mesneviinuriye", "mesnevi", "nuriye", "mesnevii nuriye"]
+  },
+  {
+    title: "İşaratü'l-İ'caz",
+    shelfId: "ch3",
+    shelfName: "Üçüncü Raf · Diğer Risaleler",
+    desc: "Kur'ân Nazmındaki Eşsiz Mu'cizeler Tefsiri",
+    aliases: ["isaratulicaz", "isarat", "icaz", "isaratul icaz", "isarat-ul icaz", "isaratul-icaz"]
+  },
+  {
+    title: "Muhakemat",
+    shelfId: "ch3",
+    shelfName: "Üçüncü Raf · Diğer Risaleler",
+    desc: "Tefsir Usûlü ve İslamî Mantık Kaideleri",
+    aliases: ["muhakemat", "muhakeme"]
+  },
+  {
+    title: "İman ve Küfür Muvazeneleri",
+    shelfId: "ch3",
+    shelfName: "Üçüncü Raf · Diğer Risaleler",
+    desc: "Hidayet Nurları ile Dalalet Karanlıklarının Mukayesesi",
+    aliases: ["imanvekufurmuvazeneleri", "imanvekufur", "muvazeneler"]
+  }
+];
+window.CANON_CATALOG = CANON_CATALOG;
+
+function getCanonicalInfo(title){
+  if(!title) return null;
+  var key = getCleanKey(title);
+  if(!key) return null;
+  for(var i = 0; i < CANON_CATALOG.length; i++){
+    var item = CANON_CATALOG[i];
+    if(getCleanKey(item.title) === key) return item;
+    for(var a = 0; a < item.aliases.length; a++){
+      var alias = item.aliases[a];
+      if(key === alias || key.includes(alias) || alias.includes(key)){
+        return item;
+      }
+    }
+  }
+  return null;
+}
+window.getCanonicalInfo = getCanonicalInfo;
+
+function findCustomBookMatch(title){
+  if(!title || !window.customBooks || !window.customBooks.length) return null;
+  var targetKey = getCleanKey(title);
+  
+  // 1. Doğrudan id veya başlık eşitliği (temiz anahtarla)
+  var found = window.customBooks.find(function(b){
+    return b.id === title || b.title === title || getCleanKey(b.title) === targetKey;
+  });
+  if(found) return found;
+
+  // 2. Kanonik eser eşleşmesi (örn. "Sozler" eklenmişse "Sözler" ile, "asayimusa" eklenmişse "Asa-yı Musa" ile)
+  var canonInfo = getCanonicalInfo(title);
+  if(canonInfo){
+    var canonKey = getCleanKey(canonInfo.title);
+    found = window.customBooks.find(function(b){
+      if(getCleanKey(b.title) === canonKey) return true;
+      var bCanon = getCanonicalInfo(b.title);
+      return bCanon && bCanon.title === canonInfo.title;
+    });
+    if(found) return found;
+  }
+
+  // 3. Alt dize (substring / includes) eşleşmesi (örn. "Haşir Risalesi (10. Söz)" içinde "Söz" veya tersi)
+  found = window.customBooks.find(function(b){
+    var bKey = getCleanKey(b.title);
+    return (bKey.length >= 3 && targetKey.includes(bKey)) || (targetKey.length >= 3 && bKey.includes(targetKey));
+  });
+  return found || null;
+}
+window.findCustomBookMatch = findCustomBookMatch;
+
 var corridorBooksGroup = new THREE.Group();
 scene.add(corridorBooksGroup);
 var corridorBookMeshes = [];
@@ -137,7 +317,15 @@ function rebuildCorridorShelves(){
           } else {
             title = TITLES[canonIdx % TITLES.length];
             canonIdx++;
-            isCustom = false;
+            // Kullanıcının eklediği kitaplar arasında bu kanonik eserle (harf uyumsuzluğuna rağmen) eşleşen var mı?
+            var matchedUserBook = findCustomBookMatch(title);
+            if(matchedUserBook){
+              bookData = matchedUserBook;
+              isCustom = true;
+            } else {
+              bookData = null;
+              isCustom = false;
+            }
           }
 
           var spineMat = new THREE.MeshStandardMaterial({
@@ -894,8 +1082,8 @@ function startBookPresentation(targetBook){
   if(!u) return;
 
   presentationBookSourceMesh = targetBook;
-  presentationBookData = (u.isCustom && u.bookData) ? u.bookData : u.title;
-  var title = u.title || "Risale-i Nur";
+  presentationBookData = (u.bookData) ? u.bookData : (findCustomBookMatch(u.title) || u.title);
+  var title = (presentationBookData && typeof presentationBookData === "object") ? (presentationBookData.title || u.title) : (u.title || "Risale-i Nur");
 
   // Kitabın dünya koordinatları
   var worldPos = new THREE.Vector3();
@@ -1219,28 +1407,54 @@ function init3DStage(stageEl,chapterEl){
   var chapterId=chapterEl.id||"ch1";
   var oldShelf=stageEl.querySelector(".shelf");
 
-  // Bu rafa ait kitapları customBooks'tan al (shelfId)
-  var shelfBooks = (window.customBooks || []).filter(function(b){
-    return (b.shelfId || "ch4") === chapterId;
-  });
+  // 1. Bu rafa ait kanonik Risale eserleri kataloğu
+  var canonForThisShelf = CANON_CATALOG.filter(function(item){ return item.shelfId === chapterId; });
 
-  var booksData = shelfBooks.map(function(b){
-    return { id: b.id, title: b.title, desc: b.desc||"", color: "ruby", raw: b };
-  });
-
-  // Geriye dönük uyumluluk: customBooks boşsa ve DOM'da eski .book varsa
-  if(!booksData.length && oldShelf){
-    var bookElements=Array.prototype.slice.call(oldShelf.querySelectorAll(".book"));
-    if(bookElements.length > 0){
-      booksData=bookElements.map(function(b){
-        return {
-          id: b.getAttribute("data-book-id") || "",
-          title: b.getAttribute("data-title") || "",
-          desc: b.getAttribute("data-desc") || "",
-          color: "ruby"
-        };
-      });
+  // 2. Bu rafa doğrudan atanmış veya başlığı bu rafla eşleşen kullanıcı kitapları
+  var shelfCustomBooks = (window.customBooks || []).filter(function(b){
+    var assignedShelf = b.shelfId;
+    if(!assignedShelf || assignedShelf === "ch4"){
+      var info = getCanonicalInfo(b.title);
+      if(info && info.shelfId === chapterId) return true;
     }
+    return assignedShelf === chapterId;
+  });
+
+  var booksData = [];
+  if(chapterId !== "ch4" && canonForThisShelf.length > 0){
+    // Kanonik raflar (ch1: Ana Külliyat, ch2: Hayat & Lâhikalar, ch3: Diğer Risaleler)
+    canonForThisShelf.forEach(function(canon){
+      var matchedUserBook = findCustomBookMatch(canon.title);
+      booksData.push({
+        id: matchedUserBook ? matchedUserBook.id : ("canon_" + getCleanKey(canon.title)),
+        title: canon.title,
+        desc: matchedUserBook ? (matchedUserBook.desc || canon.desc) : canon.desc,
+        color: "ruby",
+        isMatched: !!matchedUserBook,
+        raw: matchedUserBook || null
+      });
+    });
+    // Ayrıca bu rafa özel eklenmiş diğer serbest eserler varsa ekle
+    shelfCustomBooks.forEach(function(cb){
+      var alreadyAdded = booksData.some(function(b){
+        return (b.raw && b.raw.id === cb.id) || getCleanKey(b.title) === getCleanKey(cb.title);
+      });
+      if(!alreadyAdded){
+        booksData.push({
+          id: cb.id,
+          title: cb.title,
+          desc: cb.desc || "Özel Risale",
+          color: "ruby",
+          isMatched: true,
+          raw: cb
+        });
+      }
+    });
+  } else {
+    // ch4 (Özel Kitaplığım / Hazine-i Evrak)
+    booksData = shelfCustomBooks.map(function(b){
+      return { id: b.id, title: b.title, desc: b.desc||"Hazine-i Evrak · Özel Eser", color: "ruby", isMatched: true, raw: b };
+    });
   }
 
   var prevWrap=stageEl.querySelector(".stage-3d-wrap");
@@ -1815,19 +2029,9 @@ if(window.pdfjsLib){
 
 function normalizeBookTitle(title){
   if(!title) return "";
-  var t = String(title).trim();
-  var low = t.toLowerCase()
-    .replace(/['’`\-]/g, "")
-    .replace(/ı/g, "i")
-    .replace(/ğ/g, "g")
-    .replace(/ü/g, "u")
-    .replace(/ş/g, "s")
-    .replace(/ö/g, "o")
-    .replace(/ç/g, "c")
-    .replace(/â/g, "a")
-    .replace(/î/g, "i")
-    .replace(/û/g, "u");
-
+  var canon = getCanonicalInfo(title);
+  if(canon) return canon.title;
+  var low = getCleanKey(title);
   if(low.includes("soz")) return "Sözler";
   if(low.includes("sua")) return "Şualar";
   if(low.includes("mektub")) return "Mektubat";
@@ -1836,13 +2040,13 @@ function normalizeBookTitle(title){
   if(low.includes("barla")) return "Barla Lâhikası";
   if(low.includes("kastamonu")) return "Kastamonu Lâhikası";
   if(low.includes("emirdag")) return "Emirdağ Lâhikası";
-  if(low.includes("asa") || low.includes("musa")) return "Asâ-yı Mûsâ";
-  if(low.includes("sikke") || low.includes("tasdik")) return "Sikke-i Tasdîk-i Gaybî";
-  if(low.includes("mesnevi")) return "Mesnevî-i Nuriye";
-  if(low.includes("isarat") || low.includes("icaz")) return "İşârâtü'l-İ'caz";
+  if(low.includes("asa") || low.includes("musa")) return "Asa-yı Musa";
+  if(low.includes("sikke") || low.includes("tasdik")) return "Sikke-i Tasdik";
+  if(low.includes("mesnevi")) return "Mesnevi-i Nuriye";
+  if(low.includes("isarat") || low.includes("icaz")) return "İşaratü'l-İ'caz";
   if(low.includes("muhakemat")) return "Muhakemat";
   if(low.includes("iman") && low.includes("kufur")) return "İman ve Küfür Muvazeneleri";
-  return t;
+  return String(title).trim();
 }
 
 var RISALE_TEXTS = {
@@ -2581,31 +2785,30 @@ function generateRisaleChapters(title){
 
 function getBookPages(title){
   var norm = normalizeBookTitle(title);
-  // 1. Custom books check
-  for(var i=0;i<customBooks.length;i++){
-    if((customBooks[i].title===title || normalizeBookTitle(customBooks[i].title)===norm) && customBooks[i].pages && customBooks[i].pages.length){
-      var cDesc = customBooks[i].desc || "PDF Eseri";
-      return customBooks[i].pages.map(function(p,idx){
-        if(typeof p === "object" && p !== null){
-          return {
-            kulliyat: "Hazine-i Evrak · " + cDesc,
-            chapter: title,
-            title: p.title || (title + " · Sayfa " + (idx+1)),
-            pageType: idx===0 ? "mukaddime" : "metin",
-            text: p.text || "",
-            arabicVerse: p.arabicVerse || null,
-            imageData: p.imageData || null
-          };
-        }
+  // 1. Custom books check (Fuzzy eşleşme ile kullanıcının eklediği PDF)
+  var matchedCustom = findCustomBookMatch(title);
+  if(matchedCustom && matchedCustom.pages && matchedCustom.pages.length){
+    var cDesc = matchedCustom.desc || "PDF Eseri";
+    return matchedCustom.pages.map(function(p,idx){
+      if(typeof p === "object" && p !== null){
         return {
           kulliyat: "Hazine-i Evrak · " + cDesc,
-          chapter: title,
-          title: title + " · Sayfa " + (idx+1),
+          chapter: matchedCustom.title || title,
+          title: p.title || (title + " · Sayfa " + (idx+1)),
           pageType: idx===0 ? "mukaddime" : "metin",
-          text: p
+          text: p.text || "",
+          arabicVerse: p.arabicVerse || null,
+          imageData: p.imageData || null
         };
-      });
-    }
+      }
+      return {
+        kulliyat: "Hazine-i Evrak · " + cDesc,
+        chapter: matchedCustom.title || title,
+        title: title + " · Sayfa " + (idx+1),
+        pageType: idx===0 ? "mukaddime" : "metin",
+        text: p
+      };
+    });
   }
   // 2. Exact match in canonical texts
   if(RISALE_TEXTS[norm] && RISALE_TEXTS[norm].length){
@@ -2737,10 +2940,7 @@ function openReader(titleOrBook, isDirect3D){
     title = titleOrBook.title || "Risale";
   } else {
     title = (typeof titleOrBook === "string") ? titleOrBook.trim() : "Risale";
-    var found = (window.customBooks || []).find(function(b){
-      return b.title === title || b.id === title;
-    });
-    if(found) customBookObj = found;
+    customBookObj = findCustomBookMatch(title);
   }
 
   var canonicalTitle = normalizeBookTitle(title) || title;
@@ -3436,12 +3636,15 @@ if(pdfSubmitBtn){
       if(pdfProgressPercent) pdfProgressPercent.textContent = "100%";
       if(pdfProgressText) pdfProgressText.textContent = "Kitap kaydediliyor...";
 
-      var shelfId = (pdfShelfSelect ? pdfShelfSelect.value : "ch4") || "ch4";
+      var canonInfo = getCanonicalInfo(title);
+      var chosenShelf = pdfShelfSelect ? pdfShelfSelect.value : "ch4";
+      var shelfId = (chosenShelf && chosenShelf !== "ch4") ? chosenShelf : (canonInfo ? canonInfo.shelfId : "ch4");
 
       var newBook = {
         id: "b_" + Date.now() + "_" + Math.floor(Math.random()*1000),
         title: title,
-        desc: desc || "Hazine-i Evrak · Özel PDF Eseri",
+        canonicalTitle: canonInfo ? canonInfo.title : title,
+        desc: desc || (canonInfo ? canonInfo.desc : "Hazine-i Evrak · Özel PDF Eseri"),
         color: "ruby",
         shelfId: shelfId,
         pages: pages,
@@ -3664,7 +3867,14 @@ window.addEventListener("keydown", function(e){
     await NurStorage.init();
     var loaded = await NurStorage.getAll();
     if(loaded && loaded.length){
-      loaded.forEach(function(b){ b.color = "ruby"; });
+      loaded.forEach(function(b){
+        b.color = "ruby";
+        // Eğer shelfId yoksa veya genel ch4 ise, başlığına göre kanonik rafa eşleştir
+        var canon = getCanonicalInfo(b.title);
+        if(canon && (!b.shelfId || b.shelfId === "ch4")){
+          b.shelfId = canon.shelfId;
+        }
+      });
       customBooks = loaded;
       window.customBooks = customBooks;
     }
