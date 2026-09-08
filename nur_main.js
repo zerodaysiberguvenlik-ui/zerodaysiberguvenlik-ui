@@ -241,6 +241,24 @@ function getCanonicalInfo(title){
 }
 window.getCanonicalInfo = getCanonicalInfo;
 
+var CANON_USER_BOOK_MAP = {
+  "sozler": ["Sözler"],
+  "mektubat": ["Mektubat"],
+  "lemalar": ["Lem'alar"],
+  "sualar": ["Şualar"],
+  "asayimusa": ["Meyve Risalesi", "Asa-yı Musa", "Asay-ı Musa", "Meyve"],
+  "tarihceihayat": ["Tarihçe-i Hayat"],
+  "barlalahikasi": ["Necmettin Şahiner - Nurların İlk Dershanesi Aziz Barla", "Barla Lâhikası"],
+  "kastamonulahikasi": ["Kastamonu Lâhikası Üzerine", "Kastamonu Lâhikası"],
+  "emirdaglahikasi": ["Emirdağ Lâhikası"],
+  "sikkeitasdik": ["Sikke-i Tasdik", "Sikke-i Tasdik-i Gaybi"],
+  "mesneviinuriye": ["Mesnevi-i Nuriye"],
+  "isaratulicaz": ["İşaratü'l-İ'caz", "İşârâtü'l-İ'câz"],
+  "muhakemat": ["Muhakemat", "Muhakemat Üzerine"],
+  "imanvekufurmuvazeneleri": ["İman ve Küfür Muvazeneleri"]
+};
+window.CANON_USER_BOOK_MAP = CANON_USER_BOOK_MAP;
+
 function findCustomBookMatch(title){
   if(!title || !window.customBooks || !window.customBooks.length) return null;
   var targetKey = getCleanKey(title);
@@ -253,15 +271,33 @@ function findCustomBookMatch(title){
     }
   }
 
-  // 2. Kanonik eser doğrudan eşliği (örn. kullanıcı tam olarak "Sozler" eklediyse "Sözler" ile)
+  // 2. Kanonik harita eşleştirmesi (Asa-yı Musa -> Meyve Risalesi, Barla -> Aziz Barla, vb.)
+  var candidates = CANON_USER_BOOK_MAP[targetKey];
+  if(!candidates){
+    var canonInfo = getCanonicalInfo(title);
+    if(canonInfo) candidates = CANON_USER_BOOK_MAP[getCleanKey(canonInfo.title)];
+  }
+  if(candidates){
+    for(var c = 0; c < candidates.length; c++){
+      var cKey = getCleanKey(candidates[c]);
+      for(var j = 0; j < window.customBooks.length; j++){
+        var cb = window.customBooks[j];
+        if(getCleanKey(cb.title) === cKey){
+          return cb;
+        }
+      }
+    }
+  }
+
+  // 3. Kanonik unvan doğrudan eşliği
   var targetCanon = getCanonicalInfo(title);
   if(targetCanon){
     var targetCanonKey = getCleanKey(targetCanon.title);
-    for(var j = 0; j < window.customBooks.length; j++){
-      var cb = window.customBooks[j];
-      var cbCanon = getCanonicalInfo(cb.title);
-      if(cbCanon && getCleanKey(cbCanon.title) === targetCanonKey && getCleanKey(cb.title) === targetCanonKey){
-        return cb;
+    for(var k = 0; k < window.customBooks.length; k++){
+      var mb = window.customBooks[k];
+      var mbCanon = getCanonicalInfo(mb.title);
+      if(mbCanon && getCleanKey(mbCanon.title) === targetCanonKey && getCleanKey(mb.title) === targetCanonKey){
+        return mb;
       }
     }
   }
@@ -339,7 +375,7 @@ function rebuildCorridorShelves(){
             var matchedUserBook = findCustomBookMatch(title);
             if(matchedUserBook){
               bookData = matchedUserBook;
-              isCustom = true;
+              isCustom = false;
             } else {
               bookData = null;
               isCustom = false;
@@ -1801,7 +1837,7 @@ function init3DStage(stageEl,chapterEl){
         if(activeOpeningRig.userData.raw){
           openTomeReader(activeOpeningRig.userData.raw);
         } else {
-          var found = (window.customBooks||[]).find(function(b){ return b.id === activeOpeningRig.userData.id || b.title === activeOpeningRig.userData.title; });
+          var found = findCustomBookMatch(activeOpeningRig.userData.title || activeOpeningRig.userData.id) || (window.customBooks||[]).find(function(b){ return b.id === activeOpeningRig.userData.id || b.title === activeOpeningRig.userData.title; });
           if(found) openTomeReader(found);
           else openReader(activeOpeningRig.userData.title,true);
         }
@@ -2946,6 +2982,10 @@ function openReader(titleOrBook, isDirect3D){
   if(typeof titleOrBook === "object" && titleOrBook !== null){
     customBookObj = titleOrBook;
     title = titleOrBook.title || "Risale";
+    if((!customBookObj.pages || !customBookObj.pages.length) && !customBookObj.id){
+      var altMatch = findCustomBookMatch(title);
+      if(altMatch) customBookObj = altMatch;
+    }
   } else {
     title = (typeof titleOrBook === "string") ? titleOrBook.trim() : "Risale";
     customBookObj = findCustomBookMatch(title);
@@ -3026,7 +3066,8 @@ function openReader(titleOrBook, isDirect3D){
   }
 
   pageIdx = 0;
-  if(readerTitle) readerTitle.textContent = currentBookTitle;
+  var displayTitle = (title && title !== "Risale") ? title : currentBookTitle;
+  if(readerTitle) readerTitle.textContent = displayTitle;
   renderSpread();
   closeModal();
   if(readerEl) readerEl.classList.add("open");
