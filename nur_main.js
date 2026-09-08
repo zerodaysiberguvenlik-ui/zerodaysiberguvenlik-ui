@@ -1440,7 +1440,8 @@ function init3DStage(stageEl,chapterEl){
 
   var booksData = [];
   if(chapterId !== "ch4" && canonForThisShelf.length > 0){
-    // Kanonik raflar (ch1: Ana Külliyat, ch2: Hayat & Lâhikalar, ch3: Diğer Risaleler)
+    // Kanonik raflar (ch1: Ana Külliyat 5 eser, ch2: Hayat & Lâhikalar 5 eser, ch3: Diğer Risaleler 4 eser)
+    // Bu raflarda SADECE o rafa ait ana kanonik eserler yer alır, fazladan/deneme kitap eklenmez
     canonForThisShelf.forEach(function(canon){
       var matchedUserBook = findCustomBookMatch(canon.title);
       booksData.push({
@@ -1452,25 +1453,14 @@ function init3DStage(stageEl,chapterEl){
         raw: matchedUserBook || null
       });
     });
-    // Ayrıca bu rafa özel eklenmiş diğer serbest eserler varsa ekle
-    shelfCustomBooks.forEach(function(cb){
-      var alreadyAdded = booksData.some(function(b){
-        return (b.raw && b.raw.id === cb.id) || getCleanKey(b.title) === getCleanKey(cb.title);
-      });
-      if(!alreadyAdded){
-        booksData.push({
-          id: cb.id,
-          title: cb.title,
-          desc: cb.desc || "Özel Risale",
-          color: "ruby",
-          isMatched: true,
-          raw: cb
-        });
-      }
-    });
   } else {
     // ch4 (Özel Kitaplığım / Hazine-i Evrak)
-    booksData = shelfCustomBooks.map(function(b){
+    // Sadece kullanıcının eklediği hususî/ek eserler listelenir (ana kanonik eserler kendi raflarında 3D çarkta)
+    var customOnly = (window.customBooks || []).filter(function(b){
+      var canon = getCanonicalInfo(b.title);
+      return !canon || getCleanKey(b.title) !== getCleanKey(canon.title);
+    });
+    booksData = customOnly.map(function(b){
       return { id: b.id, title: b.title, desc: b.desc||"Hazine-i Evrak · Özel Eser", color: "ruby", isMatched: true, raw: b };
     });
   }
@@ -3803,14 +3793,19 @@ function renderPdfCustomGrid(){
 
 // Raf sayı sayacını güncelle
 function updateShelfCounts(){
-  var counts = { ch1:0, ch2:0, ch3:0, ch4:0 };
-  customBooks.forEach(function(b){ var sid = b.shelfId || "ch4"; if(counts[sid] !== undefined) counts[sid]++; else counts.ch4++; });
-  ["ch1","ch2","ch3","ch4"].forEach(function(id){
-    var el = document.getElementById(id+"Count");
-    if(el) el.textContent = counts[id] + " eser";
-  });
+  var customCount = (window.customBooks || []).filter(function(b){
+    var canon = getCanonicalInfo(b.title);
+    return !canon || getCleanKey(b.title) !== getCleanKey(canon.title);
+  }).length;
+
+  var ch1El = document.getElementById("ch1Count");
+  if(ch1El) ch1El.textContent = "5 eser";
+  var ch2El = document.getElementById("ch2Count");
+  if(ch2El) ch2El.textContent = "5 eser";
+  var ch3El = document.getElementById("ch3Count");
+  if(ch3El) ch3El.textContent = "4 eser";
   var addedCount = document.getElementById("addedCount");
-  if(addedCount) addedCount.textContent = counts.ch4 + " eser";
+  if(addedCount) addedCount.textContent = customCount + " eser";
 }
 
 // Tüm rafları render et (ch1-ch4)
