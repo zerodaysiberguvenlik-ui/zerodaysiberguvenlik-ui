@@ -126,35 +126,35 @@ var CANON_CATALOG = [
     shelfId: "ch1",
     shelfName: "Birinci Raf · Ana Külliyat",
     desc: "İman Hakikatleri, Haşir ve Kâinat Muammaları",
-    aliases: ["sozler", "soz", "hasir", "hasirrisalesi", "kucuksozler", "onuncusoz", "23soz", "yirmiucuncusoz"]
+    aliases: ["sozler", "sozlermecmuasi", "buyuksozler"]
   },
   {
     title: "Mektubat",
     shelfId: "ch1",
     shelfName: "Birinci Raf · Ana Külliyat",
     desc: "Manevi Mektuplar ve Kudsî Hakikatler",
-    aliases: ["mektubat", "mektup", "yirmincimektup"]
+    aliases: ["mektubat", "mektubatanuriye"]
   },
   {
     title: "Lem'alar",
     shelfId: "ch1",
     shelfName: "Birinci Raf · Ana Külliyat",
     desc: "İhlas, Uhuvvet, Şifa ve Sünnet Nurları",
-    aliases: ["lemalar", "lema", "ihlas", "ihlasrisalesi", "uhuvvet", "uhuvvetrisalesi", "hastalar", "hastalarrisalesi", "ihtiyarlar", "tabiat", "tabiatrisalesi"]
+    aliases: ["lemalar", "lemalarnuru"]
   },
   {
     title: "Şualar",
     shelfId: "ch1",
     shelfName: "Birinci Raf · Ana Külliyat",
     desc: "Tevhid Bürhanları, Münacat ve Ayetü'l-Kübra",
-    aliases: ["sualar", "sua", "munacat", "ayetulkubra", "yedincisua"]
+    aliases: ["sualar", "sualarmecmuasi"]
   },
   {
     title: "Asa-yı Musa",
     shelfId: "ch1",
     shelfName: "Birinci Raf · Ana Külliyat",
     desc: "Meyve Risalesi ve Hüccetü'l-Bâliğa",
-    aliases: ["asayimusa", "asaymusa", "asaimusa", "asayimusa", "asay-imusa", "meyve", "meyverisalesi", "huccet", "huccetulbaliga"]
+    aliases: ["asayimusa", "asaymusa", "asaimusa", "asay-imusa"]
   },
 
   // 2. Raf · Hayat & Lâhikalar
@@ -163,35 +163,35 @@ var CANON_CATALOG = [
     shelfId: "ch2",
     shelfName: "İkinci Raf · Hayat & Lâhikalar",
     desc: "Bediüzzaman'ın İlmî, Fikrî ve Mücahidane Hayatı",
-    aliases: ["tarihceihayat", "tarihce", "hayat", "bediuzzamaninhayati"]
+    aliases: ["tarihceihayat", "tarihce-i hayat", "bediuzzamaninhayati"]
   },
   {
     title: "Barla Lâhikası",
     shelfId: "ch2",
     shelfName: "İkinci Raf · Hayat & Lâhikalar",
     desc: "İlk Hizmet Mektupları ve İhlas Çerağları",
-    aliases: ["barlalahikasi", "barla", "barlamektuplari"]
+    aliases: ["barlalahikasi", "barla mektuplari"]
   },
   {
     title: "Kastamonu Lâhikası",
     shelfId: "ch2",
     shelfName: "İkinci Raf · Hayat & Lâhikalar",
     desc: "Hizmet Düsturları, İhlâs ve Teavün Mektupları",
-    aliases: ["kastamonulahikasi", "kastamonu"]
+    aliases: ["kastamonulahikasi", "kastamonu lahikasi"]
   },
   {
     title: "Emirdağ Lâhikası",
     shelfId: "ch2",
     shelfName: "İkinci Raf · Hayat & Lâhikalar",
     desc: "Son Devir Mektupları, İrşad ve Müjdeler",
-    aliases: ["emirdaglahikasi", "emirdag", "emirdag1", "emirdag2"]
+    aliases: ["emirdaglahikasi", "emirdag lahikasi"]
   },
   {
     title: "Sikke-i Tasdik",
     shelfId: "ch2",
     shelfName: "İkinci Raf · Hayat & Lâhikalar",
     desc: "Gaybî Tasdikler ve Risale-i Nur'un Manevî Kerametleri",
-    aliases: ["sikkeitasdik", "sikkeitasdikigaybi", "sikke", "tasdik", "sikkeitastik"]
+    aliases: ["sikkeitasdik", "sikkeitasdikigaybi", "sikkeitastik"]
   },
 
   // 3. Raf · Diğer Risaleler
@@ -200,28 +200,28 @@ var CANON_CATALOG = [
     shelfId: "ch3",
     shelfName: "Üçüncü Raf · Diğer Risaleler",
     desc: "Tevhid Fidanlığı ve Marifetullah Çekirdekleri",
-    aliases: ["mesneviinuriye", "mesnevi", "nuriye", "mesnevii nuriye"]
+    aliases: ["mesneviinuriye", "mesnevi-i nuriye", "mesnevii nuriye"]
   },
   {
     title: "İşaratü'l-İ'caz",
     shelfId: "ch3",
     shelfName: "Üçüncü Raf · Diğer Risaleler",
     desc: "Kur'ân Nazmındaki Eşsiz Mu'cizeler Tefsiri",
-    aliases: ["isaratulicaz", "isarat", "icaz", "isaratul icaz", "isarat-ul icaz", "isaratul-icaz"]
+    aliases: ["isaratulicaz", "isarat-ul icaz", "isaratul icaz"]
   },
   {
     title: "Muhakemat",
     shelfId: "ch3",
     shelfName: "Üçüncü Raf · Diğer Risaleler",
     desc: "Tefsir Usûlü ve İslamî Mantık Kaideleri",
-    aliases: ["muhakemat", "muhakeme"]
+    aliases: ["muhakemat"]
   },
   {
     title: "İman ve Küfür Muvazeneleri",
     shelfId: "ch3",
     shelfName: "Üçüncü Raf · Diğer Risaleler",
     desc: "Hidayet Nurları ile Dalalet Karanlıklarının Mukayesesi",
-    aliases: ["imanvekufurmuvazeneleri", "imanvekufur", "muvazeneler"]
+    aliases: ["imanvekufurmuvazeneleri", "iman ve kufur muvazeneleri"]
   }
 ];
 window.CANON_CATALOG = CANON_CATALOG;
@@ -234,10 +234,7 @@ function getCanonicalInfo(title){
     var item = CANON_CATALOG[i];
     if(getCleanKey(item.title) === key) return item;
     for(var a = 0; a < item.aliases.length; a++){
-      var alias = item.aliases[a];
-      if(key === alias || key.includes(alias) || alias.includes(key)){
-        return item;
-      }
+      if(key === getCleanKey(item.aliases[a])) return item;
     }
   }
   return null;
@@ -248,30 +245,27 @@ function findCustomBookMatch(title){
   if(!title || !window.customBooks || !window.customBooks.length) return null;
   var targetKey = getCleanKey(title);
   
-  // 1. Doğrudan id veya başlık eşitliği (temiz anahtarla)
-  var found = window.customBooks.find(function(b){
-    return b.id === title || b.title === title || getCleanKey(b.title) === targetKey;
-  });
-  if(found) return found;
-
-  // 2. Kanonik eser eşleşmesi (örn. "Sozler" eklenmişse "Sözler" ile, "asayimusa" eklenmişse "Asa-yı Musa" ile)
-  var canonInfo = getCanonicalInfo(title);
-  if(canonInfo){
-    var canonKey = getCleanKey(canonInfo.title);
-    found = window.customBooks.find(function(b){
-      if(getCleanKey(b.title) === canonKey) return true;
-      var bCanon = getCanonicalInfo(b.title);
-      return bCanon && bCanon.title === canonInfo.title;
-    });
-    if(found) return found;
+  // 1. Doğrudan id veya tam başlık eşitliği
+  for(var i = 0; i < window.customBooks.length; i++){
+    var b = window.customBooks[i];
+    if(b.id === title || b.title === title || getCleanKey(b.title) === targetKey){
+      return b;
+    }
   }
 
-  // 3. Alt dize (substring / includes) eşleşmesi (örn. "Haşir Risalesi (10. Söz)" içinde "Söz" veya tersi)
-  found = window.customBooks.find(function(b){
-    var bKey = getCleanKey(b.title);
-    return (bKey.length >= 3 && targetKey.includes(bKey)) || (targetKey.length >= 3 && bKey.includes(targetKey));
-  });
-  return found || null;
+  // 2. Kanonik eser doğrudan eşliği (örn. kullanıcı tam olarak "Sozler" eklediyse "Sözler" ile)
+  var targetCanon = getCanonicalInfo(title);
+  if(targetCanon){
+    var targetCanonKey = getCleanKey(targetCanon.title);
+    for(var j = 0; j < window.customBooks.length; j++){
+      var cb = window.customBooks[j];
+      var cbCanon = getCanonicalInfo(cb.title);
+      if(cbCanon && getCleanKey(cbCanon.title) === targetCanonKey && getCleanKey(cb.title) === targetCanonKey){
+        return cb;
+      }
+    }
+  }
+  return null;
 }
 window.findCustomBookMatch = findCustomBookMatch;
 
@@ -3907,7 +3901,7 @@ if(clearAllBooksBtn){
       window.customBooks = customBooks;
       updatePdfBadges();
       renderPdfCustomGrid();
-      renderShelvesAll();
+      if(typeof initAll3DStages === "function") initAll3DStages();
       if(typeof rebuildCorridorShelves === "function") rebuildCorridorShelves();
       showToast("Tüm kitaplar kütüphaneden ve raflardan temizlendi.");
     }
@@ -3938,40 +3932,34 @@ window.addEventListener("keydown", function(e){
     var defaults = window.DEFAULT_BOOKS_CATALOG || [];
 
     if(!loaded || loaded.length === 0){
-      // Gizli sekme veya temiz tarayıcı: Varsayılan katalogdan 34 eseri doğrudan yükle
+      // Gizli sekme veya temiz tarayıcı: Varsayılan katalogdan eserleri doğrudan yükle
       loaded = defaults.map(function(b){ return Object.assign({}, b); });
       loaded.forEach(function(b){
         b.color = "ruby";
-        var canon = getCanonicalInfo(b.title);
-        if(canon && (!b.shelfId || b.shelfId === "ch4")){
-          b.shelfId = canon.shelfId;
-        }
+        if(!b.shelfId) b.shelfId = "ch4";
         NurStorage.save(b);
       });
       customBooks = loaded;
       window.customBooks = customBooks;
     } else {
-      // Mevcut depolama var: Eksik olan varsayılan eserleri ekle
+      // Mevcut depolama var: Eksik olan varsayılan eserleri ekle, güncel katalog verilerini tazele
       defaults.forEach(function(def){
-        var exists = loaded.some(function(b){
+        var idx = loaded.findIndex(function(b){
           return b.id === def.id || getCleanKey(b.title) === getCleanKey(def.title);
         });
-        if(!exists){
+        if(idx === -1){
           var newBook = Object.assign({}, def);
           newBook.color = "ruby";
-          var canon = getCanonicalInfo(newBook.title);
-          if(canon && (!newBook.shelfId || newBook.shelfId === "ch4")){
-            newBook.shelfId = canon.shelfId;
-          }
+          if(!newBook.shelfId) newBook.shelfId = "ch4";
           loaded.push(newBook);
           NurStorage.save(newBook);
-        }
-      });
-      loaded.forEach(function(b){
-        b.color = "ruby";
-        var canon = getCanonicalInfo(b.title);
-        if(canon && (!b.shelfId || b.shelfId === "ch4")){
-          b.shelfId = canon.shelfId;
+        } else {
+          // Başlık ve raf düzeltmesini mevcut kayda da yansıt
+          loaded[idx].title = def.title;
+          loaded[idx].desc = def.desc;
+          loaded[idx].shelfId = def.shelfId;
+          loaded[idx].canonicalTitle = "";
+          NurStorage.save(loaded[idx]);
         }
       });
       customBooks = loaded;
