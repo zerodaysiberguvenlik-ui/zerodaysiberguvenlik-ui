@@ -799,24 +799,19 @@ function getBookTextures(title,theme,customColor){
       if(!customColor && cb.color) customColor = cb.color;
     }
   }
-  var key=title+"_"+theme+"_"+(customColor||"");
+  // Raf 1, Raf 2, Raf 3 ve Kişisel raflar dahil tüm eserler için
+  // Risale-i Nur'un klasik asil Yakut Kırmızısı (Ruby Red) cilt tonu
+  var key=title+"_ruby";
   if(texBookCache[key])return texBookCache[key];
 
   // 1. Kapak Dokusu (512 x 768)
   var cCov=document.createElement("canvas");cCov.width=512;cCov.height=768;
   var ctx=cCov.getContext("2d");
   var g=ctx.createLinearGradient(0,0,512,768);
-  if(customColor==="emerald"||theme==="hayat"){
-    g.addColorStop(0,"#1a4229");g.addColorStop(0.5,"#0e2a18");g.addColorStop(1,"#06170d");
-  }else if(customColor==="sapphire"||theme==="risaleler"){
-    g.addColorStop(0,"#182a44");g.addColorStop(0.5,"#0e1929");g.addColorStop(1,"#060c14");
-  }else if(customColor==="leather"){
-    g.addColorStop(0,"#4a2c16");g.addColorStop(0.5,"#2b190c");g.addColorStop(1,"#150b05");
-  }else if(customColor==="royal"){
-    g.addColorStop(0,"#431d4a");g.addColorStop(0.5,"#260f2a");g.addColorStop(1,"#130615");
-  }else{
-    g.addColorStop(0,"#7a1620");g.addColorStop(0.5,"#480b12");g.addColorStop(1,"#240508");
-  }
+  // Asil Yakut / Vişne Çürüğü Klasik Risale-i Nur Cildi
+  g.addColorStop(0,"#7a1620");
+  g.addColorStop(0.5,"#480b12");
+  g.addColorStop(1,"#240508");
   ctx.fillStyle=g;ctx.fillRect(0,0,512,768);
 
   // Deri Doku İnce Gren
@@ -1286,7 +1281,8 @@ function init3DStage(stageEl,chapterEl){
   var ambient=new THREE.AmbientLight(0x403422,1.8);scene.add(ambient);
   var dirLight=new THREE.DirectionalLight(0xffeed4,1.3);dirLight.position.set(2,5,4);scene.add(dirLight);
 
-  var themeHex=theme==="hayat"?0xC98A3C:(theme==="risaleler"?0x4aa3df:0xD4AF37);
+  // Manevi altın nur aydınlatması (kitapların asil yakut kırmızısı cildini sıcak ışıkla aydınlatır)
+  var themeHex=0xD4AF37;
   var glowLight=new THREE.PointLight(themeHex,2.4,7,2);glowLight.position.set(0,0.2,0);scene.add(glowLight);
 
   var spotLight=new THREE.SpotLight(0xfff2ce,4.2,12,Math.PI/4,0.35,1.4);spotLight.position.set(0,4.2,3.2);scene.add(spotLight);
@@ -1328,7 +1324,7 @@ function init3DStage(stageEl,chapterEl){
   var bookGroup=new THREE.Group();scene.add(bookGroup);
 
   booksData.forEach(function(item,idx){
-    var tex=getBookTextures(item.title,theme);
+    var tex=getBookTextures(item.title,"kulliyat","ruby");
     var coverMat=new THREE.MeshStandardMaterial({map:tex.cover,roughness:0.42,metalness:0.06});
     var spineMat=new THREE.MeshStandardMaterial({map:tex.spine,roughness:0.42,metalness:0.06});
     var pagesMat=new THREE.MeshStandardMaterial({map:tex.pages,roughness:0.35,metalness:0.35});
@@ -3505,7 +3501,7 @@ function renderPdfCustomGrid(){
     var card = document.createElement("div");
     card.className = "pdf-item-card";
 
-    var pal = COLOR_PALETTES[book.color] || COLOR_PALETTES.ruby;
+    var pal = COLOR_PALETTES.ruby; // Daima asil kırmızı Risale-i Nur cildi
     card.innerHTML = "<div class='pdf-item-cover' style='background:linear-gradient(135deg," + pal.start + " 0%," + pal.end + " 100%);'></div>" +
                      "<div class='pdf-item-info'>" +
                        "<div class='item-t'>" + escHTML(book.title) + "</div>" +
@@ -3668,6 +3664,7 @@ window.addEventListener("keydown", function(e){
     await NurStorage.init();
     var loaded = await NurStorage.getAll();
     if(loaded && loaded.length){
+      loaded.forEach(function(b){ b.color = "ruby"; });
       customBooks = loaded;
       window.customBooks = customBooks;
     }
