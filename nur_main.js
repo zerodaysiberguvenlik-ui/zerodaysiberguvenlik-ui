@@ -38,8 +38,8 @@ function getSpineTex(title, isCustom){
   
   // Asil Yakut / Yakut Kırmızısı Cilt Tonu
   var g=ctx.createLinearGradient(0,0,0,512);
-  g.addColorStop(0, isCustom ? "#991c28" : "#8a1c28");
-  g.addColorStop(0.5, isCustom ? "#6c121c" : "#5a0f16");
+  g.addColorStop(0, isCustom ? "#9e1d2c" : "#8a1c28");
+  g.addColorStop(0.5, isCustom ? "#72141f" : "#5a0f16");
   g.addColorStop(1, "#3c0a10");
   ctx.fillStyle=g;ctx.fillRect(0,0,96,512);
   
@@ -52,12 +52,18 @@ function getSpineTex(title, isCustom){
   // Tepe ve Dip Varak İşlemeleri
   ctx.fillStyle = isCustom ? "#FFEAA5" : "#e9cb75";
   ctx.font="bold 20px serif";ctx.textAlign="center";ctx.textBaseline="middle";
-  ctx.fillText("✦", 48, 30);
-  ctx.fillText("✦", 48, 482);
+  ctx.fillText("✦", 48, 28);
+  ctx.fillText("✦", 48, 484);
   
   if(isCustom){
-    ctx.font="bold 12px 'Instrument Sans',sans-serif";
-    ctx.fillText("Ö Z E L", 48, 52);
+    // Parlak Altın Hususi / Özel Rozeti
+    ctx.fillStyle = "#FFD700";
+    if(ctx.roundRect) ctx.roundRect(16, 42, 64, 20, 4);
+    else ctx.rect(16, 42, 64, 20);
+    ctx.fill();
+    ctx.fillStyle = "#1e1405";
+    ctx.font="bold 11px 'Instrument Sans',sans-serif";
+    ctx.fillText("HUSUSİ", 48, 53);
   }
   
   // Yaldızlı Dikey Başlık
@@ -283,7 +289,7 @@ function rebuildCorridorShelves(){
   corridorBookMeshes = [];
 
   var customList = (window.customBooks || []).slice();
-  var customIdx = 0;
+  var customCycleIdx = 0;
   var canonIdx = 0;
 
   for(var segIdx = 0; segIdx < SEGMENTS; segIdx++){
@@ -308,11 +314,24 @@ function rebuildCorridorShelves(){
           var bookData = null;
           var title = "";
 
-          // Kullanıcının manuel eklediği özel kitaplar öncelikli olarak
-          // koridorun başındaki göz hizası (s=1) ve alt (s=0) raflara sol ve sağ dönüşümlü yerleştirilir
-          if(customIdx < customList.length && (s === 1 || s === 0)){
-            bookData = customList[customIdx++];
-            title = bookData.title || "Özel Kitap";
+          // Manuel eklenen kitapların koridor raflarında belirgin görünmesi:
+          // 1. Giriş bölümünde (segIdx === 0) tam göz hizasında (s=1) yerleşir
+          // 2. Koridor boyunca her segmentte göz hizasında (s=1) periyodik olarak tekrarlanır
+          var placeCustomHere = false;
+          if(customList.length > 0){
+            if(segIdx === 0 && s === 1 && (i === 1 || i === 3 || i === 5 || i === 7)){
+              placeCustomHere = true;
+            } else if(s === 1 && (i === 2 || i === 6)){
+              placeCustomHere = true;
+            } else if(s === 0 && (i === 4 && customList.length >= 3)){
+              placeCustomHere = true;
+            }
+          }
+
+          if(placeCustomHere && customList.length > 0){
+            bookData = customList[customCycleIdx % customList.length];
+            customCycleIdx++;
+            title = bookData.title || "Özel Risale";
             isCustom = true;
           } else {
             title = TITLES[canonIdx % TITLES.length];
@@ -330,9 +349,9 @@ function rebuildCorridorShelves(){
 
           var spineMat = new THREE.MeshStandardMaterial({
             map: getSpineTex(title, isCustom),
-            roughness: 0.52,
-            metalness: 0.08,
-            emissive: new THREE.Color(0x000000)
+            roughness: isCustom ? 0.38 : 0.52,
+            metalness: isCustom ? 0.22 : 0.08,
+            emissive: new THREE.Color(isCustom ? 0x2e1804 : 0x000000)
           });
 
           var mats = [rubyRedMat, rubyRedMat, rubyRedMat, rubyRedMat, rubyRedMat, rubyRedMat];
@@ -860,11 +879,11 @@ window.addEventListener("pointermove", function(e){
       var hitBook = bookHits[0].object;
       if(hitBook !== hoveredCorridorBook){
         if(hoveredCorridorBook && hoveredCorridorBook.userData && hoveredCorridorBook.userData.spineMat){
-          hoveredCorridorBook.userData.spineMat.emissive.setHex(0x000000);
+          hoveredCorridorBook.userData.spineMat.emissive.setHex(hoveredCorridorBook.userData.isCustom ? 0x2e1804 : 0x000000);
         }
         hoveredCorridorBook = hitBook;
         if(hoveredCorridorBook.userData && hoveredCorridorBook.userData.spineMat){
-          hoveredCorridorBook.userData.spineMat.emissive.setHex(hoveredCorridorBook.userData.isCustom ? 0x775511 : 0x553811);
+          hoveredCorridorBook.userData.spineMat.emissive.setHex(hoveredCorridorBook.userData.isCustom ? 0xcc9922 : 0x553811);
         }
       }
       canvas.style.cursor = "pointer";
@@ -874,7 +893,7 @@ window.addEventListener("pointermove", function(e){
         var badgeEl = document.getElementById("cbtBadge");
         var titleEl = document.getElementById("cbtTitle");
         if(badgeEl){
-          badgeEl.textContent = u.isCustom ? "✦ ÖZEL KİTAPLIĞINIZ ✦" : "✦ RİSALE-İ NUR KÜLLİYATI ✦";
+          badgeEl.textContent = u.isCustom ? "✦ SİZİN EKLEDİĞİNİZ ESER · PDF ✦" : "✦ RİSALE-İ NUR KÜLLİYATI ✦";
           badgeEl.className = "cbt-badge" + (u.isCustom ? " custom" : "");
         }
         if(titleEl) titleEl.textContent = u.title;
@@ -890,7 +909,7 @@ window.addEventListener("pointermove", function(e){
   // Kitap veya mühür üzerinde değilse
   if(hoveredCorridorBook){
     if(hoveredCorridorBook.userData && hoveredCorridorBook.userData.spineMat){
-      hoveredCorridorBook.userData.spineMat.emissive.setHex(0x000000);
+      hoveredCorridorBook.userData.spineMat.emissive.setHex(hoveredCorridorBook.userData.isCustom ? 0x2e1804 : 0x000000);
     }
     hoveredCorridorBook = null;
   }
