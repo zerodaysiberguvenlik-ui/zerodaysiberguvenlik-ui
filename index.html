@@ -635,6 +635,386 @@ body.is-admin .admin-badge {
   20%, 60% { transform: translateX(-8px); }
   40%, 80% { transform: translateX(8px); }
 }
+
+/* ── KÜLLİYAT FİHRİSTİ & SADE KORİDOR STİLLERİ ── */
+.corridor-scroll-track {
+  height: 5200px;
+  width: 100%;
+  pointer-events: none;
+}
+.corridor-end-portal {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  padding: 90px 20px 140px;
+  background: radial-gradient(circle at 50% 30%, rgba(30,20,12,0.9) 0%, rgba(10,8,6,0.98) 100%);
+  border-top: 1px solid rgba(212,175,55,0.25);
+  box-shadow: 0 -20px 50px rgba(0,0,0,0.8);
+}
+.cep-ornament {
+  color: #D4AF37;
+  font-size: 1.1rem;
+  letter-spacing: 6px;
+  margin-bottom: 12px;
+}
+.cep-title {
+  font-family: 'Cinzel', 'Cinzel Decorative', Georgia, serif;
+  color: #FDF8EC;
+  font-size: 1.8rem;
+  margin: 0 0 10px 0;
+  letter-spacing: 1.5px;
+}
+.cep-sub {
+  color: rgba(247,231,206,0.72);
+  font-size: 0.95rem;
+  max-width: 540px;
+  margin: 0 auto 24px;
+  line-height: 1.6;
+}
+.cep-actions {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Fihrist Butonları */
+.fihrist-portal-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(26,18,12,0.75);
+  border: 1px solid rgba(212,175,55,0.4);
+  border-radius: 20px;
+  color: #f7e7ce;
+  padding: 6px 14px;
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+.fihrist-portal-btn:hover {
+  background: rgba(45,30,18,0.9);
+  border-color: #ffd700;
+  color: #ffd700;
+  box-shadow: 0 0 14px rgba(212,175,55,0.3);
+}
+.fihrist-badge-tag {
+  background: #7a1620;
+  color: #ffd700;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 10px;
+  border: 1px solid rgba(212,175,55,0.5);
+}
+
+.fihrist-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 175px;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #2a1c12, #160e08);
+  border: 1px solid rgba(212,175,55,0.5);
+  border-radius: 28px;
+  padding: 11px 18px;
+  color: #ffd700;
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.6), 0 0 15px rgba(212,175,55,0.2);
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+.fihrist-fab:hover {
+  transform: translateY(-2px);
+  border-color: #ffd700;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.7), 0 0 22px rgba(212,175,55,0.4);
+}
+
+/* Fihrist Drawer */
+.fihrist-drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: none;
+}
+.fihrist-drawer.open {
+  display: block;
+}
+.fihrist-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(6,4,3,0.78);
+  backdrop-filter: blur(6px);
+  animation: fihristFadeIn 0.3s ease;
+}
+.fihrist-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 94vw;
+  max-width: 660px;
+  background: linear-gradient(180deg, #18120b 0%, #100b07 100%);
+  border-left: 1px solid rgba(212,175,55,0.35);
+  box-shadow: -15px 0 45px rgba(0,0,0,0.85);
+  display: flex;
+  flex-direction: column;
+  animation: fihristSlideIn 0.35s cubic-bezier(0.16,1,0.3,1);
+  overflow: hidden;
+}
+@keyframes fihristFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes fihristSlideIn {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.fihrist-panel-header {
+  padding: 24px 28px 16px;
+  border-bottom: 1px solid rgba(212,175,55,0.2);
+  background: rgba(22,16,10,0.85);
+  flex-shrink: 0;
+}
+.fihrist-header-crest {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 0.72rem;
+  letter-spacing: 2px;
+  color: #D4AF37;
+  margin-bottom: 6px;
+}
+.fihrist-header-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+.fihrist-title {
+  font-family: 'Cinzel', 'Cinzel Decorative', Georgia, serif;
+  font-size: 1.5rem;
+  color: #ffd700;
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+.fihrist-total-badge {
+  background: rgba(122,22,32,0.6);
+  border: 1px solid rgba(212,175,55,0.4);
+  color: #f7e7ce;
+  font-size: 0.78rem;
+  padding: 3px 9px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+.fihrist-close {
+  margin-left: auto;
+  background: transparent;
+  border: none;
+  color: rgba(247,231,206,0.6);
+  font-size: 1.8rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+  transition: color 0.2s;
+}
+.fihrist-close:hover {
+  color: #ffd700;
+}
+.fihrist-desc {
+  font-size: 0.84rem;
+  color: rgba(247,231,206,0.72);
+  margin: 0 0 16px 0;
+  line-height: 1.45;
+}
+
+.fihrist-search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.fihrist-search-box .fsb-icon {
+  position: absolute;
+  left: 14px;
+  font-size: 0.95rem;
+  color: #D4AF37;
+  pointer-events: none;
+}
+.fihrist-search-box input {
+  width: 100%;
+  padding: 10px 38px 10px 40px;
+  background: rgba(12,9,6,0.7);
+  border: 1px solid rgba(212,175,55,0.3);
+  border-radius: 8px;
+  color: #f7e7ce;
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.fihrist-search-box input:focus {
+  border-color: #ffd700;
+  box-shadow: 0 0 12px rgba(212,175,55,0.25);
+}
+.fsb-clear {
+  position: absolute;
+  right: 12px;
+  background: transparent;
+  border: none;
+  color: rgba(247,231,206,0.6);
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.fihrist-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.f-tab {
+  background: rgba(30,22,14,0.6);
+  border: 1px solid rgba(212,175,55,0.25);
+  border-radius: 16px;
+  color: rgba(247,231,206,0.75);
+  padding: 6px 12px;
+  font-size: 0.78rem;
+  font-family: 'Instrument Sans', sans-serif;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+.f-tab:hover {
+  background: rgba(45,32,20,0.8);
+  color: #ffd700;
+  border-color: rgba(212,175,55,0.5);
+}
+.f-tab.active {
+  background: linear-gradient(135deg, #7a1620, #4c0e14);
+  color: #ffd700;
+  border-color: #ffd700;
+  box-shadow: 0 0 10px rgba(212,175,55,0.3);
+  font-weight: 600;
+}
+
+.fihrist-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 24px 30px;
+}
+.fihrist-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.f-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: rgba(24,18,12,0.6);
+  border: 1px solid rgba(212,175,55,0.2);
+  border-radius: 8px;
+  padding: 12px 16px;
+  transition: all 0.22s ease;
+}
+.f-card:hover {
+  background: rgba(36,26,16,0.85);
+  border-color: rgba(212,175,55,0.5);
+  transform: translateX(-2px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+}
+.f-card-spine {
+  width: 14px;
+  height: 54px;
+  background: linear-gradient(180deg, #9e1d2c 0%, #5a0f16 50%, #3c0a10 100%);
+  border: 1px solid #ffd700;
+  border-radius: 2px;
+  box-shadow: 0 0 8px rgba(212,175,55,0.3);
+  flex-shrink: 0;
+}
+.f-card-info {
+  flex: 1;
+  min-width: 0;
+}
+.f-card-title {
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 0.96rem;
+  color: #FDF8EC;
+  font-weight: 600;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.f-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.76rem;
+  color: rgba(247,231,206,0.65);
+}
+.f-card-category-tag {
+  background: rgba(212,175,55,0.12);
+  color: #ffd700;
+  border: 1px solid rgba(212,175,55,0.3);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 0.7rem;
+}
+.f-card-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.f-btn-read {
+  background: linear-gradient(135deg, #7a1620, #4c0e14);
+  border: 1px solid rgba(212,175,55,0.4);
+  border-radius: 6px;
+  color: #ffd700;
+  padding: 7px 12px;
+  font-size: 0.8rem;
+  font-family: 'Instrument Sans', sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.f-btn-read:hover {
+  border-color: #ffd700;
+  box-shadow: 0 0 10px rgba(212,175,55,0.35);
+  transform: translateY(-1px);
+}
+.f-btn-locate {
+  background: rgba(30,22,14,0.7);
+  border: 1px solid rgba(212,175,55,0.25);
+  border-radius: 6px;
+  color: #f7e7ce;
+  padding: 7px 10px;
+  font-size: 0.8rem;
+  font-family: 'Instrument Sans', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.f-btn-locate:hover {
+  background: rgba(45,32,20,0.9);
+  border-color: #ffd700;
+  color: #ffd700;
+}
+.f-empty {
+  text-align: center;
+  padding: 50px 20px;
+  color: rgba(247,231,206,0.6);
+  font-style: italic;
+  font-size: 0.92rem;
+}
 </style>
 </head>
 <body>
@@ -674,6 +1054,11 @@ body.is-admin .admin-badge {
   </div>
 
   <div class="header-right">
+    <button id="fihristBtn" class="fihrist-portal-btn" title="Külliyat Fihristi & Eserler Kataloğu (43 Eser)">
+      <span class="fihrist-icon">📜</span>
+      <span class="fihrist-text">Külliyat Fihristi</span>
+      <span class="fihrist-badge-tag" id="fihristHeaderBadge">43</span>
+    </button>
     <button id="searchBtn" title="Kitap Ara (Ctrl+K)">🔍</button>
     <button id="hikmetBtn" class="hikmet-seal-btn" title="Günün Vecizesi / Hikmet Mührü">
       <span class="seal-icon">✦</span>
@@ -806,83 +1191,14 @@ body.is-admin .admin-badge {
   <p>Asagi kaydirdikca ilerliyorsunuz &#8212; Kulliyat'in los koridorlarinda, eser eser.</p>
   <div class="scroll-cue"><span>kaydirarak ilerleyin</span><span class="stem"></span></div>
 </section>
-<div class="corridor-spacer">
-<section class="chapter" data-theme="kulliyat" id="ch1">
-  <div class="chapter-inner">
-    <div class="chapter-copy">
-      <span class="drop">Birinci raf</span>
-      <h2>Ana Kulliyat</h2>
-      <p>Kütüphanenize eklediğiniz eserler burada 3D çarkta yerini alır. Sağdaki alandan kitap veya PDF ekleyebilirsiniz.</p>
-      <div class="count"><span class="dot"></span><span id="ch1Count">0 eser</span></div>
-    </div>
-    <div class="chapter-stage" id="stage1">
-      <canvas class="bg-canvas"></canvas><div class="stage-frame"></div>
-      <div class="shelf" id="shelf1"></div>
-    </div>
-  </div>
-</section>
-<section class="chapter reverse" data-theme="hayat" id="ch2">
-  <div class="chapter-inner">
-    <div class="chapter-copy">
-      <span class="drop">Ikinci raf</span>
-      <h2>Hayat &amp; Lahikalar</h2>
-      <p>Kütüphanenize eklediğiniz eserler burada 3D çarkta yerini alır. Sağdaki alandan kitap veya PDF ekleyebilirsiniz.</p>
-      <div class="count"><span class="dot"></span><span id="ch2Count">0 eser</span></div>
-    </div>
-    <div class="chapter-stage" id="stage2">
-      <canvas class="bg-canvas"></canvas><div class="stage-frame"></div>
-      <div class="shelf" id="shelf2"></div>
-    </div>
-  </div>
-</section>
-<section class="chapter" data-theme="risaleler" id="ch3">
-  <div class="chapter-inner">
-    <div class="chapter-copy">
-      <span class="drop">Ucuncu raf</span>
-      <h2>Diger Risaleler</h2>
-      <p>Kütüphanenize eklediğiniz eserler burada 3D çarkta yerini alır. Sağdaki alandan kitap veya PDF ekleyebilirsiniz.</p>
-      <div class="count"><span class="dot"></span><span id="ch3Count">0 eser</span></div>
-    </div>
-    <div class="chapter-stage" id="stage3">
-      <canvas class="bg-canvas"></canvas><div class="stage-frame"></div>
-      <div class="shelf" id="shelf3"></div>
-      </div>
-    </div>
-  </div>
-</section>
-<section class="chapter reverse" data-theme="risaleler" id="ch4">
-  <div class="chapter-inner">
-    <div class="chapter-copy">
-      <span class="drop">Dördüncü Fasıl &middot; Hazine-i Evrak</span>
-      <h2>Özel Kitaplığım &bull; Eklenen Eserler</h2>
-      <p>Kütüphanenize ilave ettiğiniz nadide PDF risaleler ve tercümeler burada altın varaklı 3D çarkta yerini alır. Çarkı çevirebilir, dilediğiniz eseri iki sayfalı antika ciltte okuyabilirsiniz.</p>
-      <div class="count"><span class="dot"></span><span id="addedCount">0 eser</span></div>
-      <div style="margin-top:22px;display:flex;gap:12px;flex-wrap:wrap;">
-        <button class="btn primary" id="shelfAddPdfBtn"><span>📜</span> Yeni Eser / PDF Yükle</button>
-      </div>
-    </div>
-    <div class="chapter-stage" id="stage4">
-      <canvas class="bg-canvas"></canvas><div class="stage-frame"></div>
-      <div class="shelf" id="addedShelf">
-        <span class="added-empty" id="addedEmpty">Henüz eklenmiş eser yok. Yukarıdaki butonla veya sağ alttaki mühürle PDF yükleyebilirsiniz.</span>
-      </div>
-    </div>
-  </div>
-</section>
-</div>
-<section class="finale" id="finale">
-  <div class="finale-header">
-    <span class="drop">koridorun sonu</span>
-    <h2>Külliyat burada bitmiyor, dinlemeye devam ediyor.</h2>
-    <p>Her raf, Bediüzzaman'ın sesiyle yeniden açılır.</p>
-  </div>
-  <div class="finale-spacer"></div>
-  <div class="finale-footer">
-    <div class="cta-row">
-      <button class="btn primary">Kütüphaneye katıl</button>
-      <button class="btn">Tüm eserleri gör</button>
-    </div>
-    <span class="reflection" id="reflectionLine"></span>
+<div class="corridor-scroll-track" id="corridorScrollTrack"></div>
+<section class="corridor-end-portal" id="corridorEndPortal">
+  <div class="cep-ornament">✦ ✦ ✦</div>
+  <h3 class="cep-title">Külliyat Koridoru'nun Nihayeti</h3>
+  <p class="cep-sub">Tüm eserler koridor raflarında ve fihristte sizi bekliyor. Okumak için dilediğiniz kitaba tıklayabilirsiniz.</p>
+  <div class="cep-actions">
+    <button type="button" class="btn primary" id="endOpenFihristBtn"><span>📜</span> Külliyat Fihristi'ni Aç (43 Eser)</button>
+    <button type="button" class="btn" id="endScrollTopBtn"><span>↑</span> Koridor Başına Dön</button>
   </div>
 </section>
 
@@ -997,12 +1313,58 @@ body.is-admin .admin-badge {
   </div>
 </div>
 
+<button id="fihristFab" class="fihrist-fab" aria-label="Külliyat Fihristi" title="Külliyat Fihristi & Eserler Kataloğu">
+  <span class="fab-icon">📚</span>
+  <span>Fihrist (<span id="fihristFabCount">43</span>)</span>
+</button>
+
 <button id="libraryFab" aria-label="Kitaplığım / PDF Ekle" title="Kitaplığım / PDF Eser Ekle">
   <span class="fab-icon">📜</span>
   <span>Kitap Ekle</span>
   <span class="fab-badge" id="fabBadge">0</span>
 </button>
 <div id="lib-toast"></div>
+
+<!-- 📜 KÜLLİYAT FİHRİSTİ & ESERLER KATALOĞU ÇEKMECESİ -->
+<div id="fihristDrawer" class="fihrist-drawer">
+  <div class="fihrist-overlay" id="fihristOverlay"></div>
+  <div class="fihrist-panel">
+    <div class="fihrist-panel-header">
+      <div class="fihrist-header-crest">
+        <span class="fhc-icon">✦</span>
+        <span>RİSALE-İ NUR KÜLLİYATI &amp; HAZİNE-İ EVRAK</span>
+        <span class="fhc-icon">✦</span>
+      </div>
+      <div class="fihrist-header-row">
+        <h3 class="fihrist-title">Külliyat Fihristi</h3>
+        <span class="fihrist-total-badge" id="fihristTotalBadge">43 Eser</span>
+        <button type="button" class="fihrist-close" id="fihristClose" aria-label="Kapat">&times;</button>
+      </div>
+      <p class="fihrist-desc">Koridordaki tüm kanonik ve hususî risaleler. Dilediğiniz eseri doğrudan okuyabilir veya koridorda bulabilirsiniz.</p>
+
+      <!-- ARAMA ÇUBUĞU -->
+      <div class="fihrist-search-box">
+        <span class="fsb-icon">🔍</span>
+        <input type="text" id="fihristSearchInput" placeholder="Kitap veya risale ara (Sözler, Asa-yı Musa, Necmettin Şahiner...)" autocomplete="off">
+        <button type="button" id="fihristSearchClear" class="fsb-clear" style="display:none;">&times;</button>
+      </div>
+
+      <!-- KATEGORİ SEKMELERİ -->
+      <div class="fihrist-tabs" id="fihristTabs">
+        <button type="button" class="f-tab active" data-tab="all">✦ Tümü (<span id="tabCountAll">43</span>)</button>
+        <button type="button" class="f-tab" data-tab="ch1">🏛️ Ana Külliyat (<span id="tabCountCh1">5</span>)</button>
+        <button type="button" class="f-tab" data-tab="ch2">📜 Lâhikalar &amp; Hayat (<span id="tabCountCh2">5</span>)</button>
+        <button type="button" class="f-tab" data-tab="ch3">📚 Diğer Risaleler (<span id="tabCountCh3">4</span>)</button>
+        <button type="button" class="f-tab" data-tab="custom">🌟 Hususî Risaleler (<span id="tabCountCustom">29</span>)</button>
+      </div>
+    </div>
+
+    <!-- KİTAP LİSTESİ / IZGARASI -->
+    <div class="fihrist-body" id="fihristBody">
+      <div class="fihrist-list" id="fihristList"></div>
+    </div>
+  </div>
+</div>
 
 <!-- YÖNETİCİ GİRİŞİ (ADMIN) MODALI -->
 <div id="adminModal" class="admin-modal">
@@ -1030,7 +1392,7 @@ body.is-admin .admin-badge {
   <button type="button" id="adminLockBtn" class="admin-lock-btn" title="Yönetici Girişi (Şifreli)" aria-label="Yönetici Girişi">🔒</button>
 </footer>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="books_catalog.js?v=3.6"></script>
-<script src="nur_main.js?v=3.6"></script>
+<script src="books_catalog.js?v=3.8"></script>
+<script src="nur_main.js?v=3.8"></script>
 </body>
 </html>

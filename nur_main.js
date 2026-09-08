@@ -322,6 +322,7 @@ function rebuildCorridorShelves(){
     if(child.geometry) child.geometry.dispose();
   }
   corridorBookMeshes = [];
+  window.bookCorridorPositions = {};
 
   var customList = (window.customBooks || []).slice();
   var customCycleIdx = 0;
@@ -349,21 +350,18 @@ function rebuildCorridorShelves(){
           var bookData = null;
           var title = "";
 
-          // Manuel eklenen kitapların koridor raflarında belirgin görünmesi:
-          // 1. Giriş bölümünde (segIdx === 0) tam göz hizasında (s=1) yerleşir
-          // 2. Koridor boyunca her segmentte göz hizasında (s=1) periyodik olarak tekrarlanır
-          var placeCustomHere = false;
-          if(customList.length > 0){
-            if(segIdx === 0 && s === 1 && (i === 1 || i === 3 || i === 5 || i === 7)){
-              placeCustomHere = true;
-            } else if(s === 1 && (i === 2 || i === 6)){
-              placeCustomHere = true;
-            } else if(s === 0 && (i === 4 && customList.length >= 3)){
-              placeCustomHere = true;
+          // Dağıtım:
+          // Göz hizası (s=1): Kanonik ana külliyat eserleri
+          // Üst (s=2) ve alt (s=0) raflar: Kullanıcının eklediği 30+ hususi eser ve risaleler
+          if(s === 1){
+            title = TITLES[canonIdx % TITLES.length];
+            canonIdx++;
+            var matchedUserBook = findCustomBookMatch(title);
+            if(matchedUserBook){
+              bookData = matchedUserBook;
             }
-          }
-
-          if(placeCustomHere && customList.length > 0){
+            isCustom = false;
+          } else if(customList.length > 0){
             bookData = customList[customCycleIdx % customList.length];
             customCycleIdx++;
             title = bookData.title || "Özel Risale";
@@ -371,15 +369,9 @@ function rebuildCorridorShelves(){
           } else {
             title = TITLES[canonIdx % TITLES.length];
             canonIdx++;
-            // Kullanıcının eklediği kitaplar arasında bu kanonik eserle (harf uyumsuzluğuna rağmen) eşleşen var mı?
             var matchedUserBook = findCustomBookMatch(title);
-            if(matchedUserBook){
-              bookData = matchedUserBook;
-              isCustom = false;
-            } else {
-              bookData = null;
-              isCustom = false;
-            }
+            if(matchedUserBook) bookData = matchedUserBook;
+            isCustom = false;
           }
 
           var spineMat = new THREE.MeshStandardMaterial({
@@ -412,6 +404,17 @@ function rebuildCorridorShelves(){
             pullT: 0,
             spineMat: spineMat
           };
+
+          // Fihristten tek tıkla koridorda kitaba gitmek için koordinat kaydı
+          var cKey = getCleanKey(title);
+          if(!window.bookCorridorPositions[cKey]) window.bookCorridorPositions[cKey] = posZ;
+          if(bookData && bookData.title){
+            var bdKey = getCleanKey(bookData.title);
+            if(!window.bookCorridorPositions[bdKey]) window.bookCorridorPositions[bdKey] = posZ;
+          }
+          if(bookData && bookData.id && !window.bookCorridorPositions[bookData.id]){
+            window.bookCorridorPositions[bookData.id] = posZ;
+          }
 
           corridorBooksGroup.add(bk);
           corridorBookMeshes.push(bk);
@@ -887,13 +890,13 @@ window.addEventListener("pointermove", function(e){
 
   if(!corridorTooltipEl) corridorTooltipEl = document.getElementById("corridorBookTooltip");
 
-  var overInteractive = e.target.closest("button, input, textarea, a, #book-reader, #pdf-modal, #hikmet-modal, #book-modal, #search-overlay, .stage-3d-wrap, header, .shelf, .shelf-book, .custom-book-card, .chapter-stage, .chapter-copy");
+  var overInteractive = e.target.closest("button, input, textarea, a, #book-reader, #pdf-modal, #hikmet-modal, #book-modal, #search-overlay, #fihristDrawer, .fihrist-panel, #adminModal, header");
 
   if(!overInteractive){
     corridorRaycaster.setFromCamera({ x: nx, y: ny }, camera);
 
     // 1. Önce Hikmet Mührü kontrolü (girişte)
-    if(window.scrollY < window.innerHeight * 1.4){
+    if(curZ > 0){
       var sealHits = corridorRaycaster.intersectObject(sealMesh);
       if(sealHits.length > 0){
         canvas.style.cursor = "pointer";
@@ -956,7 +959,7 @@ window.addEventListener("pointermove", function(e){
 
 // Koridordaki raflardan kitap seçme veya mühür tıklama
 window.addEventListener("click", function(e){
-  var overInteractive = e.target.closest("button, input, textarea, a, #book-reader, #pdf-modal, #hikmet-modal, #book-modal, #search-overlay, .stage-3d-wrap, header, .shelf, .shelf-book, .custom-book-card, .chapter-stage, .chapter-copy");
+  var overInteractive = e.target.closest("button, input, textarea, a, #book-reader, #pdf-modal, #hikmet-modal, #book-modal, #search-overlay, #fihristDrawer, .fihrist-panel, #adminModal, header");
   if(overInteractive) return;
 
   // Takdim animasyonu sırasında herhangi bir yere tıklanırsa hemen okuyucuya geç
@@ -970,7 +973,7 @@ window.addEventListener("click", function(e){
   corridorRaycaster.setFromCamera({ x: nx, y: ny }, camera);
 
   // 1. Mühür tıklandı mı?
-  if(window.scrollY < window.innerHeight * 1.4){
+  if(curZ > 0){
     var hits = corridorRaycaster.intersectObject(sealMesh);
     if(hits.length > 0){
       if(typeof window.openHikmetModal === "function") window.openHikmetModal();
@@ -2045,8 +2048,8 @@ window.addEventListener("keydown",function(e){
 });
 
 /* ── 9. FINALE ──────────────────────────────────────────── */
-var refs=["Isik, sabir ile beklenince daha cok aydinlatir.","Her cilt, sessizce okunmayi bekleyen bir sohbettir.","Bir raf bitince, yeni bir soru baslar.","Dinlemek de bir tur yolculuktur.","Koridor uzundur ama her adim bir varis noktasidir.","Bilgi uzerinde dusunuldukce hafifler."];
-document.getElementById("reflectionLine").textContent=refs[Math.floor(Math.random()*refs.length)];
+var refLine = document.getElementById("reflectionLine");
+if(refLine) refLine.textContent = refs[Math.floor(Math.random()*refs.length)];
 
 /* ── 10. BOOK READER ────────────────────────────────────── */
 var readerEl=document.getElementById("book-reader"),pageBack=document.getElementById("pageBack"),pageFront=document.getElementById("pageFront"),pageBackContent=document.getElementById("pageBackContent"),pageFrontContent=document.getElementById("pageFrontContent"),readerTitle=document.getElementById("readerTitle"),readerPrev=document.getElementById("readerPrev"),readerNext=document.getElementById("readerNext"),readerProgressFill=document.getElementById("readerProgressFill"),readerPageLabel=document.getElementById("readerPageLabel"),bookmarkBtn=document.getElementById("bookmarkToggle"),toneBtn=document.getElementById("toneToggle");
@@ -4521,6 +4524,241 @@ attachSecretAdminListener(document.getElementById("searchInput"));
 if(isAdminAuthenticated()){
   enableAdminMode(false);
 }
+
+/* ── 13. KÜLLİYAT FİHRİSTİ & ESERLER KATALOĞU SİSTEMİ ── */
+(function initFihristSystem(){
+  var drawer = document.getElementById("fihristDrawer");
+  var overlay = document.getElementById("fihristOverlay");
+  var closeBtn = document.getElementById("fihristClose");
+  var openBtn = document.getElementById("fihristBtn");
+  var fabBtn = document.getElementById("fihristFab");
+  var endBtn = document.getElementById("endOpenFihristBtn");
+  var endTopBtn = document.getElementById("endScrollTopBtn");
+  var searchInput = document.getElementById("fihristSearchInput");
+  var clearSearchBtn = document.getElementById("fihristSearchClear");
+  var listEl = document.getElementById("fihristList");
+  var tabsContainer = document.getElementById("fihristTabs");
+
+  if(!drawer || !listEl) return;
+
+  var currentTab = "all";
+  var currentQuery = "";
+
+  function getBookCategory(book){
+    var title = book.title || "";
+    var canon = getCanonicalInfo(title);
+    if(canon){
+      if(canon.shelfId === "ch1") return "ch1";
+      if(canon.shelfId === "ch2") return "ch2";
+      if(canon.shelfId === "ch3") return "ch3";
+    }
+    // Eşleşme haritası kontrolü (Asa-yı Musa -> Meyve Risalesi, Barla -> Aziz Barla vb.)
+    var cleanKey = getCleanKey(title);
+    if(cleanKey.includes("sozler") || cleanKey.includes("mektubat") || cleanKey.includes("lemalar") || cleanKey.includes("sualar") || cleanKey.includes("asayimusa") || cleanKey.includes("meyve") || cleanKey.includes("hasir") || cleanKey.includes("ayetulkubra") || cleanKey.includes("genc") || cleanKey.includes("hastalar") || cleanKey.includes("ihlas") || cleanKey.includes("uhuvvet") || cleanKey.includes("ihtiyar") || cleanKey.includes("kader") || cleanKey.includes("munacat") || cleanKey.includes("yirmiucuncusoz")){
+      return "ch1";
+    }
+    if(cleanKey.includes("barla") || cleanKey.includes("kastamonu") || cleanKey.includes("emirdag") || cleanKey.includes("tarihce") || cleanKey.includes("sahiner")){
+      return "ch2";
+    }
+    if(cleanKey.includes("sikke") || cleanKey.includes("mesnevi") || cleanKey.includes("isarat") || cleanKey.includes("muhakemat") || cleanKey.includes("imanvekufur")){
+      return "ch3";
+    }
+    return "custom";
+  }
+
+  function getCategoryLabel(cat){
+    if(cat === "ch1") return "🏛️ Ana Külliyat";
+    if(cat === "ch2") return "📜 Lâhikalar & Hayat";
+    if(cat === "ch3") return "📚 Diğer Risaleler";
+    return "🌟 Hususî Risale";
+  }
+
+  function getAllBooksList(){
+    return (window.customBooks || []).slice();
+  }
+
+  function updateFihristCounts(){
+    var all = getAllBooksList();
+    var countAll = all.length;
+    var countCh1 = 0, countCh2 = 0, countCh3 = 0, countCustom = 0;
+
+    all.forEach(function(b){
+      var cat = getBookCategory(b);
+      if(cat === "ch1") countCh1++;
+      else if(cat === "ch2") countCh2++;
+      else if(cat === "ch3") countCh3++;
+      else countCustom++;
+    });
+
+    var setTxt = function(id, val){ var el = document.getElementById(id); if(el) el.textContent = val; };
+    setTxt("fihristHeaderBadge", countAll);
+    setTxt("fihristFabCount", countAll);
+    setTxt("fihristTotalBadge", countAll + " Eser");
+    setTxt("tabCountAll", countAll);
+    setTxt("tabCountCh1", countCh1);
+    setTxt("tabCountCh2", countCh2);
+    setTxt("tabCountCh3", countCh3);
+    setTxt("tabCountCustom", countCustom);
+  }
+
+  function renderFihrist(){
+    listEl.innerHTML = "";
+    var all = getAllBooksList();
+    var q = currentQuery.toLowerCase().trim();
+
+    var filtered = all.filter(function(b){
+      var cat = getBookCategory(b);
+      if(currentTab !== "all" && cat !== currentTab) return false;
+      if(q){
+        var titleMatch = (b.title || "").toLowerCase().includes(q);
+        var descMatch = (b.desc || "").toLowerCase().includes(q);
+        return titleMatch || descMatch;
+      }
+      return true;
+    });
+
+    if(!filtered.length){
+      var emptyDiv = document.createElement("div");
+      emptyDiv.className = "f-empty";
+      emptyDiv.textContent = q ? ('"' + currentQuery + '" aramasına uygun eser bulunamadı.') : "Bu kategoride henüz eser bulunmuyor.";
+      listEl.appendChild(emptyDiv);
+      return;
+    }
+
+    filtered.forEach(function(book){
+      var cat = getBookCategory(book);
+      var catLabel = getCategoryLabel(cat);
+      var pageCount = book.pageCount || (book.pages ? book.pages.length : 0);
+
+      var card = document.createElement("div");
+      card.className = "f-card";
+      card.innerHTML =
+        '<div class="f-card-spine"></div>' +
+        '<div class="f-card-info">' +
+          '<div class="f-card-title">' + escHTML(book.title || "Risale") + '</div>' +
+          '<div class="f-card-meta">' +
+            '<span class="f-card-category-tag">' + catLabel + '</span>' +
+            '<span>' + pageCount + ' sayfa &bull; PDF</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="f-card-actions">' +
+          '<button type="button" class="f-btn-read" title="Bu Eseri Oku">📖 Oku</button>' +
+          '<button type="button" class="f-btn-locate" title="Koridorda Kitaba Git">🧭 Koridorda Gör</button>' +
+        '</div>';
+
+      // 📖 Oku
+      card.querySelector(".f-btn-read").addEventListener("click", function(e){
+        e.stopPropagation();
+        closeFihrist();
+        openReader(book);
+      });
+
+      // 🧭 Koridorda Gör
+      card.querySelector(".f-btn-locate").addEventListener("click", function(e){
+        e.stopPropagation();
+        closeFihrist();
+        locateBookInCorridor(book);
+      });
+
+      card.addEventListener("click", function(){
+        closeFihrist();
+        openReader(book);
+      });
+
+      listEl.appendChild(card);
+    });
+  }
+
+  function locateBookInCorridor(book){
+    var cKey = getCleanKey(book.title);
+    var targetZ = (window.bookCorridorPositions && window.bookCorridorPositions[cKey]);
+    if(typeof targetZ !== "number" && book.id){
+      targetZ = (window.bookCorridorPositions && window.bookCorridorPositions[book.id]);
+    }
+    if(typeof targetZ !== "number"){
+      var canon = getCanonicalInfo(book.title);
+      if(canon) targetZ = window.bookCorridorPositions[getCleanKey(canon.title)];
+    }
+    if(typeof targetZ !== "number") targetZ = -30; // Varsayılan orta mesafe
+
+    // Z mesafesini scrollY değerine çevir
+    // targetZ = 8 - scrollFrac * (CORRIDOR_LEN - 4);
+    var frac = Math.max(0, Math.min(1, (8 - targetZ) / (CORRIDOR_LEN - 4)));
+    var maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+    var targetScrollY = frac * maxScroll;
+
+    window.scrollTo({
+      top: targetScrollY,
+      behavior: "smooth"
+    });
+
+    if(typeof showToast === "function"){
+      showToast("✦ " + (book.title || "Eser") + " koridordaki rafında açılıyor...");
+    }
+  }
+
+  function openFihrist(){
+    drawer.classList.add("open");
+    updateFihristCounts();
+    renderFihrist();
+    setTimeout(function(){ if(searchInput) searchInput.focus(); }, 100);
+  }
+
+  function closeFihrist(){
+    drawer.classList.remove("open");
+  }
+
+  if(openBtn) openBtn.addEventListener("click", openFihrist);
+  if(fabBtn) fabBtn.addEventListener("click", openFihrist);
+  if(endBtn) endBtn.addEventListener("click", openFihrist);
+  if(closeBtn) closeBtn.addEventListener("click", closeFihrist);
+  if(overlay) overlay.addEventListener("click", closeFihrist);
+
+  if(endTopBtn) endTopBtn.addEventListener("click", function(){
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  if(searchInput){
+    searchInput.addEventListener("input", function(){
+      currentQuery = searchInput.value;
+      if(clearSearchBtn) clearSearchBtn.style.display = currentQuery ? "block" : "none";
+      renderFihrist();
+    });
+  }
+
+  if(clearSearchBtn){
+    clearSearchBtn.addEventListener("click", function(){
+      searchInput.value = "";
+      currentQuery = "";
+      clearSearchBtn.style.display = "none";
+      renderFihrist();
+      searchInput.focus();
+    });
+  }
+
+  if(tabsContainer){
+    tabsContainer.addEventListener("click", function(e){
+      var btn = e.target.closest(".f-tab");
+      if(!btn) return;
+      tabsContainer.querySelectorAll(".f-tab").forEach(function(t){ t.classList.remove("active"); });
+      btn.classList.add("active");
+      currentTab = btn.getAttribute("data-tab") || "all";
+      renderFihrist();
+    });
+  }
+
+  window.addEventListener("keydown", function(e){
+    if(e.key === "Escape" && drawer.classList.contains("open")){
+      closeFihrist();
+    }
+  });
+
+  // Genel erişim için dışa aktar
+  window.openFihrist = openFihrist;
+  window.closeFihrist = closeFihrist;
+  window.updateFihristCounts = updateFihristCounts;
+  updateFihristCounts();
+})();
 
 })();
 
