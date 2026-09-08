@@ -1117,11 +1117,11 @@ function render3DEmptyLecternStage(stageEl, chapterEl){
   wrap.appendChild(canvas);
 
   var hud=document.createElement("div");hud.className="stage-hud active";
-  hud.innerHTML="<span class='hud-icon'>📜</span><span class='hud-title'>" + curShelfName + "</span><span class='hud-badge' style='cursor:pointer;'>+ Bu Rafa Eser Ekle</span>";
+  hud.innerHTML="<span class='hud-icon'>📜</span><span class='hud-title'>" + curShelfName + "</span><span class='hud-badge empty-stage-add-badge' style='cursor:pointer;'>+ Bu Rafa Eser Ekle</span>";
   wrap.appendChild(hud);
 
   var hint=document.createElement("div");hint.className="stage-hint";
-  hint.innerHTML="<span>✦</span> Bu rafa PDF risalesi eklemek için kürsüye tıklayın";
+  hint.innerHTML="<span>✦</span> " + (isAdminAuthenticated() ? "Bu rafa PDF risalesi eklemek için kürsüye tıklayın" : "Bu fasıl için henüz ilave edilmiş hususi eser bulunmuyor.");
   wrap.appendChild(hint);
 
   stageEl.appendChild(wrap);
@@ -1185,8 +1185,8 @@ function render3DEmptyLecternStage(stageEl, chapterEl){
   floatBookGroup.add(fBook);
   scene.add(floatBookGroup);
 
-  wrap.style.cursor="pointer";
   wrap.addEventListener("click",function(){
+    if(!isAdminAuthenticated()) return;
     if(window.openPdfModal){
       window.openPdfModal();
       var shelfSel = document.getElementById("pdfShelfSelect");
@@ -3195,6 +3195,10 @@ var COLOR_PALETTES = {
 
 // 11.3. Modal Aç / Kapa
 function openPdfModal(){
+  if(!isAdminAuthenticated()){
+    openAdminModal();
+    return;
+  }
   if(pdfModal) {
     pdfModal.classList.add("open");
     renderPdfCustomGrid();
@@ -4024,5 +4028,168 @@ conceptTags.forEach(function(tag){
     searchConceptIn3D(concept);
   });
 });
+// ============================================================
+// 12. YÖNETİCİ GİRİŞİ (ADMIN AUTHENTICATION) - ŞİFRE: 2147
+// Ziyaretçiler sadece okuyabilir/dinleyebilir; kitap ekleme & silme
+// butonları yalnızca şifreli yönetici modunda görünür.
+// ============================================================
+var ADMIN_PASS = "2147";
+var adminModal = document.getElementById("adminModal"),
+    adminPasswordInput = document.getElementById("adminPasswordInput"),
+    adminToggleEye = document.getElementById("adminToggleEye"),
+    adminLoginError = document.getElementById("adminLoginError"),
+    adminLoginSubmit = document.getElementById("adminLoginSubmit"),
+    adminLoginCancel = document.getElementById("adminLoginCancel"),
+    adminModalClose = document.getElementById("adminModalClose"),
+    adminModalOverlay = document.getElementById("adminModalOverlay"),
+    adminLockBtn = document.getElementById("adminLockBtn"),
+    adminBadge = document.getElementById("adminBadge"),
+    adminLogoutBtn = document.getElementById("adminLogoutBtn");
+
+function isAdminAuthenticated(){
+  try {
+    return sessionStorage.getItem("nur_admin_auth") === "true";
+  } catch(e){
+    return false;
+  }
+}
+window.isAdminAuthenticated = isAdminAuthenticated;
+
+function enableAdminMode(showFeedback){
+  try {
+    sessionStorage.setItem("nur_admin_auth", "true");
+  } catch(e){}
+  document.body.classList.add("is-admin");
+  if(adminBadge) adminBadge.style.display = "inline-flex";
+  if(adminLockBtn) adminLockBtn.style.display = "none";
+  if(showFeedback){
+    showToast("✦ Yönetici Yetkisi Tanımlandı (Kitap Ekleme & Silme Açıldı)");
+  }
+}
+window.enableAdminMode = enableAdminMode;
+
+function disableAdminMode(){
+  try {
+    sessionStorage.removeItem("nur_admin_auth");
+  } catch(e){}
+  document.body.classList.remove("is-admin");
+  if(adminBadge) adminBadge.style.display = "none";
+  if(adminLockBtn) adminLockBtn.style.display = "inline-flex";
+  if(pdfModal && pdfModal.classList.contains("open")){
+    closePdfModal();
+  }
+  showToast("Yönetici modundan çıkış yapıldı.");
+}
+window.disableAdminMode = disableAdminMode;
+
+function openAdminModal(){
+  if(isAdminAuthenticated()){
+    showToast("👑 Yönetici Modu zaten etkin durumda.");
+    return;
+  }
+  if(adminModal){
+    adminModal.classList.add("open");
+    if(adminLoginError) adminLoginError.style.display = "none";
+    if(adminPasswordInput){
+      adminPasswordInput.value = "";
+      adminPasswordInput.type = "password";
+      setTimeout(function(){ adminPasswordInput.focus(); }, 120);
+    }
+  }
+}
+window.openAdminModal = openAdminModal;
+
+function closeAdminModal(){
+  if(adminModal){
+    adminModal.classList.remove("open");
+    if(adminLoginError) adminLoginError.style.display = "none";
+    if(adminPasswordInput) adminPasswordInput.value = "";
+  }
+}
+window.closeAdminModal = closeAdminModal;
+
+function submitAdminLogin(){
+  if(!adminPasswordInput) return;
+  var entered = adminPasswordInput.value.trim();
+  if(entered === ADMIN_PASS){
+    closeAdminModal();
+    enableAdminMode(true);
+  } else {
+    if(adminLoginError) adminLoginError.style.display = "block";
+    var card = adminModal ? adminModal.querySelector(".admin-modal-card") : null;
+    if(card){
+      card.classList.remove("admin-shake");
+      void card.offsetWidth; // force reflow
+      card.classList.add("admin-shake");
+    }
+    if(adminPasswordInput){
+      adminPasswordInput.value = "";
+      adminPasswordInput.focus();
+    }
+  }
+}
+
+// Olay Dinleyicileri
+if(adminLockBtn) adminLockBtn.addEventListener("click", openAdminModal);
+if(adminLogoutBtn) adminLogoutBtn.addEventListener("click", disableAdminMode);
+if(adminLoginSubmit) adminLoginSubmit.addEventListener("click", submitAdminLogin);
+if(adminLoginCancel) adminLoginCancel.addEventListener("click", closeAdminModal);
+if(adminModalClose) adminModalClose.addEventListener("click", closeAdminModal);
+if(adminModalOverlay) adminModalOverlay.addEventListener("click", closeAdminModal);
+
+if(adminPasswordInput){
+  adminPasswordInput.addEventListener("keydown", function(e){
+    if(e.key === "Enter"){
+      e.preventDefault();
+      submitAdminLogin();
+    } else if(e.key === "Escape"){
+      e.preventDefault();
+      closeAdminModal();
+    }
+  });
+}
+
+if(adminToggleEye && adminPasswordInput){
+  adminToggleEye.addEventListener("click", function(){
+    if(adminPasswordInput.type === "password"){
+      adminPasswordInput.type = "text";
+      adminToggleEye.textContent = "🙈";
+    } else {
+      adminPasswordInput.type = "password";
+      adminToggleEye.textContent = "👁️";
+    }
+  });
+}
+
+// Gizli Kısayol: Ctrl + Shift + A veya Alt + A
+window.addEventListener("keydown", function(e){
+  if((e.ctrlKey && e.shiftKey && (e.key === "A" || e.key === "a")) || (e.altKey && (e.key === "a" || e.key === "A"))){
+    e.preventDefault();
+    if(isAdminAuthenticated()){
+      showToast("👑 Yönetici Modu zaten etkin.");
+    } else {
+      openAdminModal();
+    }
+  }
+});
+
+// Arama çubuklarına gizli şifre "2147" yazıldığında doğrudan Yönetici Girişi açılsın
+function attachSecretAdminListener(inputEl){
+  if(!inputEl) return;
+  inputEl.addEventListener("input", function(){
+    if(inputEl.value.trim() === ADMIN_PASS){
+      inputEl.value = "";
+      openAdminModal();
+    }
+  });
+}
+attachSecretAdminListener(conceptInput);
+attachSecretAdminListener(document.getElementById("searchInput"));
+
+// Sayfa ilk yüklendiğinde oturum kontrolü
+if(isAdminAuthenticated()){
+  enableAdminMode(false);
+}
 
 })();
+

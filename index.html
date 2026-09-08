@@ -421,6 +421,220 @@ footer{position:relative;z-index:2;padding:34px 6vw 40px;display:flex;justify-co
   color:var(--parchment-dim);
   margin-top:4px;
 }
+/* ============================================================
+   YÖNETİCİ KİLİDİ (ADMIN GATEWAY - ŞİFRE: 2147)
+   Varsayılan: Ziyaretçi modu (Ekleme ve Silme butonları gizli)
+   ============================================================ */
+body:not(.is-admin) #headerPdfBtn,
+body:not(.is-admin) #libraryFab,
+body:not(.is-admin) #shelfAddPdfBtn,
+body:not(.is-admin) .shelf-delete-btn,
+body:not(.is-admin) .hud-delete-btn,
+body:not(.is-admin) .clear-all-books-btn,
+body:not(.is-admin) .pdf-item-btn.delete,
+body:not(.is-admin) .empty-stage-add-badge {
+  display: none !important;
+}
+
+body.is-admin #headerPdfBtn,
+body.is-admin #libraryFab {
+  display: flex !important;
+}
+
+body.is-admin #shelfAddPdfBtn {
+  display: inline-flex !important;
+}
+
+.admin-lock-btn {
+  background: rgba(212,175,55,0.06);
+  border: 1px solid rgba(212,175,55,0.22);
+  color: rgba(212,175,55,0.6);
+  cursor: pointer;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  transition: all 0.25s ease;
+  margin-left: 14px;
+}
+.admin-lock-btn:hover {
+  background: rgba(212,175,55,0.18);
+  border-color: rgba(212,175,55,0.8);
+  color: #ffd700;
+  transform: scale(1.08);
+  box-shadow: 0 0 12px rgba(212,175,55,0.3);
+}
+
+.admin-badge {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  background: rgba(30, 20, 10, 0.88);
+  border: 1px solid rgba(212, 175, 55, 0.6);
+  color: #f7e7ce;
+  padding: 4px 10px;
+  border-radius: 14px;
+  font-size: 0.78rem;
+  box-shadow: 0 0 12px rgba(212, 175, 55, 0.25);
+}
+body.is-admin .admin-badge {
+  display: inline-flex !important;
+}
+.admin-badge-icon {
+  font-size: 0.9rem;
+}
+.admin-badge-text {
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  color: #ffd700;
+}
+.admin-logout-btn {
+  background: rgba(180, 40, 40, 0.6);
+  border: 1px solid rgba(255, 100, 100, 0.5);
+  color: #fff;
+  border-radius: 8px;
+  padding: 2px 7px;
+  font-size: 0.7rem;
+  cursor: pointer;
+  margin-left: 4px;
+  transition: all 0.2s ease;
+}
+.admin-logout-btn:hover {
+  background: #c0392b;
+  border-color: #ff4444;
+}
+
+/* ADMIN MODAL STYLING */
+.admin-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 99999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+.admin-modal.open {
+  display: flex !important;
+}
+.admin-modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(10, 7, 5, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.admin-modal-card {
+  position: relative;
+  z-index: 2;
+  width: 90%;
+  max-width: 400px;
+  background: radial-gradient(circle at 50% 10%, rgba(35, 24, 15, 0.98), rgba(16, 12, 8, 0.99));
+  border: 1px solid rgba(212, 175, 55, 0.45);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.85), 0 0 40px rgba(212, 175, 55, 0.2);
+  border-radius: 16px;
+  padding: 28px 24px 24px;
+  text-align: center;
+  animation: adminModalIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes adminModalIn {
+  from { opacity: 0; transform: scale(0.92) translateY(15px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.admin-modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: transparent;
+  border: none;
+  color: rgba(247, 231, 206, 0.6);
+  font-size: 1.4rem;
+  cursor: pointer;
+  line-height: 1;
+  transition: color 0.2s ease;
+}
+.admin-modal-close:hover {
+  color: #ffd700;
+}
+.admin-modal-icon {
+  font-size: 2.2rem;
+  margin-bottom: 8px;
+  filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.5));
+}
+.admin-modal-title {
+  font-family: "Cinzel", "Cinzel Decorative", Georgia, serif;
+  font-size: 1.35rem;
+  color: #ffd700;
+  margin: 0 0 8px 0;
+  letter-spacing: 1px;
+}
+.admin-modal-desc {
+  font-size: 0.84rem;
+  color: rgba(247, 231, 206, 0.78);
+  margin: 0 0 20px 0;
+  line-height: 1.45;
+}
+.admin-input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.admin-password-input {
+  width: 100%;
+  padding: 12px 42px 12px 14px;
+  background: rgba(20, 14, 10, 0.9);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  border-radius: 8px;
+  color: #ffd700;
+  font-size: 1.15rem;
+  font-family: monospace, sans-serif;
+  letter-spacing: 3px;
+  outline: none;
+  text-align: center;
+  transition: border-color 0.25s, box-shadow 0.25s;
+}
+.admin-password-input:focus {
+  border-color: #ffd700;
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+}
+.admin-toggle-eye {
+  position: absolute;
+  right: 10px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+  opacity: 0.65;
+  transition: opacity 0.2s;
+}
+.admin-toggle-eye:hover {
+  opacity: 1;
+}
+.admin-login-error {
+  color: #ff6b6b;
+  font-size: 0.82rem;
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+.admin-modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 18px;
+}
+.admin-shake {
+  animation: adminShake 0.4s ease;
+}
+@keyframes adminShake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-8px); }
+  40%, 80% { transform: translateX(8px); }
+}
 </style>
 </head>
 <body>
@@ -465,6 +679,11 @@ footer{position:relative;z-index:2;padding:34px 6vw 40px;display:flex;justify-co
       <span class="seal-icon">✦</span>
       <span class="seal-text">Hikmet Mührü</span>
     </button>
+    <div id="adminBadge" class="admin-badge" style="display:none;" title="Yönetici Modu Açık">
+      <span class="admin-badge-icon">👑</span>
+      <span class="admin-badge-text">Yönetici</span>
+      <button type="button" id="adminLogoutBtn" class="admin-logout-btn" title="Yönetici Modundan Çık">Çıkış</button>
+    </div>
     <button id="headerPdfBtn" class="pdf-portal-btn" title="Kütüphaneye Kitap / PDF Ekle">
       <span class="pdf-icon">📜</span>
       <span class="pdf-text">+ Kitap Ekle (PDF)</span>
@@ -784,9 +1003,33 @@ footer{position:relative;z-index:2;padding:34px 6vw 40px;display:flex;justify-co
   <span class="fab-badge" id="fabBadge">0</span>
 </button>
 <div id="lib-toast"></div>
+
+<!-- YÖNETİCİ GİRİŞİ (ADMIN) MODALI -->
+<div id="adminModal" class="admin-modal">
+  <div class="admin-modal-overlay" id="adminModalOverlay"></div>
+  <div class="admin-modal-card">
+    <button type="button" class="admin-modal-close" id="adminModalClose" aria-label="Kapat">&times;</button>
+    <div class="admin-modal-icon">🔐</div>
+    <h3 class="admin-modal-title">Yönetici Girişi</h3>
+    <p class="admin-modal-desc">Kütüphaneye yeni eser eklemek ve düzenleme yapmak için yönetici şifresini giriniz.</p>
+    <div class="admin-input-group">
+      <input type="password" id="adminPasswordInput" class="admin-password-input" placeholder="••••" autocomplete="current-password" maxlength="32">
+      <button type="button" id="adminToggleEye" class="admin-toggle-eye" title="Şifreyi Göster/Gizle">👁️</button>
+    </div>
+    <div id="adminLoginError" class="admin-login-error" style="display:none;">Hatalı şifre! Lütfen tekrar deneyin.</div>
+    <div class="admin-modal-actions">
+      <button type="button" class="btn" id="adminLoginCancel">Vazgeç</button>
+      <button type="button" class="btn primary" id="adminLoginSubmit"><span>✦</span> Giriş Yap</button>
+    </div>
+  </div>
+</div>
 </main>
-<footer><span>Nur Koridoru &copy; 2026</span><span>tasarim kavrami &#8212; Sesli Risale-i Nur deneyimi</span></footer>
+<footer>
+  <span>Nur Koridoru &copy; 2026</span>
+  <span>tasarim kavrami &#8212; Sesli Risale-i Nur deneyimi</span>
+  <button type="button" id="adminLockBtn" class="admin-lock-btn" title="Yönetici Girişi (Şifreli)" aria-label="Yönetici Girişi">🔒</button>
+</footer>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="nur_main.js?v=2.8"></script>
+<script src="nur_main.js?v=2.9"></script>
 </body>
 </html>
