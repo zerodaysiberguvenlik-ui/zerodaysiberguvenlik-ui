@@ -2188,16 +2188,20 @@ body.is-admin .admin-badge {
       </div>
 
       <div class="aam-group">
-        <label>MP3 Ses Dosyaları (Tek veya Çoklu Seçim):</label>
+        <label>MP3 Ses Dosyaları veya Klasör Seçimi:</label>
         <div class="aam-dropzone" id="audioDropzone">
           <span class="aam-drop-icon">🎵</span>
-          <p id="audioDropText">MP3 Dosyalarını Buraya Sürükleyin veya Tıklayın</p>
-          <span class="aam-drop-sub">İster 1 dosya, ister aynı anda onlarca MP3 seçip yükleyebilirsiniz</span>
+          <p id="audioDropText">MP3 Dosyalarını veya <strong>Klasörünüzü</strong> Buraya Sürükleyin</p>
+          <span class="aam-drop-sub">İster tek dosya, ister aynı anda onlarca MP3 veya doğrudan <strong>tüm ses klasörünüzü</strong> sürükleyebilirsiniz</span>
           <input type="file" id="audioFileInput" accept="audio/mp3,audio/*,audio/mpeg" multiple style="display:none;">
           <div id="audioFileBadge" class="aam-file-badge" style="display:none;">
             <span class="aam-badge-name" id="audioBadgeFileName"></span>
             <span class="aam-badge-size" id="audioBadgeFileSize"></span>
           </div>
+        </div>
+        <div class="aam-folder-row" style="display:flex; justify-content:center; gap:10px; margin-top:10px;">
+          <button type="button" class="btn secondary" id="audioFolderPickBtn" style="font-size:0.8rem; padding:6px 14px; border:1px solid rgba(212,175,55,0.5); cursor:pointer;">📁 Bilgisayardan Klasör Seç (Tüm Kitaplığı Ekle)</button>
+          <input type="file" id="audioFolderInput" webkitdirectory directory multiple style="display:none;">
         </div>
       </div>
 

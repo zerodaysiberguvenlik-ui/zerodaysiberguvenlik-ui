@@ -1,0 +1,776 @@
+[
+  {
+    "id": "tarihce_tr-p01-onsoz-1-s1-10-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Önsöz 1 S1 10",
+    "fileName": "tr-p01-onsoz-1-s1-10-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p01-onsoz-1-s1-10-koseoglu.mp3",
+    "duration": "6.4 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p02-onsoz-2-s11-16-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Önsöz 2 S11 16",
+    "fileName": "tr-p02-onsoz-2-s11-16-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p02-onsoz-2-s11-16-koseoglu.mp3",
+    "duration": "5.7 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p03-onsoz-3-s16-20-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Önsöz 3 S16 20",
+    "fileName": "tr-p03-onsoz-3-s16-20-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p03-onsoz-3-s16-20-koseoglu.mp3",
+    "duration": "4.6 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p04-giris-s21-29-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Giriş S21 29",
+    "fileName": "tr-p04-giris-s21-29-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p04-giris-s21-29-koseoglu.mp3",
+    "duration": "10.8 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p05-ilk-hayati-1-s30-33-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "İlk Hayatı 1 S30 33",
+    "fileName": "tr-p05-ilk-hayati-1-s30-33-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p05-ilk-hayati-1-s30-33-koseoglu.mp3",
+    "duration": "4.8 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p06-ilk-hayati-2-s34-43-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "İlk Hayatı 2 S34 43",
+    "fileName": "tr-p06-ilk-hayati-2-s34-43-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p06-ilk-hayati-2-s34-43-koseoglu.mp3",
+    "duration": "10.0 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p07-ilk-hayati-3-s43-52-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "İlk Hayatı 3 S43 52",
+    "fileName": "tr-p07-ilk-hayati-3-s43-52-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p07-ilk-hayati-3-s43-52-koseoglu.mp3",
+    "duration": "10.5 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p08-ilk-hayati-4-s53-57-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "İlk Hayatı 4 S53 57",
+    "fileName": "tr-p08-ilk-hayati-4-s53-57-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p08-ilk-hayati-4-s53-57-koseoglu.mp3",
+    "duration": "4.6 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p09-ilk-hayati-5-s58-67-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "İlk Hayatı 5 S58 67",
+    "fileName": "tr-p09-ilk-hayati-5-s58-67-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p09-ilk-hayati-5-s58-67-koseoglu.mp3",
+    "duration": "10.9 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p10-ilk-hayati-6-s67-76-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "İlk Hayatı 6 S67 76",
+    "fileName": "tr-p10-ilk-hayati-6-s67-76-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p10-ilk-hayati-6-s67-76-koseoglu.mp3",
+    "duration": "9.8 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p11-ilk-hayati-7-s77-85-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "İlk Hayatı 7 S77 85",
+    "fileName": "tr-p11-ilk-hayati-7-s77-85-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p11-ilk-hayati-7-s77-85-koseoglu.mp3",
+    "duration": "9.7 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p12-ilk-hayati-8-s86-98-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "İlk Hayatı 8 S86 98",
+    "fileName": "tr-p12-ilk-hayati-8-s86-98-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p12-ilk-hayati-8-s86-98-koseoglu.mp3",
+    "duration": "14.9 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p13-ilk-hayati-9-s98-111-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "İlk Hayatı 9 S98 111",
+    "fileName": "tr-p13-ilk-hayati-9-s98-111-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p13-ilk-hayati-9-s98-111-koseoglu.mp3",
+    "duration": "13.8 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p14-ilk-hayati-10-s111-123-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "İlk Hayatı 10 S111 123",
+    "fileName": "tr-p14-ilk-hayati-10-s111-123-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p14-ilk-hayati-10-s111-123-koseoglu.mp3",
+    "duration": "12.3 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p15-ilk-hayati-11-s124-132-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "İlk Hayatı 11 S124 132",
+    "fileName": "tr-p15-ilk-hayati-11-s124-132-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p15-ilk-hayati-11-s124-132-koseoglu.mp3",
+    "duration": "10.3 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p16-ilk-hayati-12-s132-143-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "İlk Hayatı 12 S132 143",
+    "fileName": "tr-p16-ilk-hayati-12-s132-143-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p16-ilk-hayati-12-s132-143-koseoglu.mp3",
+    "duration": "11.1 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p17-barla-hayati-1-s144-153-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Barla Hayatı 1 S144 153",
+    "fileName": "tr-p17-barla-hayati-1-s144-153-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p17-barla-hayati-1-s144-153-koseoglu.mp3",
+    "duration": "11.1 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p18-barla-hayati-2-s153-163-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Barla Hayatı 2 S153 163",
+    "fileName": "tr-p18-barla-hayati-2-s153-163-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p18-barla-hayati-2-s153-163-koseoglu.mp3",
+    "duration": "11.4 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p19-barla-hayati-3-s164-171-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Barla Hayatı 3 S164 171",
+    "fileName": "tr-p19-barla-hayati-3-s164-171-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p19-barla-hayati-3-s164-171-koseoglu.mp3",
+    "duration": "7.2 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p20-barla-hayati-4-s172-182-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Barla Hayatı 4 S172 182",
+    "fileName": "tr-p20-barla-hayati-4-s172-182-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p20-barla-hayati-4-s172-182-koseoglu.mp3",
+    "duration": "10.9 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p21-barla-hayati-5-s182-193-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Barla Hayatı 5 S182 193",
+    "fileName": "tr-p21-barla-hayati-5-s182-193-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p21-barla-hayati-5-s182-193-koseoglu.mp3",
+    "duration": "13.0 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p22-barla-hayati-6-s194-204-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Barla Hayatı 6 S194 204",
+    "fileName": "tr-p22-barla-hayati-6-s194-204-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p22-barla-hayati-6-s194-204-koseoglu.mp3",
+    "duration": "10.0 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p23-eskisehir-hayati-1-s205-207-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Eskişehir Hayatı 1 S205 207",
+    "fileName": "tr-p23-eskisehir-hayati-1-s205-207-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p23-eskisehir-hayati-1-s205-207-koseoglu.mp3",
+    "duration": "2.9 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p24-eskisehir-hayati-2-s208-216-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Eskişehir Hayatı 2 S208 216",
+    "fileName": "tr-p24-eskisehir-hayati-2-s208-216-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p24-eskisehir-hayati-2-s208-216-koseoglu.mp3",
+    "duration": "9.7 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p25-eskisehir-hayati-3-s216-220-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Eskişehir Hayatı 3 S216 220",
+    "fileName": "tr-p25-eskisehir-hayati-3-s216-220-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p25-eskisehir-hayati-3-s216-220-koseoglu.mp3",
+    "duration": "5.7 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p26-eskisehir-hayati-4-s220-230-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Eskişehir Hayatı 4 S220 230",
+    "fileName": "tr-p26-eskisehir-hayati-4-s220-230-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p26-eskisehir-hayati-4-s220-230-koseoglu.mp3",
+    "duration": "12.3 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p27-eskisehir-hayati-5-s230-234-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Eskişehir Hayatı 5 S230 234",
+    "fileName": "tr-p27-eskisehir-hayati-5-s230-234-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p27-eskisehir-hayati-5-s230-234-koseoglu.mp3",
+    "duration": "5.8 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p28-eskisehir-hayati-6-s235-239-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Eskişehir Hayatı 6 S235 239",
+    "fileName": "tr-p28-eskisehir-hayati-6-s235-239-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p28-eskisehir-hayati-6-s235-239-koseoglu.mp3",
+    "duration": "5.8 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p29-eskisehir-hayati-7-s240-247-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Eskişehir Hayatı 7 S240 247",
+    "fileName": "tr-p29-eskisehir-hayati-7-s240-247-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p29-eskisehir-hayati-7-s240-247-koseoglu.mp3",
+    "duration": "9.6 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p30-eskisehir-hayati-8-s248-252-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Eskişehir Hayatı 8 S248 252",
+    "fileName": "tr-p30-eskisehir-hayati-8-s248-252-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p30-eskisehir-hayati-8-s248-252-koseoglu.mp3",
+    "duration": "6.1 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p31-eskisehir-hayati-9-s253-262-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Eskişehir Hayatı 9 S253 262",
+    "fileName": "tr-p31-eskisehir-hayati-9-s253-262-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p31-eskisehir-hayati-9-s253-262-koseoglu.mp3",
+    "duration": "10.4 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p32-eskisehir-hayati-10-s262-269-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Eskişehir Hayatı 10 S262 269",
+    "fileName": "tr-p32-eskisehir-hayati-10-s262-269-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p32-eskisehir-hayati-10-s262-269-koseoglu.mp3",
+    "duration": "7.8 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p33-kastamonu-hayati-1-s270-277-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Kastamonu Hayatı 1 S270 277",
+    "fileName": "tr-p33-kastamonu-hayati-1-s270-277-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p33-kastamonu-hayati-1-s270-277-koseoglu.mp3",
+    "duration": "7.6 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p34-kastamonu-hayati-2-s278-284-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Kastamonu Hayatı 2 S278 284",
+    "fileName": "tr-p34-kastamonu-hayati-2-s278-284-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p34-kastamonu-hayati-2-s278-284-koseoglu.mp3",
+    "duration": "7.2 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p35-kastamonu-hayati-3-s285-291-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Kastamonu Hayatı 3 S285 291",
+    "fileName": "tr-p35-kastamonu-hayati-3-s285-291-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p35-kastamonu-hayati-3-s285-291-koseoglu.mp3",
+    "duration": "6.8 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p36-kastamonu-hayati-4-s292-299-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Kastamonu Hayatı 4 S292 299",
+    "fileName": "tr-p36-kastamonu-hayati-4-s292-299-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p36-kastamonu-hayati-4-s292-299-koseoglu.mp3",
+    "duration": "8.7 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p37-kastamonu-hayati-5-s300-307-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Kastamonu Hayatı 5 S300 307",
+    "fileName": "tr-p37-kastamonu-hayati-5-s300-307-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p37-kastamonu-hayati-5-s300-307-koseoglu.mp3",
+    "duration": "7.9 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p38-kastamonu-hayati-6-s308-318-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Kastamonu Hayatı 6 S308 318",
+    "fileName": "tr-p38-kastamonu-hayati-6-s308-318-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p38-kastamonu-hayati-6-s308-318-koseoglu.mp3",
+    "duration": "13.2 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p39-kastamonu-hayati-7-s319-328-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Kastamonu Hayatı 7 S319 328",
+    "fileName": "tr-p39-kastamonu-hayati-7-s319-328-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p39-kastamonu-hayati-7-s319-328-koseoglu.mp3",
+    "duration": "10.5 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p40-kastamonu-hayati-8-s328-337-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Kastamonu Hayatı 8 S328 337",
+    "fileName": "tr-p40-kastamonu-hayati-8-s328-337-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p40-kastamonu-hayati-8-s328-337-koseoglu.mp3",
+    "duration": "11.8 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p41-kastamonu-hayati-9-s338-348-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Kastamonu Hayatı 9 S338 348",
+    "fileName": "tr-p41-kastamonu-hayati-9-s338-348-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p41-kastamonu-hayati-9-s338-348-koseoglu.mp3",
+    "duration": "13.4 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p42-kastamonu-hayati-10-s348-354-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Kastamonu Hayatı 10 S348 354",
+    "fileName": "tr-p42-kastamonu-hayati-10-s348-354-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p42-kastamonu-hayati-10-s348-354-koseoglu.mp3",
+    "duration": "8.1 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p43-kastamonu-hayati-11-s354-362-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Kastamonu Hayatı 11 S354 362",
+    "fileName": "tr-p43-kastamonu-hayati-11-s354-362-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p43-kastamonu-hayati-11-s354-362-koseoglu.mp3",
+    "duration": "10.9 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p44-kastamonu-hayati-12-s363-371-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Kastamonu Hayatı 12 S363 371",
+    "fileName": "tr-p44-kastamonu-hayati-12-s363-371-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p44-kastamonu-hayati-12-s363-371-koseoglu.mp3",
+    "duration": "9.6 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p45-kastamonu-hayati-13-s371-381-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Kastamonu Hayatı 13 S371 381",
+    "fileName": "tr-p45-kastamonu-hayati-13-s371-381-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p45-kastamonu-hayati-13-s371-381-koseoglu.mp3",
+    "duration": "13.8 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p46-denizli-hayati-1-s382-385-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Denizli Hayatı 1 S382 385",
+    "fileName": "tr-p46-denizli-hayati-1-s382-385-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p46-denizli-hayati-1-s382-385-koseoglu.mp3",
+    "duration": "3.1 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p47-denizli-hayati-2-s386-396-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Denizli Hayatı 2 S386 396",
+    "fileName": "tr-p47-denizli-hayati-2-s386-396-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p47-denizli-hayati-2-s386-396-koseoglu.mp3",
+    "duration": "12.3 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p48-denizli-hayati-3-s397-408-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Denizli Hayatı 3 S397 408",
+    "fileName": "tr-p48-denizli-hayati-3-s397-408-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p48-denizli-hayati-3-s397-408-koseoglu.mp3",
+    "duration": "12.7 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p49-denizli-hayati-4-s409-421-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Denizli Hayatı 4 S409 421",
+    "fileName": "tr-p49-denizli-hayati-4-s409-421-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p49-denizli-hayati-4-s409-421-koseoglu.mp3",
+    "duration": "12.4 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p50-denizli-hayati-5-s421-425-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Denizli Hayatı 5 S421 425",
+    "fileName": "tr-p50-denizli-hayati-5-s421-425-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p50-denizli-hayati-5-s421-425-koseoglu.mp3",
+    "duration": "5.5 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p51-denizli-hayati-6-s426-438-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Denizli Hayatı 6 S426 438",
+    "fileName": "tr-p51-denizli-hayati-6-s426-438-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p51-denizli-hayati-6-s426-438-koseoglu.mp3",
+    "duration": "16.0 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p52-emirdag-hayati-1-s439-445-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Emirdağ Hayatı 1 S439 445",
+    "fileName": "tr-p52-emirdag-hayati-1-s439-445-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p52-emirdag-hayati-1-s439-445-koseoglu.mp3",
+    "duration": "8.7 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p53-emirdag-hayati-2-s446-451-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Emirdağ Hayatı 2 S446 451",
+    "fileName": "tr-p53-emirdag-hayati-2-s446-451-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p53-emirdag-hayati-2-s446-451-koseoglu.mp3",
+    "duration": "8.0 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p54-emirdag-hayati-3-s452-462-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Emirdağ Hayatı 3 S452 462",
+    "fileName": "tr-p54-emirdag-hayati-3-s452-462-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p54-emirdag-hayati-3-s452-462-koseoglu.mp3",
+    "duration": "13.6 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p55-emirdag-hayati-4-s463-472-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Emirdağ Hayatı 4 S463 472",
+    "fileName": "tr-p55-emirdag-hayati-4-s463-472-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p55-emirdag-hayati-4-s463-472-koseoglu.mp3",
+    "duration": "11.8 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p56-emirdag-hayati-5-s473-484-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Emirdağ Hayatı 5 S473 484",
+    "fileName": "tr-p56-emirdag-hayati-5-s473-484-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p56-emirdag-hayati-5-s473-484-koseoglu.mp3",
+    "duration": "13.0 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p57-emirdag-hayati-6-s485-493-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Emirdağ Hayatı 6 S485 493",
+    "fileName": "tr-p57-emirdag-hayati-6-s485-493-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p57-emirdag-hayati-6-s485-493-koseoglu.mp3",
+    "duration": "10.2 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p58-emirdag-hayati-7-s494-501-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Emirdağ Hayatı 7 S494 501",
+    "fileName": "tr-p58-emirdag-hayati-7-s494-501-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p58-emirdag-hayati-7-s494-501-koseoglu.mp3",
+    "duration": "9.0 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p59-emirdag-hayati-8-s502-509-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Emirdağ Hayatı 8 S502 509",
+    "fileName": "tr-p59-emirdag-hayati-8-s502-509-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p59-emirdag-hayati-8-s502-509-koseoglu.mp3",
+    "duration": "9.0 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p60-emirdag-hayati-9-s510-518-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Emirdağ Hayatı 9 S510 518",
+    "fileName": "tr-p60-emirdag-hayati-9-s510-518-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p60-emirdag-hayati-9-s510-518-koseoglu.mp3",
+    "duration": "9.9 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p61-emirdag-hayati-10-s519-527-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Emirdağ Hayatı 10 S519 527",
+    "fileName": "tr-p61-emirdag-hayati-10-s519-527-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p61-emirdag-hayati-10-s519-527-koseoglu.mp3",
+    "duration": "5.6 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p62-afyon-hayati-1-s528-535-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Afyon Hayatı 1 S528 535",
+    "fileName": "tr-p62-afyon-hayati-1-s528-535-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p62-afyon-hayati-1-s528-535-koseoglu.mp3",
+    "duration": "8.4 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p63-afyon-hayati-2-s536-542-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Afyon Hayatı 2 S536 542",
+    "fileName": "tr-p63-afyon-hayati-2-s536-542-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p63-afyon-hayati-2-s536-542-koseoglu.mp3",
+    "duration": "8.4 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p64-afyon-hayati-3-s543-549-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Afyon Hayatı 3 S543 549",
+    "fileName": "tr-p64-afyon-hayati-3-s543-549-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p64-afyon-hayati-3-s543-549-koseoglu.mp3",
+    "duration": "7.3 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p65-afyon-hayati-4-s549-555-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Afyon Hayatı 4 S549 555",
+    "fileName": "tr-p65-afyon-hayati-4-s549-555-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p65-afyon-hayati-4-s549-555-koseoglu.mp3",
+    "duration": "8.4 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p66-afyon-hayati-5-s556-561-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Afyon Hayatı 5 S556 561",
+    "fileName": "tr-p66-afyon-hayati-5-s556-561-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p66-afyon-hayati-5-s556-561-koseoglu.mp3",
+    "duration": "6.9 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p67-afyon-hayati-6-s562-570-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Afyon Hayatı 6 S562 570",
+    "fileName": "tr-p67-afyon-hayati-6-s562-570-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p67-afyon-hayati-6-s562-570-koseoglu.mp3",
+    "duration": "11.1 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p68-afyon-hayati-7-s571-580-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Afyon Hayatı 7 S571 580",
+    "fileName": "tr-p68-afyon-hayati-7-s571-580-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p68-afyon-hayati-7-s571-580-koseoglu.mp3",
+    "duration": "9.9 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p69-afyon-hayati-8-s581-588-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Afyon Hayatı 8 S581 588",
+    "fileName": "tr-p69-afyon-hayati-8-s581-588-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p69-afyon-hayati-8-s581-588-koseoglu.mp3",
+    "duration": "7.8 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p70-afyon-hayati-9-s589-597-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Afyon Hayatı 9 S589 597",
+    "fileName": "tr-p70-afyon-hayati-9-s589-597-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p70-afyon-hayati-9-s589-597-koseoglu.mp3",
+    "duration": "9.6 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p71-isparta-hayati-1-s598-602-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Isparta Hayatı 1 S598 602",
+    "fileName": "tr-p71-isparta-hayati-1-s598-602-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p71-isparta-hayati-1-s598-602-koseoglu.mp3",
+    "duration": "4.5 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p72-isparta-hayati-2-s603-612-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Isparta Hayatı 2 S603 612",
+    "fileName": "tr-p72-isparta-hayati-2-s603-612-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p72-isparta-hayati-2-s603-612-koseoglu.mp3",
+    "duration": "10.5 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p73-isparta-hayati-3-s613-617-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Isparta Hayatı 3 S613 617",
+    "fileName": "tr-p73-isparta-hayati-3-s613-617-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p73-isparta-hayati-3-s613-617-koseoglu.mp3",
+    "duration": "5.2 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p74-isparta-hayati-4-s618-626-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Isparta Hayatı 4 S618 626",
+    "fileName": "tr-p74-isparta-hayati-4-s618-626-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p74-isparta-hayati-4-s618-626-koseoglu.mp3",
+    "duration": "10.1 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p75-isparta-hayati-5-s627-637-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Isparta Hayatı 5 S627 637",
+    "fileName": "tr-p75-isparta-hayati-5-s627-637-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p75-isparta-hayati-5-s627-637-koseoglu.mp3",
+    "duration": "10.9 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p76-isparta-hayati-6-s638-640-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Isparta Hayatı 6 S638 640",
+    "fileName": "tr-p76-isparta-hayati-6-s638-640-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p76-isparta-hayati-6-s638-640-koseoglu.mp3",
+    "duration": "3.5 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p77-isparta-hayati-7-s641-649-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Isparta Hayatı 7 S641 649",
+    "fileName": "tr-p77-isparta-hayati-7-s641-649-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p77-isparta-hayati-7-s641-649-koseoglu.mp3",
+    "duration": "9.2 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p78-isparta-hayati-8-s650-657-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Isparta Hayatı 8 S650 657",
+    "fileName": "tr-p78-isparta-hayati-8-s650-657-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p78-isparta-hayati-8-s650-657-koseoglu.mp3",
+    "duration": "7.6 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p79-isparta-hayati-9-s658-664-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Isparta Hayatı 9 S658 664",
+    "fileName": "tr-p79-isparta-hayati-9-s658-664-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p79-isparta-hayati-9-s658-664-koseoglu.mp3",
+    "duration": "6.4 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p80-haric-memleketler-1-s665-675-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Hariç Memleketler 1 S665 675",
+    "fileName": "tr-p80-haric-memleketler-1-s665-675-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p80-haric-memleketler-1-s665-675-koseoglu.mp3",
+    "duration": "9.1 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p81-haric-memleketler-2-s676-684-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Hariç Memleketler 2 S676 684",
+    "fileName": "tr-p81-haric-memleketler-2-s676-684-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p81-haric-memleketler-2-s676-684-koseoglu.mp3",
+    "duration": "7.1 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p82-haric-memleketler-3-s685-691-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Hariç Memleketler 3 S685 691",
+    "fileName": "tr-p82-haric-memleketler-3-s685-691-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p82-haric-memleketler-3-s685-691-koseoglu.mp3",
+    "duration": "6.6 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p83-haric-memleketler-4-s692-696-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Hariç Memleketler 4 S692 696",
+    "fileName": "tr-p83-haric-memleketler-4-s692-696-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p83-haric-memleketler-4-s692-696-koseoglu.mp3",
+    "duration": "3.8 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p84-bediuzzaman-ve-rn-1-s697-702-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Bedîüzzaman Ve Risale-I Nur 1 S697 702",
+    "fileName": "tr-p84-bediuzzaman-ve-rn-1-s697-702-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p84-bediuzzaman-ve-rn-1-s697-702-koseoglu.mp3",
+    "duration": "5.7 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p85-bediuzzaman-ve-rn-2-s703-716-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Bedîüzzaman Ve Risale-I Nur 2 S703 716",
+    "fileName": "tr-p85-bediuzzaman-ve-rn-2-s703-716-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p85-bediuzzaman-ve-rn-2-s703-716-koseoglu.mp3",
+    "duration": "17.2 MB",
+    "isServerTrack": true
+  },
+  {
+    "id": "tarihce_tr-p86-bediuzzaman-ve-rn-3-s717-720-koseoglu",
+    "bookTitle": "Tarihçe-i Hayat",
+    "subTitle": "Bedîüzzaman Ve Risale-I Nur 3 S717 720",
+    "fileName": "tr-p86-bediuzzaman-ve-rn-3-s717-720-koseoglu.mp3",
+    "audioUrl": "audio_depo/Tarihçe-i Hayat/tr-p86-bediuzzaman-ve-rn-3-s717-720-koseoglu.mp3",
+    "duration": "1.5 MB",
+    "isServerTrack": true
+  }
+]
