@@ -1265,6 +1265,320 @@ body.is-admin .admin-badge {
   border-color: #ffd700;
   color: #ffd700;
 }
+
+/* Çalma Listesi Sekmeleri */
+.tp-tabs {
+  display: flex;
+  background: rgba(0,0,0,0.5);
+  border-bottom: 1px solid rgba(212,175,55,0.25);
+}
+.tp-tab-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--parchment-dim);
+  padding: 7px 4px;
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+.tp-tab-btn:hover {
+  color: #ffd700;
+}
+.tp-tab-btn.active {
+  color: #ffd700;
+  border-bottom-color: #ffd700;
+  background: rgba(212,175,55,0.08);
+}
+.tp-add-btn {
+  flex: 0 0 auto;
+  padding: 7px 8px;
+  color: #ffd700;
+  background: rgba(212,175,55,0.12);
+}
+.tp-add-btn:hover {
+  background: rgba(212,175,55,0.25);
+}
+
+/* Çalma Listesi Konteyneri */
+.tp-playlist-view {
+  max-height: 250px;
+  overflow-y: auto;
+  background: rgba(10,8,6,0.95);
+  padding: 8px 10px;
+}
+.tp-playlist-view::-webkit-scrollbar { width: 4px; }
+.tp-playlist-view::-webkit-scrollbar-thumb { background: rgba(212,175,55,0.3); border-radius: 4px; }
+
+.pl-empty {
+  text-align: center;
+  padding: 30px 10px;
+  color: var(--parchment-dim);
+  font-style: italic;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+.pl-book-group {
+  margin-bottom: 10px;
+}
+.pl-book-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  background: rgba(212,175,55,0.08);
+  border-radius: 4px;
+  border-left: 2px solid #ffd700;
+  margin-bottom: 4px;
+}
+.pl-book-title {
+  font-family: 'Cinzel', serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #ffd700;
+  flex: 1;
+}
+.pl-count-badge {
+  font-size: 0.65rem;
+  color: rgba(247,231,206,0.6);
+}
+.pl-track-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin-bottom: 3px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid transparent;
+}
+.pl-track-item:hover {
+  background: rgba(212,175,55,0.1);
+  border-color: rgba(212,175,55,0.25);
+}
+.pl-track-item.active {
+  background: rgba(139,32,41,0.35);
+  border-color: rgba(212,175,55,0.5);
+}
+.pl-play-icon-btn {
+  background: rgba(212,175,55,0.2);
+  border: 1px solid rgba(212,175,55,0.4);
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffd700;
+  font-size: 0.65rem;
+  cursor: pointer;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.pl-track-meta {
+  flex: 1;
+  min-width: 0;
+}
+.pl-track-sub {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #f7e7ce;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pl-track-item.active .pl-track-sub {
+  color: #ffd700;
+}
+.pl-track-dur {
+  font-size: 0.68rem;
+  color: var(--parchment-dim);
+}
+.pl-delete-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.8rem;
+  opacity: 0.4;
+  transition: opacity 0.2s;
+  padding: 2px;
+}
+.pl-delete-btn:hover {
+  opacity: 1;
+}
+
+.tp-book-tag {
+  font-family: 'Cinzel', serif;
+  font-size: 0.7rem;
+  color: rgba(212,175,55,0.8);
+  text-align: center;
+  letter-spacing: 0.05em;
+}
+
+/* ============================================================
+   🎙️ YENİ SESLİ ESER / MP3 EKLEME MODALI CSS
+   ============================================================ */
+.add-audio-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 130;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(6,5,4,0.85);
+  backdrop-filter: blur(10px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.35s ease, visibility 0.35s ease;
+  pointer-events: none;
+}
+.add-audio-modal.open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+.add-audio-panel {
+  position: relative;
+  width: min(540px, 94vw);
+  background: radial-gradient(ellipse at 50% 15%, #261c12 0%, #15100b 60%, #0c0907 100%);
+  border: 1px solid rgba(212,175,55,0.5);
+  border-radius: 10px;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.92), 0 0 45px rgba(212,175,55,0.22);
+  padding: 30px 32px 28px;
+}
+.add-audio-close {
+  position: absolute;
+  top: 16px;
+  right: 18px;
+  background: none;
+  border: none;
+  color: var(--parchment-dim);
+  font-size: 1.6rem;
+  cursor: pointer;
+  line-height: 1;
+  transition: all 0.2s;
+}
+.add-audio-close:hover {
+  color: #ffd700;
+  transform: scale(1.15) rotate(90deg);
+}
+.aam-crest {
+  font-size: 1.4rem;
+  color: #ffd700;
+  text-align: center;
+  margin-bottom: 2px;
+}
+.aam-kicker {
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  color: rgba(212,175,55,0.7);
+  text-align: center;
+  text-transform: uppercase;
+}
+.aam-title {
+  font-family: 'Cinzel', serif;
+  font-size: 1.25rem;
+  color: #ffd700;
+  text-align: center;
+  margin: 4px 0 8px;
+}
+.aam-desc {
+  font-size: 0.84rem;
+  color: var(--parchment-dim);
+  text-align: center;
+  line-height: 1.4;
+  margin-bottom: 20px;
+}
+.aam-group {
+  margin-bottom: 16px;
+}
+.aam-group label {
+  display: block;
+  font-size: 0.8rem;
+  color: #ffd700;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.aam-select, .aam-input {
+  width: 100%;
+  padding: 10px 12px;
+  background: rgba(10,8,6,0.85);
+  border: 1px solid rgba(212,175,55,0.35);
+  border-radius: 6px;
+  color: #f7e7ce;
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 0.88rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.aam-select:focus, .aam-input:focus {
+  border-color: #ffd700;
+  box-shadow: 0 0 10px rgba(212,175,55,0.25);
+}
+.aam-select optgroup {
+  background: #1a120b;
+  color: #ffd700;
+  font-weight: bold;
+}
+.aam-select option {
+  background: #0f0b07;
+  color: #f7e7ce;
+}
+.aam-dropzone {
+  border: 2px dashed rgba(212,175,55,0.4);
+  border-radius: 8px;
+  padding: 22px;
+  text-align: center;
+  cursor: pointer;
+  background: rgba(212,175,55,0.03);
+  transition: all 0.2s;
+}
+.aam-dropzone:hover, .aam-dropzone.dragover {
+  border-color: #ffd700;
+  background: rgba(212,175,55,0.08);
+}
+.aam-drop-icon {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 6px;
+}
+.aam-dropzone p {
+  font-size: 0.85rem;
+  color: var(--parchment-dim);
+  margin: 0;
+}
+.aam-file-badge {
+  margin-top: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(212,175,55,0.15);
+  border: 1px solid rgba(212,175,55,0.4);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.78rem;
+}
+.aam-badge-name {
+  color: #f7e7ce;
+}
+.aam-badge-size {
+  color: #ffd700;
+  font-weight: 600;
+}
+.aam-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+}
 </style>
 </head>
 <body>
@@ -1654,16 +1968,29 @@ body.is-admin .admin-badge {
       </div>
     </div>
 
-    <!-- Canlı Tablo / Tuval Alanı -->
-    <div class="tp-stage">
+    <!-- Oynatıcı / Çalma Listesi Sekmeleri -->
+    <div class="tp-tabs">
+      <button type="button" class="tp-tab-btn active" id="tabPortraitBtn">🎙️ Portre</button>
+      <button type="button" class="tp-tab-btn" id="tabPlaylistBtn">📚 Çalma Listesi (<span id="playlistBadge">1</span>)</button>
+      <button type="button" class="tp-tab-btn tp-add-btn" id="openAddAudioModalBtn" title="Yeni Sesli Eser / MP3 Ekle">➕ MP3 Ekle</button>
+    </div>
+
+    <!-- 1. Canlı Tablo / Tuval Alanı -->
+    <div class="tp-stage" id="portraitStageWrap">
       <div class="tp-canvas-wrap">
         <canvas id="talkingPortraitCanvas"></canvas>
       </div>
       <div class="tp-candle-halo"></div>
     </div>
 
+    <!-- 2. Çalma Listesi / Kütüphane Alanı -->
+    <div class="tp-playlist-view" id="portraitPlaylistView" style="display:none;">
+      <div class="pl-container" id="playlistContainer"></div>
+    </div>
+
     <!-- Ses ve Konuşma Bilgisi -->
     <div class="tp-body">
+      <div class="tp-book-tag" id="portraitBookTag">📖 Sözler</div>
       <div class="tp-track-name" id="portraitTrackTitle">Birinci Söz · Bismillah Her Hayrın Başıdır</div>
       
       <!-- Canlı Ses Spektrumu / Frekans Dalgası -->
@@ -1683,12 +2010,56 @@ body.is-admin .admin-badge {
       <!-- Kontrol Butonları -->
       <div class="tp-controls">
         <button type="button" id="portraitPlayPause" class="tp-btn-primary"><span>▶</span> Dinle</button>
-        <input type="file" id="portraitAudioUpload" accept="audio/mp3,audio/*" style="display:none;">
-        <button type="button" id="portraitUploadBtn" class="tp-btn-secondary" title="Bilgisayarınızdan MP3 Yükleyin"><span>🎵</span> MP3 Seç</button>
       </div>
     </div>
   </div>
   <audio id="risaleAudioSource" src="risale_audio_sample.mp3" preload="metadata"></audio>
+</div>
+
+<!-- 🎙️ YENİ SESLİ ESER / MP3 EKLEME MODALI -->
+<div id="addAudioModal" class="add-audio-modal">
+  <div class="add-audio-panel">
+    <button type="button" class="add-audio-close" id="addAudioModalClose" aria-label="Kapat">&times;</button>
+    <div class="aam-crest">✦</div>
+    <div class="aam-kicker">Hazine-i Evrak · Sesli Risale-i Nur</div>
+    <h3 class="aam-title">Yeni Sesli Eser / MP3 Ekle</h3>
+    <p class="aam-desc">Elinizdeki Risale ses kaydını kitap adı ve alt başlığıyla sisteme ekleyin. Üstad portresi bu kaydı dudaklarını oynatarak okuyacaktır.</p>
+
+    <form id="addAudioForm" onsubmit="return false;">
+      <div class="aam-group">
+        <label for="audioBookSelect">Ait Olduğu Eser / Kitap:</label>
+        <select id="audioBookSelect" class="aam-select"></select>
+      </div>
+
+      <div class="aam-group" id="audioCustomBookWrap" style="display:none;">
+        <label for="audioCustomBookInput">Özel Kitap Adı:</label>
+        <input type="text" id="audioCustomBookInput" class="aam-input" placeholder="Örn: Gençlik Rehberi, Hastalar Risalesi...">
+      </div>
+
+      <div class="aam-group">
+        <label for="audioSubTitleInput">Alt Başlık / Bahis / Bölüm Adı:</label>
+        <input type="text" id="audioSubTitleInput" class="aam-input" placeholder="Örn: 1. Söz · Bismillah, 10. Söz · Haşir Risalesi..." required>
+      </div>
+
+      <div class="aam-group">
+        <label>MP3 Ses Dosyası:</label>
+        <div class="aam-dropzone" id="audioDropzone">
+          <span class="aam-drop-icon">🎵</span>
+          <p id="audioDropText">MP3 Dosyasını Buraya Sürükleyin veya Tıklayın</p>
+          <input type="file" id="audioFileInput" accept="audio/mp3,audio/*" style="display:none;">
+          <div id="audioFileBadge" class="aam-file-badge" style="display:none;">
+            <span class="aam-badge-name" id="audioBadgeFileName"></span>
+            <span class="aam-badge-size" id="audioBadgeFileSize"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="aam-actions">
+        <button type="button" class="btn" id="addAudioModalCancel">Vazgeç</button>
+        <button type="button" class="btn primary" id="audioSaveBtn"><span>✦</span> Kaydet &amp; Kütüphaneye Ekle</button>
+      </div>
+    </form>
+  </div>
 </div>
 
 </main>

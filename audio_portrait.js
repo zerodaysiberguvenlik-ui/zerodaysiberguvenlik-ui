@@ -1,7 +1,6 @@
 /* ============================================================
    NUR KORİDORU - SESLİ RİSALE & CANLI KONUŞAN ÜSTAD PORTRESİ
-   2.5D Audio-Reactive Lip-Sync & Talking Portrait Engine
-   Web Audio API (AudioContext + AnalyserNode) + Canvas 2D Deform
+   2.5D Audio-Reactive Lip-Sync Engine & MP3 Kütüphane Yöneticisi
    ============================================================ */
 
 (function(){
@@ -13,8 +12,8 @@
   var audioSource = null;
   var freqData = null;
   var isAudioSetup = false;
-  var currentAudioFile = "risale_audio_sample.mp3";
-  var currentAudioTitle = "Birinci Söz · Bismillah Her Hayrın Başıdır (Sesli Risale)";
+  var currentTrack = null;
+  var playlist = [];
 
   // Animasyon Değişkenleri
   var mouthOpen = 0;       // 0 (kapalı) - 1 (tam açık)
@@ -38,10 +37,29 @@
   var timeCurEl = null;
   var timeTotEl = null;
   var titleEl = null;
-  var uploadInput = null;
-  var uploadBtn = null;
+  var bookTagEl = null;
   var waveCanvas = null;
   var waveCtx = null;
+
+  // Çalma Listesi & Modal Öğeleri
+  var playlistView = null;
+  var portraitStage = null;
+  var tabPortraitBtn = null;
+  var tabPlaylistBtn = null;
+  var playlistContainer = null;
+  var playlistBadge = null;
+  var addAudioModal = null;
+  var audioBookSelect = null;
+  var audioCustomBookWrap = null;
+  var audioCustomBookInput = null;
+  var audioSubTitleInput = null;
+  var audioFileInput = null;
+  var audioDropzone = null;
+  var audioFileBadge = null;
+  var audioBadgeFileName = null;
+  var audioBadgeFileSize = null;
+  var audioSaveBtn = null;
+  var selectedAudioFile = null;
 
   // Üstad Portresi Görüntüsü
   var portraitImg = new Image();
@@ -56,19 +74,79 @@
   var COORDS = {
     w: 252,
     h: 297,
-    // Ağız / Bıyık / Çene Bölgesi
     mouthX: 134,
     mouthY: 153,
     mouthW: 36,
     mouthH: 26,
     lipSeamY: 154,
     chinBottomY: 180,
-    // Gözler
     leftEye: { x: 132, y: 122, rX: 9, rY: 5 },
     rightEye: { x: 168, y: 122, rX: 9, rY: 5 }
   };
 
-  // 2. Web Audio API Kurulumu
+  /* ── 2. INDEXEDDB SES KÜTÜPHANESİ DEPOSU (NurAudioDB) ────── */
+  var NurAudioStorage = {
+    db: null,
+    init: function(){
+      return new Promise(function(resolve){
+        try{
+          var req = indexedDB.open("NurAudioDB", 1);
+          req.onupgradeneeded = function(e){
+            var db = e.target.result;
+            if(!db.objectStoreNames.contains("tracks")){
+              db.createObjectStore("tracks", { keyPath: "id" });
+            }
+          };
+          req.onsuccess = function(e){
+            NurAudioStorage.db = e.target.result;
+            resolve(NurAudioStorage.db);
+          };
+          req.onerror = function(){ resolve(null); };
+        }catch(err){
+          console.warn("NurAudioDB init error:", err);
+          resolve(null);
+        }
+      });
+    },
+    getAll: function(){
+      return new Promise(function(resolve){
+        if(!NurAudioStorage.db){ resolve([]); return; }
+        try{
+          var tx = NurAudioStorage.db.transaction("tracks", "readonly");
+          var store = tx.objectStore("tracks");
+          var req = store.getAll();
+          req.onsuccess = function(){ resolve(req.result || []); };
+          req.onerror = function(){ resolve([]); };
+        }catch(e){ resolve([]); }
+      });
+    },
+    save: function(track){
+      return new Promise(function(resolve){
+        if(!NurAudioStorage.db){ resolve(false); return; }
+        try{
+          var tx = NurAudioStorage.db.transaction("tracks", "readwrite");
+          var store = tx.objectStore("tracks");
+          store.put(track);
+          tx.oncomplete = function(){ resolve(true); };
+          tx.onerror = function(){ resolve(false); };
+        }catch(e){ resolve(false); }
+      });
+    },
+    remove: function(id){
+      return new Promise(function(resolve){
+        if(!NurAudioStorage.db){ resolve(false); return; }
+        try{
+          var tx = NurAudioStorage.db.transaction("tracks", "readwrite");
+          var store = tx.objectStore("tracks");
+          store.delete(id);
+          tx.oncomplete = function(){ resolve(true); };
+          tx.onerror = function(){ resolve(false); };
+        }catch(e){ resolve(false); }
+      });
+    }
+  };
+
+  /* ── 3. WEB AUDIO API FREKANS ANALİZ MOTORU ───────────────── */
   function initAudioEngine(){
     if(isAudioSetup) return;
     try{
@@ -90,7 +168,6 @@
     }
   }
 
-  // 3. Ses Frekans Analizi & Lip-Sync Ölçümü
   function updateAudioAnalysis(){
     if(!analyser || !audioElement || audioElement.paused){
       mouthTarget = 0;
@@ -100,25 +177,21 @@
 
     analyser.getByteFrequencyData(freqData);
 
-    // İnsan sesinin ana konuşma formantları (yaklaşık 200 Hz - 2800 Hz)
-    // 512 fftSize için her bin ~86 Hz (44.1kHz / 512)
-    // Bin 2 - 32 konuşma bandıdır
+    // İnsan sesinin ana konuşma formantları (200 Hz - 2800 Hz)
     var speechEnergy = 0;
     var speechCount = 0;
     for(var i = 2; i <= 34 && i < freqData.length; i++){
       speechEnergy += freqData[i];
       speechCount++;
     }
-    var avgSpeech = speechEnergy / (speechCount || 1); // 0 - 255
+    var avgSpeech = speechEnergy / (speechCount || 1);
 
-    // Tiz sesler (s, ş, e sesleri - dudak yayılması)
     var highEnergy = 0;
     for(var j = 35; j <= 60 && j < freqData.length; j++){
       highEnergy += freqData[j];
     }
     var avgHigh = highEnergy / 26;
 
-    // Eşik değeri (gürültü filtreleme)
     var threshold = 18;
     if(avgSpeech > threshold){
       var norm = (avgSpeech - threshold) / (255 - threshold);
@@ -132,7 +205,7 @@
     }
   }
 
-  // 4. Portre Çizimi ve Lip-Sync Deformasyonu (Canvas 2D)
+  /* ── 4. 2.5D CANVAS TALKING PORTRAIT ÇİZİMİ ───────────────── */
   function renderPortrait(){
     if(!portraitCanvas || !ctx || !imgLoaded) return;
 
@@ -140,8 +213,8 @@
     var ch = portraitCanvas.height;
 
     // Yumuşak geçiş (Attack / Decay)
-    var attackSpeed = 0.45; // Hızlı açılma
-    var decaySpeed = 0.25;  // Doğal kapanma
+    var attackSpeed = 0.45;
+    var decaySpeed = 0.25;
     if(mouthTarget > mouthOpen){
       mouthOpen += (mouthTarget - mouthOpen) * attackSpeed;
     } else {
@@ -149,18 +222,18 @@
     }
     if(mouthOpen < 0.01) mouthOpen = 0;
 
-    // Göz kırpma döngüsü
+    // Göz kırpma
     var now = Date.now();
     if(!isBlinking && now > nextBlinkTime){
       isBlinking = true;
       blinkProgress = 0;
     }
     if(isBlinking){
-      blinkProgress += 0.16; // Yaklaşık 120ms kırpma
+      blinkProgress += 0.16;
       if(blinkProgress >= 1){
         blinkProgress = 0;
         isBlinking = false;
-        nextBlinkTime = now + 2500 + Math.random() * 4000; // 2.5 - 6.5 sn arası
+        nextBlinkTime = now + 2500 + Math.random() * 4000;
       }
     }
 
@@ -171,7 +244,7 @@
 
     ctx.clearRect(0, 0, cw, ch);
 
-    // 1. Arka Plan Nur Işıltısı (Ses şiddetine göre hafif canlanan amber hale)
+    // 1. Arka Plan Nur Işıltısı
     var glowRadius = cw * 0.6 + (mouthOpen * 25);
     var glowGrad = ctx.createRadialGradient(cw * 0.55, ch * 0.45, 10, cw * 0.55, ch * 0.45, glowRadius);
     glowGrad.addColorStop(0, "rgba(212, 175, 55, " + (0.12 + mouthOpen * 0.15) + ")");
@@ -180,27 +253,22 @@
     ctx.fillStyle = glowGrad;
     ctx.fillRect(0, 0, cw, ch);
 
-    // 2. Ana Portre Katmanı (Üst yüz, sarık, omuzlar)
+    // 2. Ana Portre Katmanı
     ctx.save();
-    // Hafif kafa salınımı
     ctx.translate(0, breathY + nodY);
-
-    // Tüm resmi temel olarak çiz
     ctx.drawImage(portraitImg, 0, 0, cw, ch);
 
-    // 3. Konuşma ve Dudak Deformasyonu (Ağız açıklığı > 0 ise)
+    // 3. Konuşma ve Dudak Deformasyonu
     if(mouthOpen > 0.02){
-      var maxDrop = 9.0; // Maksimum alt dudak / çene inme pikseli
+      var maxDrop = 9.0;
       var drop = mouthOpen * maxDrop;
       var spread = mouthWidthMod * 4.0;
 
-      // Kaynak koordinatları
       var sx = COORDS.mouthX;
       var sy = COORDS.lipSeamY;
       var sw = COORDS.mouthW;
-      var sh = COORDS.chinBottomY - COORDS.lipSeamY; // Alt dudak ve çene yüksekliği
+      var sh = COORDS.chinBottomY - COORDS.lipSeamY;
 
-      // Hedef koordinatlar
       var scaleX = cw / COORDS.w;
       var scaleY = ch / COORDS.h;
 
@@ -209,7 +277,7 @@
       var dw = (sw + spread) * scaleX;
       var dh = sh * scaleY;
 
-      // 3.a. İç Ağız Boşluğu & Gölgesi (Dudaklar açılınca arkadan görünen derinlik)
+      // 3.a. İç Ağız Boşluğu & Gölgesi
       ctx.save();
       ctx.beginPath();
       var cavityX = (COORDS.mouthX + 4) * scaleX;
@@ -218,33 +286,26 @@
       var cavityH = drop * scaleY * 1.1;
       ctx.ellipse(cavityX + cavityW / 2, cavityY + cavityH / 2, cavityW / 2, Math.max(1, cavityH / 2), 0, 0, Math.PI * 2);
       
-      // Doğal iç ağız ve dudak gölgesi rengi
       var cavGrad = ctx.createRadialGradient(
         cavityX + cavityW / 2, cavityY + cavityH / 2, 1,
         cavityX + cavityW / 2, cavityY + cavityH / 2, cavityW / 2
       );
-      cavGrad.addColorStop(0, "#280b0e"); // Koyu vişne/gölge
+      cavGrad.addColorStop(0, "#280b0e");
       cavGrad.addColorStop(0.7, "#1a0809");
       cavGrad.addColorStop(1, "#0c0405");
       ctx.fillStyle = cavGrad;
       ctx.fill();
       ctx.restore();
 
-      // 3.b. Alt Dudak ve Sakal/Çene Katmanını Aşağı Kaydırarak Çiz
+      // 3.b. Alt Dudak ve Çene
       ctx.save();
-      // Çenenin kenarlarını yumuşatmak için klip ve hafif gölge
       ctx.beginPath();
       ctx.ellipse(dx + dw / 2, dy + dh * 0.45, dw * 0.58, dh * 0.55, 0, 0, Math.PI * 2);
       ctx.clip();
-
-      ctx.drawImage(
-        portraitImg,
-        sx, sy, sw, sh,
-        dx, dy, dw, dh
-      );
+      ctx.drawImage(portraitImg, sx, sy, sw, sh, dx, dy, dw, dh);
       ctx.restore();
 
-      // Dudak birleşim yerine hafif yumuşatıcı gölge çizgisi
+      // Dudak Seam Çizgisi
       ctx.save();
       ctx.strokeStyle = "rgba(40, 15, 15, " + (0.5 * (1 - mouthOpen * 0.4)) + ")";
       ctx.lineWidth = 1.2;
@@ -255,14 +316,13 @@
       ctx.restore();
     }
 
-    // 4. Doğal Göz Kırpma Katmanı
+    // 4. Doğal Göz Kırpma
     if(isBlinking && blinkProgress > 0){
-      var blinkY = Math.sin(blinkProgress * Math.PI); // 0 -> 1 -> 0 eğrisi
+      var blinkY = Math.sin(blinkProgress * Math.PI);
       if(blinkY > 0.1){
         var scaleX = cw / COORDS.w;
         var scaleY = ch / COORDS.h;
 
-        // Sol ve sağ göz kapağı çizimi
         [COORDS.leftEye, COORDS.rightEye].forEach(function(eye){
           var ex = eye.x * scaleX;
           var ey = eye.y * scaleY;
@@ -272,11 +332,9 @@
           ctx.save();
           ctx.beginPath();
           ctx.ellipse(ex, ey, erx, ery, 0, 0, Math.PI * 2);
-          // Ten rengi kapak gölgesi
           ctx.fillStyle = "#b48c66";
           ctx.fill();
 
-          // Kirpik çizgisi
           ctx.strokeStyle = "rgba(50, 32, 20, 0.85)";
           ctx.lineWidth = 1.4;
           ctx.beginPath();
@@ -289,13 +347,12 @@
 
     ctx.restore();
 
-    // 5. Üç Boyutlu Koridordaki Büyük Tablo Dokusunu Canlı Güncelle (Varsa)
+    // 3D Koridor Tablosunu Canlı Güncelle
     if(window.corridorPosterTexture){
       window.corridorPosterTexture.needsUpdate = true;
     }
   }
 
-  // 5. Ses Dalgası / Visualizer Çizimi
   function renderWaveform(){
     if(!waveCanvas || !waveCtx || !analyser) return;
     var ww = waveCanvas.width;
@@ -304,7 +361,6 @@
     waveCtx.clearRect(0, 0, ww, wh);
 
     if(!audioElement || audioElement.paused){
-      // Duraklatıldığında sakin altın çizgi
       waveCtx.strokeStyle = "rgba(212, 175, 55, 0.35)";
       waveCtx.lineWidth = 1.5;
       waveCtx.beginPath();
@@ -323,7 +379,6 @@
       var val = freqData ? freqData[binIndex] : 0;
       var percent = val / 255;
       var barHeight = Math.max(3, percent * (wh - 4));
-
       var y = (wh - barHeight) / 2;
 
       var barGrad = waveCtx.createLinearGradient(0, y, 0, y + barHeight);
@@ -333,12 +388,10 @@
 
       waveCtx.fillStyle = barGrad;
       waveCtx.fillRect(x, y, barWidth - 1.5, barHeight);
-
       x += barWidth;
     }
   }
 
-  // 6. Ana Render Döngüsü (60 FPS)
   function renderFrame(){
     updateAudioAnalysis();
     renderPortrait();
@@ -346,7 +399,126 @@
     animFrameId = requestAnimationFrame(renderFrame);
   }
 
-  // 7. Oynatıcı Kontrolleri ve Olayları
+  /* ── 5. ÇALMA LİSTESİ VE PARÇA YÖNETİMİ ──────────────────── */
+  function playTrack(track){
+    if(!track) return;
+    currentTrack = track;
+    initAudioEngine();
+    if(audioCtx && audioCtx.state === "suspended"){
+      audioCtx.resume();
+    }
+
+    var src = "";
+    if(track.audioBlob){
+      src = URL.createObjectURL(track.audioBlob);
+    } else if(track.src){
+      src = track.src;
+    }
+
+    if(!src) return;
+
+    audioElement.src = src;
+    if(titleEl) titleEl.textContent = track.subTitle || track.title || "Sesli Risale";
+    if(bookTagEl) bookTagEl.textContent = "📖 " + (track.bookTitle || "Risale-i Nur");
+
+    audioElement.play().then(function(){
+      updatePlayBtnIcon(true);
+      renderPlaylist();
+      if(typeof showToast === "function"){
+        showToast("🎙️ " + (track.bookTitle ? (track.bookTitle + " · ") : "") + (track.subTitle || track.title) + " okunuyor...");
+      }
+    }).catch(function(err){
+      console.warn("Playback error:", err);
+    });
+  }
+
+  function renderPlaylist(){
+    if(!playlistContainer) return;
+    playlistContainer.innerHTML = "";
+
+    if(!playlist.length){
+      playlistContainer.innerHTML = "<div class='pl-empty'>Henüz sesli risale bölümü eklenmemiş.<br>Yukarıdaki <b>'+ MP3 Ekle'</b> butonundan ekleyebilirsiniz.</div>";
+      return;
+    }
+
+    // Kitap adına göre grupla
+    var grouped = {};
+    playlist.forEach(function(t){
+      var bName = t.bookTitle || "Genel Eserler";
+      if(!grouped[bName]) grouped[bName] = [];
+      grouped[bName].push(t);
+    });
+
+    Object.keys(grouped).forEach(function(bName){
+      var groupDiv = document.createElement("div");
+      groupDiv.className = "pl-book-group";
+
+      var groupHeader = document.createElement("div");
+      groupHeader.className = "pl-book-header";
+      groupHeader.innerHTML = "<span class='pl-book-icon'>🏛️</span> <span class='pl-book-title'>" + escHTML(bName) + "</span> <span class='pl-count-badge'>" + grouped[bName].length + " Bölüm</span>";
+      groupDiv.appendChild(groupHeader);
+
+      var tracksList = document.createElement("div");
+      tracksList.className = "pl-tracks-list";
+
+      grouped[bName].forEach(function(track){
+        var isCurrent = currentTrack && currentTrack.id === track.id;
+        var item = document.createElement("div");
+        item.className = "pl-track-item" + (isCurrent ? " active" : "");
+
+        item.innerHTML =
+          "<button type='button' class='pl-play-icon-btn'>" + (isCurrent && audioElement && !audioElement.paused ? "⏸" : "▶") + "</button>" +
+          "<div class='pl-track-meta'>" +
+            "<div class='pl-track-sub'>" + escHTML(track.subTitle || track.title || "Bölüm") + "</div>" +
+            "<div class='pl-track-dur'>" + (track.duration || "Sesli Kayıt") + "</div>" +
+          "</div>" +
+          (track.isDefault ? "" : "<button type='button' class='pl-delete-btn' title='Bölümü Sil'>🗑️</button>");
+
+        item.querySelector(".pl-play-icon-btn").addEventListener("click", function(e){
+          e.stopPropagation();
+          if(isCurrent && audioElement){
+            togglePlay();
+          } else {
+            playTrack(track);
+          }
+        });
+
+        item.addEventListener("click", function(){
+          if(isCurrent && audioElement){
+            togglePlay();
+          } else {
+            playTrack(track);
+          }
+        });
+
+        var delBtn = item.querySelector(".pl-delete-btn");
+        if(delBtn){
+          delBtn.addEventListener("click", async function(e){
+            e.stopPropagation();
+            if(confirm("Bu sesli bölümü ('" + (track.subTitle || track.title) + "') kütüphaneden silmek istediğinize emin misiniz?")){
+              await NurAudioStorage.remove(track.id);
+              playlist = playlist.filter(function(x){ return x.id !== track.id; });
+              updatePlaylistBadge();
+              renderPlaylist();
+              if(typeof showToast === "function") showToast("Sesli bölüm silindi.");
+            }
+          });
+        }
+
+        tracksList.appendChild(item);
+      });
+
+      groupDiv.appendChild(tracksList);
+      playlistContainer.appendChild(groupDiv);
+    });
+  }
+
+  function updatePlaylistBadge(){
+    var count = playlist.length;
+    if(playlistBadge) playlistBadge.textContent = count;
+  }
+
+  /* ── 6. OYNATICI KONTROLLERİ ─────────────────────────────── */
   function togglePlay(){
     initAudioEngine();
     if(audioCtx && audioCtx.state === "suspended"){
@@ -357,12 +529,14 @@
     if(audioElement.paused){
       audioElement.play().then(function(){
         updatePlayBtnIcon(true);
+        renderPlaylist();
       }).catch(function(err){
-        console.warn("Otomatik oynatma kısıtlandı:", err);
+        console.warn("Play blocked:", err);
       });
     } else {
       audioElement.pause();
       updatePlayBtnIcon(false);
+      renderPlaylist();
     }
   }
 
@@ -379,22 +553,6 @@
     return (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s);
   }
 
-  function playCustomFile(file){
-    if(!file) return;
-    initAudioEngine();
-    var objUrl = URL.createObjectURL(file);
-    audioElement.src = objUrl;
-    var name = file.name.replace(/\.[^/.]+$/, "").replace(/[_\-]+/g, " ");
-    currentAudioTitle = name;
-    if(titleEl) titleEl.textContent = name;
-    audioElement.play().then(function(){
-      updatePlayBtnIcon(true);
-      if(typeof showToast === "function"){
-        showToast("🎙️ '" + name + "' oynatılıyor...");
-      }
-    });
-  }
-
   function openPlayer(customTitle, audioUrl){
     if(playerPanel){
       playerPanel.classList.add("open");
@@ -405,15 +563,20 @@
       audioCtx.resume();
     }
 
-    if(customTitle && titleEl){
-      currentAudioTitle = customTitle;
-      titleEl.textContent = customTitle;
-    }
-    if(audioUrl && audioElement){
-      audioElement.src = audioUrl;
-      audioElement.play().then(function(){
-        updatePlayBtnIcon(true);
-      });
+    if(audioUrl){
+      var found = playlist.find(function(t){ return t.src === audioUrl; });
+      if(found){
+        playTrack(found);
+      } else {
+        playTrack({
+          id: "temp_" + Date.now(),
+          bookTitle: "Risale-i Nur",
+          subTitle: customTitle || "Sesli Risale",
+          src: audioUrl
+        });
+      }
+    } else if(!currentTrack && playlist.length){
+      playTrack(playlist[0]);
     }
   }
 
@@ -424,6 +587,7 @@
     if(audioElement && !audioElement.paused){
       audioElement.pause();
       updatePlayBtnIcon(false);
+      renderPlaylist();
     }
   }
 
@@ -433,8 +597,182 @@
     }
   }
 
-  // 8. DOM Başlatma & Olay Bağlama
-  function initDOM(){
+  function showTab(tabName){
+    if(tabName === "portrait"){
+      if(portraitStage) portraitStage.style.display = "flex";
+      if(playlistView) playlistView.style.display = "none";
+      if(tabPortraitBtn) tabPortraitBtn.classList.add("active");
+      if(tabPlaylistBtn) tabPlaylistBtn.classList.remove("active");
+    } else {
+      if(portraitStage) portraitStage.style.display = "none";
+      if(playlistView) playlistView.style.display = "block";
+      if(tabPortraitBtn) tabPortraitBtn.classList.remove("active");
+      if(tabPlaylistBtn) tabPlaylistBtn.classList.add("active");
+      renderPlaylist();
+    }
+  }
+
+  /* ── 7. "SESLİ BÖLÜM EKLE" MODAL YÖNETİMİ ────────────────── */
+  function populateBookSelect(){
+    if(!audioBookSelect) return;
+    audioBookSelect.innerHTML = "";
+
+    var canonBooks = [
+      "Sözler", "Mektubat", "Lem'alar", "Şualar", "Asa-yı Musa",
+      "Barla Lâhikası", "Kastamonu Lâhikası", "Emirdağ Lâhikası",
+      "Tarihçe-i Hayat", "Sikke-i Tasdik", "Mesnevi-i Nuriye",
+      "İşaratü'l-İ'caz", "Muhakemat", "İman ve Küfür Muvazeneleri"
+    ];
+
+    // Varsa customBooks'tan da kitap isimlerini ekle
+    var extra = [];
+    if(window.customBooks && window.customBooks.length){
+      window.customBooks.forEach(function(b){
+        if(b.title && !canonBooks.includes(b.title) && !extra.includes(b.title)){
+          extra.push(b.title);
+        }
+      });
+    }
+
+    var grp1 = document.createElement("optgroup");
+    grp1.label = "🏛️ Risale-i Nur Ana Külliyatı";
+    canonBooks.forEach(function(title){
+      var opt = document.createElement("option");
+      opt.value = title;
+      opt.textContent = title;
+      grp1.appendChild(opt);
+    });
+    audioBookSelect.appendChild(grp1);
+
+    if(extra.length){
+      var grp2 = document.createElement("optgroup");
+      grp2.label = "📚 Kütüphanedeki Diğer Eserler";
+      extra.forEach(function(title){
+        var opt = document.createElement("option");
+        opt.value = title;
+        opt.textContent = title;
+        grp2.appendChild(opt);
+      });
+      audioBookSelect.appendChild(grp2);
+    }
+
+    var grpCustom = document.createElement("optgroup");
+    grpCustom.label = "✏️ Özel / Yeni Eser";
+    var optCustom = document.createElement("option");
+    optCustom.value = "__custom__";
+    optCustom.textContent = "➕ Yeni Kitap Adı Yaz...";
+    grpCustom.appendChild(optCustom);
+    audioBookSelect.appendChild(grpCustom);
+  }
+
+  function openAddAudioModal(){
+    if(addAudioModal){
+      populateBookSelect();
+      resetAddAudioForm();
+      addAudioModal.classList.add("open");
+      if(audioSubTitleInput) audioSubTitleInput.focus();
+    }
+  }
+
+  function closeAddAudioModal(){
+    if(addAudioModal){
+      addAudioModal.classList.remove("open");
+      resetAddAudioForm();
+    }
+  }
+
+  function resetAddAudioForm(){
+    selectedAudioFile = null;
+    if(audioFileInput) audioFileInput.value = "";
+    if(audioSubTitleInput) audioSubTitleInput.value = "";
+    if(audioCustomBookInput) audioCustomBookInput.value = "";
+    if(audioCustomBookWrap) audioCustomBookWrap.style.display = "none";
+    if(audioFileBadge) audioFileBadge.style.display = "none";
+    var dropText = document.getElementById("audioDropText");
+    if(dropText) dropText.textContent = "MP3 Dosyasını Buraya Sürükleyin veya Seçin";
+  }
+
+  function handleAudioFilePicked(file){
+    if(!file) return;
+    if(!file.name.toLowerCase().endsWith(".mp3") && !file.type.includes("audio")){
+      if(typeof showToast === "function") showToast("Lütfen geçerli bir MP3 ses dosyası seçin.");
+      return;
+    }
+    selectedAudioFile = file;
+    if(audioFileBadge){
+      audioFileBadge.style.display = "inline-flex";
+      if(audioBadgeFileName) audioBadgeFileName.textContent = file.name;
+      if(audioBadgeFileSize) audioBadgeFileSize.textContent = (file.size / (1024 * 1024)).toFixed(2) + " MB";
+    }
+    var dropText = document.getElementById("audioDropText");
+    if(dropText) dropText.textContent = "Seçilen: " + file.name;
+
+    // Otomatik alt başlık tahmini (Dosya adından)
+    if(!audioSubTitleInput.value.trim()){
+      var raw = file.name.replace(/\.[^/.]+$/, "").replace(/[_\-]+/g, " ").trim();
+      audioSubTitleInput.value = raw;
+    }
+  }
+
+  async function saveNewAudioTrack(){
+    if(!selectedAudioFile){
+      if(typeof showToast === "function") showToast("Lütfen bir MP3 ses dosyası seçin.");
+      return;
+    }
+
+    var chosenBook = audioBookSelect ? audioBookSelect.value : "Sözler";
+    if(chosenBook === "__custom__"){
+      chosenBook = audioCustomBookInput ? audioCustomBookInput.value.trim() : "";
+      if(!chosenBook) chosenBook = "Hususî Eser";
+    }
+
+    var subTitle = audioSubTitleInput ? audioSubTitleInput.value.trim() : "";
+    if(!subTitle){
+      subTitle = selectedAudioFile.name.replace(/\.[^/.]+$/, "");
+    }
+
+    if(audioSaveBtn){
+      audioSaveBtn.disabled = true;
+      audioSaveBtn.textContent = "Kaydediliyor...";
+    }
+
+    try{
+      var trackId = "audio_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
+      var newTrack = {
+        id: trackId,
+        bookTitle: chosenBook,
+        subTitle: subTitle,
+        fileName: selectedAudioFile.name,
+        audioBlob: selectedAudioFile,
+        duration: (selectedAudioFile.size / (1024 * 1024)).toFixed(1) + " MB",
+        createdAt: Date.now()
+      };
+
+      await NurAudioStorage.save(newTrack);
+      playlist.push(newTrack);
+      updatePlaylistBadge();
+      renderPlaylist();
+      closeAddAudioModal();
+
+      if(typeof showToast === "function"){
+        showToast("🎙️ '" + chosenBook + " · " + subTitle + "' başarıyla eklendi!");
+      }
+
+      // Yeni eklenen parçayı çalmaya başla
+      playTrack(newTrack);
+    }catch(err){
+      console.error("Audio save error:", err);
+      if(typeof showToast === "function") showToast("Ses kaydedilirken bir hata oluştu.");
+    }finally{
+      if(audioSaveBtn){
+        audioSaveBtn.disabled = false;
+        audioSaveBtn.innerHTML = "<span>✦</span> Kaydet &amp; Kütüphaneye Ekle";
+      }
+    }
+  }
+
+  /* ── 8. DOM BAŞLATMA VE OLAY BAĞLAMA ─────────────────────── */
+  async function initDOM(){
     playerPanel = document.getElementById("talkingPortraitPlayer");
     portraitCanvas = document.getElementById("talkingPortraitCanvas");
     if(portraitCanvas){
@@ -457,8 +795,70 @@
     timeCurEl = document.getElementById("portraitTimeCur");
     timeTotEl = document.getElementById("portraitTimeTot");
     titleEl = document.getElementById("portraitTrackTitle");
-    uploadInput = document.getElementById("portraitAudioUpload");
-    uploadBtn = document.getElementById("portraitUploadBtn");
+    bookTagEl = document.getElementById("portraitBookTag");
+
+    // Sekmeler ve Çalma Listesi
+    portraitStage = document.getElementById("portraitStageWrap");
+    playlistView = document.getElementById("portraitPlaylistView");
+    tabPortraitBtn = document.getElementById("tabPortraitBtn");
+    tabPlaylistBtn = document.getElementById("tabPlaylistBtn");
+    playlistContainer = document.getElementById("playlistContainer");
+    playlistBadge = document.getElementById("playlistBadge");
+
+    if(tabPortraitBtn) tabPortraitBtn.addEventListener("click", function(){ showTab("portrait"); });
+    if(tabPlaylistBtn) tabPlaylistBtn.addEventListener("click", function(){ showTab("playlist"); });
+
+    var openAddModalBtn = document.getElementById("openAddAudioModalBtn");
+    if(openAddModalBtn) openAddModalBtn.addEventListener("click", openAddAudioModal);
+
+    // Modal Öğeleri
+    addAudioModal = document.getElementById("addAudioModal");
+    audioBookSelect = document.getElementById("audioBookSelect");
+    audioCustomBookWrap = document.getElementById("audioCustomBookWrap");
+    audioCustomBookInput = document.getElementById("audioCustomBookInput");
+    audioSubTitleInput = document.getElementById("audioSubTitleInput");
+    audioFileInput = document.getElementById("audioFileInput");
+    audioDropzone = document.getElementById("audioDropzone");
+    audioFileBadge = document.getElementById("audioFileBadge");
+    audioBadgeFileName = document.getElementById("audioBadgeFileName");
+    audioBadgeFileSize = document.getElementById("audioBadgeFileSize");
+    audioSaveBtn = document.getElementById("audioSaveBtn");
+
+    if(audioBookSelect){
+      audioBookSelect.addEventListener("change", function(){
+        if(audioCustomBookWrap){
+          audioCustomBookWrap.style.display = audioBookSelect.value === "__custom__" ? "block" : "none";
+        }
+      });
+    }
+
+    if(audioDropzone){
+      audioDropzone.addEventListener("click", function(){ if(audioFileInput) audioFileInput.click(); });
+      audioDropzone.addEventListener("dragover", function(e){ e.preventDefault(); audioDropzone.classList.add("dragover"); });
+      audioDropzone.addEventListener("dragleave", function(){ audioDropzone.classList.remove("dragover"); });
+      audioDropzone.addEventListener("drop", function(e){
+        e.preventDefault();
+        audioDropzone.classList.remove("dragover");
+        if(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length){
+          handleAudioFilePicked(e.dataTransfer.files[0]);
+        }
+      });
+    }
+
+    if(audioFileInput){
+      audioFileInput.addEventListener("change", function(){
+        if(audioFileInput.files && audioFileInput.files.length){
+          handleAudioFilePicked(audioFileInput.files[0]);
+        }
+      });
+    }
+
+    if(audioSaveBtn) audioSaveBtn.addEventListener("click", saveNewAudioTrack);
+
+    var addAudioClose = document.getElementById("addAudioModalClose");
+    if(addAudioClose) addAudioClose.addEventListener("click", closeAddAudioModal);
+    var addAudioCancel = document.getElementById("addAudioModalCancel");
+    if(addAudioCancel) addAudioCancel.addEventListener("click", closeAddAudioModal);
 
     if(playPauseBtn) playPauseBtn.addEventListener("click", togglePlay);
 
@@ -473,6 +873,7 @@
       });
       audioElement.addEventListener("ended", function(){
         updatePlayBtnIcon(false);
+        renderPlaylist();
         if(progressFill) progressFill.style.width = "0%";
       });
     }
@@ -487,17 +888,6 @@
       });
     }
 
-    if(uploadBtn && uploadInput){
-      uploadBtn.addEventListener("click", function(){
-        uploadInput.click();
-      });
-      uploadInput.addEventListener("change", function(){
-        if(uploadInput.files && uploadInput.files.length){
-          playCustomFile(uploadInput.files[0]);
-        }
-      });
-    }
-
     var minBtn = document.getElementById("portraitMinBtn");
     if(minBtn) minBtn.addEventListener("click", minimizePlayer);
 
@@ -509,11 +899,6 @@
       openPlayer();
     });
 
-    var fabAudio = document.getElementById("fabAudioPortrait");
-    if(fabAudio) fabAudio.addEventListener("click", function(){
-      openPlayer();
-    });
-
     // Sesli okuma butonunu (#modalListen) bağla
     var modalListenBtn = document.getElementById("modalListen");
     if(modalListenBtn){
@@ -522,7 +907,19 @@
         if(bookModal) bookModal.classList.remove("open");
         var modalTitle = document.getElementById("modalTitle");
         var t = modalTitle ? modalTitle.textContent : "Risale-i Nur";
-        openPlayer(t + " (Sesli Risale)", "risale_audio_sample.mp3");
+
+        // Bu kitaba ait parça var mı?
+        var found = playlist.find(function(x){
+          return (x.bookTitle && x.bookTitle.toLowerCase().includes(t.toLowerCase())) ||
+                 (t && t.toLowerCase().includes((x.bookTitle||"").toLowerCase()));
+        });
+
+        if(found){
+          openPlayer();
+          playTrack(found);
+        } else {
+          openPlayer(t + " (Sesli Risale)", "risale_audio_sample.mp3");
+        }
       });
     }
 
@@ -537,8 +934,39 @@
       }
     }
 
-    // Animasyon döngüsünü başlat
+    // İlk Yükleme: NurAudioStorage'dan parça listesini çek
+    await NurAudioStorage.init();
+    var loadedTracks = await NurAudioStorage.getAll();
+
+    var defaultSample = {
+      id: "sample_birinci_soz",
+      bookTitle: "Sözler",
+      subTitle: "Birinci Söz · Bismillah Her Hayrın Başıdır",
+      src: "risale_audio_sample.mp3",
+      duration: "02:59",
+      isDefault: true,
+      createdAt: 1788942658257
+    };
+
+    if(!loadedTracks || loadedTracks.length === 0){
+      playlist = [defaultSample];
+    } else {
+      // Varsayılan örneği başa koy, kullanıcı parçalarını ekle
+      playlist = [defaultSample].concat(loadedTracks.filter(function(t){ return t.id !== defaultSample.id; }));
+    }
+
+    currentTrack = playlist[0];
+    if(titleEl) titleEl.textContent = currentTrack.subTitle;
+    if(bookTagEl) bookTagEl.textContent = "📖 " + currentTrack.bookTitle;
+
+    updatePlaylistBadge();
+    renderPlaylist();
     renderFrame();
+  }
+
+  function escHTML(str){
+    if(!str) return "";
+    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
 
   // Dışa Açılan API
@@ -546,7 +974,8 @@
     open: openPlayer,
     close: closePlayer,
     togglePlay: togglePlay,
-    playCustomFile: playCustomFile,
+    playTrack: playTrack,
+    openAddModal: openAddAudioModal,
     init: initDOM
   };
 
