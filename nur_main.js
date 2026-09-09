@@ -869,6 +869,12 @@ function animate(){
     }
   }
 
+  // ── 3D KORİDOR SONU ÜSTAD PORTRESİ CANLI DUDAK SENKRONİZASYON KÖPRÜSÜ ──
+  if(window.corridorPosterTexture && posterMat && posterMat.map !== window.corridorPosterTexture){
+    posterMat.map = window.corridorPosterTexture;
+    posterMat.needsUpdate = true;
+  }
+
   renderer.render(scene,camera);
 }
 animate();

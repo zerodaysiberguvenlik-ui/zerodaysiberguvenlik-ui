@@ -1015,6 +1015,256 @@ body.is-admin .admin-badge {
   font-style: italic;
   font-size: 0.92rem;
 }
+
+/* ============================================================
+   🎙️ CANLI KONUŞAN ÜSTAD PORTRESİ & SESLİ RİSALE ÇALAR CSS
+   ============================================================ */
+.audio-portal-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(139, 32, 41, 0.28);
+  border: 1px solid rgba(212, 175, 55, 0.45);
+  border-radius: 6px;
+  color: #ffd700;
+  padding: 5px 10px;
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  pointer-events: auto;
+}
+.audio-portal-btn:hover {
+  background: rgba(139, 32, 41, 0.55);
+  border-color: #ffd700;
+  box-shadow: 0 0 14px rgba(212, 175, 55, 0.4);
+  transform: translateY(-1px);
+}
+.audio-portal-btn .ap-icon {
+  font-size: 1rem;
+}
+
+/* Oynatıcı Paneli (Floating Glassmorphic Antique Frame) */
+.talking-portrait-player {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 120;
+  width: 290px;
+  background: radial-gradient(ellipse at 50% 15%, #261c12 0%, #15100b 65%, #0c0907 100%);
+  border: 2px solid rgba(212, 175, 55, 0.6);
+  border-radius: 12px;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.9), 0 0 40px rgba(212, 175, 55, 0.25), inset 0 0 0 1px rgba(212, 175, 55, 0.3);
+  overflow: hidden;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(20px) scale(0.95);
+  pointer-events: auto;
+}
+.talking-portrait-player.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+}
+.talking-portrait-player.minimized {
+  width: 220px;
+}
+.talking-portrait-player.minimized .tp-stage,
+.talking-portrait-player.minimized .tp-wave-box,
+.talking-portrait-player.minimized .tp-progress-wrap,
+.talking-portrait-player.minimized .tp-time-row {
+  display: none !important;
+}
+
+.tp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: rgba(212, 175, 55, 0.08);
+  border-bottom: 1px solid rgba(212, 175, 55, 0.25);
+}
+.tp-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  color: #ffd700;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.tp-crest {
+  color: rgba(212, 175, 55, 0.7);
+  font-size: 0.65rem;
+}
+.tp-window-ctrls {
+  display: flex;
+  gap: 4px;
+}
+.tp-ctrl-btn {
+  background: none;
+  border: none;
+  color: var(--parchment-dim);
+  font-size: 1.1rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 2px 4px;
+  transition: all 0.2s;
+}
+.tp-ctrl-btn:hover {
+  color: #ffd700;
+  transform: scale(1.15);
+}
+
+/* Canlı Portre Tuvali */
+.tp-stage {
+  position: relative;
+  width: 100%;
+  height: 250px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0d0a07;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+}
+.tp-canvas-wrap {
+  position: relative;
+  width: 212px;
+  height: 250px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#talkingPortraitCanvas {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 16px rgba(0,0,0,0.85));
+}
+.tp-candle-halo {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 40%, rgba(212, 175, 55, 0.15) 0%, rgba(0,0,0,0) 65%);
+  mix-blend-mode: screen;
+}
+
+/* Alt Kontrol ve Bilgi Alanı */
+.tp-body {
+  padding: 12px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.tp-track-name {
+  font-family: 'Cinzel', serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #ffd700;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Spektrum Dalgası */
+.tp-wave-box {
+  width: 100%;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.4);
+  border-radius: 4px;
+  border: 1px solid rgba(212, 175, 55, 0.15);
+}
+#portraitWaveCanvas {
+  width: 100%;
+  height: 100%;
+}
+
+/* İlerleme Çubuğu */
+.tp-progress-wrap {
+  position: relative;
+  width: 100%;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  cursor: pointer;
+  overflow: hidden;
+}
+.tp-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #d4af37, #ffd700);
+  box-shadow: 0 0 8px rgba(212, 175, 55, 0.8);
+  transition: width 0.1s linear;
+}
+.tp-time-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: var(--parchment-dim);
+  font-family: 'Instrument Sans', sans-serif;
+}
+
+/* Oynatıcı Butonları */
+.tp-controls {
+  display: flex;
+  gap: 8px;
+  margin-top: 2px;
+}
+.tp-btn-primary {
+  flex: 1;
+  background: linear-gradient(135deg, #7a1620 0%, #4a0d14 100%);
+  border: 1px solid rgba(212, 175, 55, 0.5);
+  border-radius: 6px;
+  color: #ffd700;
+  padding: 7px 10px;
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+.tp-btn-primary:hover {
+  background: linear-gradient(135deg, #9b1e2b 0%, #60121a 100%);
+  border-color: #ffd700;
+  box-shadow: 0 0 12px rgba(212, 175, 55, 0.4);
+}
+.tp-btn-primary.playing {
+  background: linear-gradient(135deg, #2b1a0d 0%, #150d06 100%);
+  border-color: #ffd700;
+}
+.tp-btn-secondary {
+  background: rgba(212, 175, 55, 0.1);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  border-radius: 6px;
+  color: #f7e7ce;
+  padding: 7px 12px;
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s;
+}
+.tp-btn-secondary:hover {
+  background: rgba(212, 175, 55, 0.22);
+  border-color: #ffd700;
+  color: #ffd700;
+}
 </style>
 </head>
 <body>
@@ -1063,6 +1313,10 @@ body.is-admin .admin-badge {
     <button id="hikmetBtn" class="hikmet-seal-btn" title="Günün Vecizesi / Hikmet Mührü">
       <span class="seal-icon">✦</span>
       <span class="seal-text">Hikmet Mührü</span>
+    </button>
+    <button id="headerAudioPortraitBtn" class="audio-portal-btn" title="Sesli Risale & Canlı Konuşan Üstad Portresi">
+      <span class="ap-icon">🎙️</span>
+      <span class="ap-text">Sesli Portre</span>
     </button>
     <div id="adminBadge" class="admin-badge" style="display:none;" title="Yönetici Modu Açık">
       <span class="admin-badge-icon">👑</span>
@@ -1385,6 +1639,58 @@ body.is-admin .admin-badge {
     </div>
   </div>
 </div>
+<!-- 🎙️ CANLI KONUŞAN ÜSTAD PORTRESİ & SESLİ RİSALE ÇALAR -->
+<div id="talkingPortraitPlayer" class="talking-portrait-player">
+  <div class="tp-frame">
+    <div class="tp-header">
+      <div class="tp-title-row">
+        <span class="tp-crest">✦</span>
+        <span class="tp-title">Sesli Risale-i Nur</span>
+        <span class="tp-crest">✦</span>
+      </div>
+      <div class="tp-window-ctrls">
+        <button type="button" id="portraitMinBtn" class="tp-ctrl-btn" title="Simge Durumuna Küçült">−</button>
+        <button type="button" id="portraitCloseBtn" class="tp-ctrl-btn" title="Kapat">&times;</button>
+      </div>
+    </div>
+
+    <!-- Canlı Tablo / Tuval Alanı -->
+    <div class="tp-stage">
+      <div class="tp-canvas-wrap">
+        <canvas id="talkingPortraitCanvas"></canvas>
+      </div>
+      <div class="tp-candle-halo"></div>
+    </div>
+
+    <!-- Ses ve Konuşma Bilgisi -->
+    <div class="tp-body">
+      <div class="tp-track-name" id="portraitTrackTitle">Birinci Söz · Bismillah Her Hayrın Başıdır</div>
+      
+      <!-- Canlı Ses Spektrumu / Frekans Dalgası -->
+      <div class="tp-wave-box">
+        <canvas id="portraitWaveCanvas"></canvas>
+      </div>
+
+      <!-- İlerleme Çubuğu (Scrubber) -->
+      <div class="tp-progress-wrap" id="portraitProgressWrap" title="İlerletmek için tıklayın">
+        <div class="tp-progress-fill" id="portraitProgressFill"></div>
+      </div>
+      <div class="tp-time-row">
+        <span id="portraitTimeCur">00:00</span>
+        <span id="portraitTimeTot">--:--</span>
+      </div>
+
+      <!-- Kontrol Butonları -->
+      <div class="tp-controls">
+        <button type="button" id="portraitPlayPause" class="tp-btn-primary"><span>▶</span> Dinle</button>
+        <input type="file" id="portraitAudioUpload" accept="audio/mp3,audio/*" style="display:none;">
+        <button type="button" id="portraitUploadBtn" class="tp-btn-secondary" title="Bilgisayarınızdan MP3 Yükleyin"><span>🎵</span> MP3 Seç</button>
+      </div>
+    </div>
+  </div>
+  <audio id="risaleAudioSource" src="risale_audio_sample.mp3" preload="metadata"></audio>
+</div>
+
 </main>
 <footer>
   <span>Nur Koridoru &copy; 2026</span>
@@ -1392,7 +1698,8 @@ body.is-admin .admin-badge {
   <button type="button" id="adminLockBtn" class="admin-lock-btn" title="Yönetici Girişi (Şifreli)" aria-label="Yönetici Girişi">🔒</button>
 </footer>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="books_catalog.js?v=3.9"></script>
-<script src="nur_main.js?v=3.9"></script>
+<script src="books_catalog.js?v=4.0"></script>
+<script src="audio_portrait.js?v=4.0"></script>
+<script src="nur_main.js?v=4.0"></script>
 </body>
 </html>
