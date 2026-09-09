@@ -3998,6 +3998,8 @@ window.addEventListener("keydown", function(e){
           loaded[idx].desc = def.desc;
           loaded[idx].shelfId = def.shelfId;
           loaded[idx].canonicalTitle = "";
+          if(def.pages && def.pages.length) loaded[idx].pages = def.pages;
+          if(def.pageCount) loaded[idx].pageCount = def.pageCount;
           NurStorage.save(loaded[idx]);
         }
       });
