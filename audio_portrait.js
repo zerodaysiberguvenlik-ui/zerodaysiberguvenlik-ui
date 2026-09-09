@@ -53,13 +53,22 @@
   var audioCustomBookWrap = null;
   var audioCustomBookInput = null;
   var audioSubTitleInput = null;
+  var audioSingleSubTitleWrap = null;
+  var audioQueueContainer = null;
+  var audioQueueCount = null;
+  var audioQueueTotalSize = null;
+  var audioQueueList = null;
+  var audioQueueClearBtn = null;
+  var audioSaveProgressWrap = null;
+  var audioSaveProgressFill = null;
+  var audioSaveProgressText = null;
   var audioFileInput = null;
   var audioDropzone = null;
   var audioFileBadge = null;
   var audioBadgeFileName = null;
   var audioBadgeFileSize = null;
   var audioSaveBtn = null;
-  var selectedAudioFile = null;
+  var selectedAudioFiles = []; // Dizi: { id, file, subTitle }
 
   // Üstad Portresi Görüntüsü
   var portraitImg = new Image();
@@ -681,42 +690,168 @@
     }
   }
 
+  function cleanFileNameToTitle(fileName){
+    if(!fileName) return "";
+    var title = fileName.replace(/\.[^/.]+$/, ""); // uzantıyı kaldır (.mp3 vb)
+    title = title.replace(/[_\-]+/g, " "); // alt çizgi ve tireleri boşluğa çevir
+    title = title.replace(/\s+/g, " ").trim();
+    return title;
+  }
+
   function resetAddAudioForm(){
-    selectedAudioFile = null;
+    selectedAudioFiles = [];
     if(audioFileInput) audioFileInput.value = "";
     if(audioSubTitleInput) audioSubTitleInput.value = "";
     if(audioCustomBookInput) audioCustomBookInput.value = "";
     if(audioCustomBookWrap) audioCustomBookWrap.style.display = "none";
     if(audioFileBadge) audioFileBadge.style.display = "none";
+    if(audioSingleSubTitleWrap) audioSingleSubTitleWrap.style.display = "block";
+    if(audioQueueContainer) audioQueueContainer.style.display = "none";
+    if(audioQueueList) audioQueueList.innerHTML = "";
+    if(audioSaveProgressWrap) audioSaveProgressWrap.style.display = "none";
+    if(audioSaveProgressFill) audioSaveProgressFill.style.width = "0%";
+    if(audioSaveBtn){
+      audioSaveBtn.disabled = false;
+      audioSaveBtn.innerHTML = "<span>✦</span> Kaydet &amp; Kütüphaneye Ekle";
+    }
     var dropText = document.getElementById("audioDropText");
-    if(dropText) dropText.textContent = "MP3 Dosyasını Buraya Sürükleyin veya Seçin";
+    if(dropText) dropText.textContent = "MP3 Dosyalarını Buraya Sürükleyin veya Tıklayın";
   }
 
-  function handleAudioFilePicked(file){
-    if(!file) return;
-    if(!file.name.toLowerCase().endsWith(".mp3") && !file.type.includes("audio")){
-      if(typeof showToast === "function") showToast("Lütfen geçerli bir MP3 ses dosyası seçin.");
+  function renderQueueList(){
+    if(!audioQueueList) return;
+    audioQueueList.innerHTML = "";
+
+    if(selectedAudioFiles.length === 0){
+      resetAddAudioForm();
       return;
     }
-    selectedAudioFile = file;
-    if(audioFileBadge){
-      audioFileBadge.style.display = "inline-flex";
-      if(audioBadgeFileName) audioBadgeFileName.textContent = file.name;
-      if(audioBadgeFileSize) audioBadgeFileSize.textContent = (file.size / (1024 * 1024)).toFixed(2) + " MB";
-    }
-    var dropText = document.getElementById("audioDropText");
-    if(dropText) dropText.textContent = "Seçilen: " + file.name;
 
-    // Otomatik alt başlık tahmini (Dosya adından)
-    if(!audioSubTitleInput.value.trim()){
-      var raw = file.name.replace(/\.[^/.]+$/, "").replace(/[_\-]+/g, " ").trim();
-      audioSubTitleInput.value = raw;
+    if(selectedAudioFiles.length === 1){
+      if(audioSingleSubTitleWrap) audioSingleSubTitleWrap.style.display = "block";
+      if(audioQueueContainer) audioQueueContainer.style.display = "none";
+      if(audioFileBadge) audioFileBadge.style.display = "inline-flex";
+      if(audioBadgeFileName) audioBadgeFileName.textContent = selectedAudioFiles[0].file.name;
+      if(audioBadgeFileSize) audioBadgeFileSize.textContent = (selectedAudioFiles[0].file.size / (1024 * 1024)).toFixed(2) + " MB";
+      if(audioSubTitleInput) audioSubTitleInput.value = selectedAudioFiles[0].subTitle;
+      var dropText = document.getElementById("audioDropText");
+      if(dropText) dropText.textContent = "Seçilen: " + selectedAudioFiles[0].file.name;
+      if(audioSaveBtn) audioSaveBtn.innerHTML = "<span>✦</span> Kaydet &amp; Kütüphaneye Ekle";
+      return;
     }
+
+    // Çoklu dosya görünümü (> 1)
+    if(audioSingleSubTitleWrap) audioSingleSubTitleWrap.style.display = "none";
+    if(audioQueueContainer) audioQueueContainer.style.display = "block";
+    if(audioFileBadge) audioFileBadge.style.display = "none";
+
+    var totalBytes = 0;
+    for(var i = 0; i < selectedAudioFiles.length; i++){
+      totalBytes += selectedAudioFiles[i].file.size;
+    }
+
+    if(audioQueueCount) audioQueueCount.textContent = selectedAudioFiles.length;
+    if(audioQueueTotalSize) audioQueueTotalSize.textContent = (totalBytes / (1024 * 1024)).toFixed(1) + " MB";
+
+    var dropTextMulti = document.getElementById("audioDropText");
+    if(dropTextMulti) dropTextMulti.textContent = selectedAudioFiles.length + " adet MP3 seçildi (Daha fazla ekleyebilirsiniz)";
+
+    if(audioSaveBtn){
+      audioSaveBtn.innerHTML = "<span>✦</span> Hepsini Kaydet (" + selectedAudioFiles.length + " MP3)";
+    }
+
+    selectedAudioFiles.forEach(function(item, idx){
+      var row = document.createElement("div");
+      row.className = "aam-queue-item";
+
+      var icon = document.createElement("span");
+      icon.className = "aam-queue-item-icon";
+      icon.textContent = "🎵";
+
+      var main = document.createElement("div");
+      main.className = "aam-queue-item-main";
+
+      var topRow = document.createElement("div");
+      topRow.className = "aam-queue-item-top";
+
+      var fileNameSpan = document.createElement("span");
+      fileNameSpan.className = "aam-queue-item-file";
+      fileNameSpan.title = item.file.name;
+      fileNameSpan.textContent = (idx + 1) + ". " + item.file.name;
+
+      var sizeSpan = document.createElement("span");
+      sizeSpan.className = "aam-queue-item-size";
+      sizeSpan.textContent = (item.file.size / (1024 * 1024)).toFixed(1) + " MB";
+
+      topRow.appendChild(fileNameSpan);
+      topRow.appendChild(sizeSpan);
+
+      var input = document.createElement("input");
+      input.type = "text";
+      input.className = "aam-queue-item-input";
+      input.placeholder = "Alt Başlık / Bahis Adı";
+      input.value = item.subTitle;
+      input.addEventListener("input", function(){
+        item.subTitle = input.value;
+      });
+
+      main.appendChild(topRow);
+      main.appendChild(input);
+
+      var delBtn = document.createElement("button");
+      delBtn.type = "button";
+      delBtn.className = "aam-queue-item-del";
+      delBtn.innerHTML = "&times;";
+      delBtn.title = "Listeden Çıkar";
+      delBtn.addEventListener("click", function(){
+        selectedAudioFiles.splice(idx, 1);
+        renderQueueList();
+      });
+
+      row.appendChild(icon);
+      row.appendChild(main);
+      row.appendChild(delBtn);
+
+      audioQueueList.appendChild(row);
+    });
+  }
+
+  function handleAudioFilesPicked(files){
+    if(!files || !files.length) return;
+
+    var validFiles = [];
+    for(var i = 0; i < files.length; i++){
+      var f = files[i];
+      var name = f.name.toLowerCase();
+      if(name.endsWith(".mp3") || name.endsWith(".wav") || name.endsWith(".ogg") || name.endsWith(".m4a") || name.endsWith(".aac") || f.type.includes("audio")){
+        validFiles.push(f);
+      }
+    }
+
+    if(validFiles.length === 0){
+      if(typeof showToast === "function") showToast("Lütfen geçerli MP3 ses dosyaları seçin.");
+      return;
+    }
+
+    validFiles.forEach(function(f){
+      var already = selectedAudioFiles.some(function(item){
+        return item.file.name === f.name && item.file.size === f.size;
+      });
+      if(!already){
+        selectedAudioFiles.push({
+          id: "q_" + Date.now() + "_" + Math.floor(Math.random() * 10000),
+          file: f,
+          subTitle: cleanFileNameToTitle(f.name)
+        });
+      }
+    });
+
+    renderQueueList();
   }
 
   async function saveNewAudioTrack(){
-    if(!selectedAudioFile){
-      if(typeof showToast === "function") showToast("Lütfen bir MP3 ses dosyası seçin.");
+    if(selectedAudioFiles.length === 0){
+      if(typeof showToast === "function") showToast("Lütfen en az bir MP3 ses dosyası seçin.");
       return;
     }
 
@@ -726,48 +861,71 @@
       if(!chosenBook) chosenBook = "Hususî Eser";
     }
 
-    var subTitle = audioSubTitleInput ? audioSubTitleInput.value.trim() : "";
-    if(!subTitle){
-      subTitle = selectedAudioFile.name.replace(/\.[^/.]+$/, "");
+    // Tek dosya ise ve tekli input doldurulduysa başlığı güncelle
+    if(selectedAudioFiles.length === 1 && audioSubTitleInput && audioSubTitleInput.value.trim()){
+      selectedAudioFiles[0].subTitle = audioSubTitleInput.value.trim();
     }
 
-    if(audioSaveBtn){
-      audioSaveBtn.disabled = true;
-      audioSaveBtn.textContent = "Kaydediliyor...";
-    }
+    if(audioSaveBtn) audioSaveBtn.disabled = true;
+    if(audioSaveProgressWrap) audioSaveProgressWrap.style.display = "block";
+
+    var total = selectedAudioFiles.length;
+    var firstNewTrack = null;
 
     try{
-      var trackId = "audio_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
-      var newTrack = {
-        id: trackId,
-        bookTitle: chosenBook,
-        subTitle: subTitle,
-        fileName: selectedAudioFile.name,
-        audioBlob: selectedAudioFile,
-        duration: (selectedAudioFile.size / (1024 * 1024)).toFixed(1) + " MB",
-        createdAt: Date.now()
-      };
+      for(var i = 0; i < total; i++){
+        var item = selectedAudioFiles[i];
+        var pct = Math.round(((i + 1) / total) * 100);
+        if(audioSaveProgressFill) audioSaveProgressFill.style.width = pct + "%";
+        if(audioSaveProgressText){
+          audioSaveProgressText.textContent = (i + 1) + " / " + total + " kaydediliyor: " + item.subTitle;
+        }
 
-      await NurAudioStorage.save(newTrack);
-      playlist.push(newTrack);
+        var trackId = "audio_" + Date.now() + "_" + i + "_" + Math.floor(Math.random() * 1000);
+        var subTitle = item.subTitle.trim() || item.file.name.replace(/\.[^/.]+$/, "");
+        var newTrack = {
+          id: trackId,
+          bookTitle: chosenBook,
+          subTitle: subTitle,
+          fileName: item.file.name,
+          audioBlob: item.file,
+          duration: (item.file.size / (1024 * 1024)).toFixed(1) + " MB",
+          createdAt: Date.now() + i
+        };
+
+        await NurAudioStorage.save(newTrack);
+        playlist.push(newTrack);
+        if(!firstNewTrack) firstNewTrack = newTrack;
+      }
+
+      if(audioSaveProgressFill) audioSaveProgressFill.style.width = "100%";
+      if(audioSaveProgressText) audioSaveProgressText.textContent = "Tamamlandı!";
+
       updatePlaylistBadge();
       renderPlaylist();
       closeAddAudioModal();
 
       if(typeof showToast === "function"){
-        showToast("🎙️ '" + chosenBook + " · " + subTitle + "' başarıyla eklendi!");
+        if(total === 1){
+          showToast("🎙️ '" + chosenBook + " · " + selectedAudioFiles[0].subTitle + "' eklendi!");
+        } else {
+          showToast("🎉 " + total + " adet MP3 kaydı '" + chosenBook + "' eserine eklendi!");
+        }
       }
 
-      // Yeni eklenen parçayı çalmaya başla
-      playTrack(newTrack);
+      // Yeni eklenen parçalardan ilkini çal
+      if(firstNewTrack){
+        playTrack(firstNewTrack);
+      }
     }catch(err){
-      console.error("Audio save error:", err);
-      if(typeof showToast === "function") showToast("Ses kaydedilirken bir hata oluştu.");
+      console.error("Audio batch save error:", err);
+      if(typeof showToast === "function") showToast("Sesler kaydedilirken bir hata oluştu.");
     }finally{
       if(audioSaveBtn){
         audioSaveBtn.disabled = false;
         audioSaveBtn.innerHTML = "<span>✦</span> Kaydet &amp; Kütüphaneye Ekle";
       }
+      if(audioSaveProgressWrap) audioSaveProgressWrap.style.display = "none";
     }
   }
 
@@ -817,12 +975,25 @@
     audioCustomBookWrap = document.getElementById("audioCustomBookWrap");
     audioCustomBookInput = document.getElementById("audioCustomBookInput");
     audioSubTitleInput = document.getElementById("audioSubTitleInput");
+    audioSingleSubTitleWrap = document.getElementById("audioSingleSubTitleWrap");
+    audioQueueContainer = document.getElementById("audioQueueContainer");
+    audioQueueCount = document.getElementById("audioQueueCount");
+    audioQueueTotalSize = document.getElementById("audioQueueTotalSize");
+    audioQueueList = document.getElementById("audioQueueList");
+    audioQueueClearBtn = document.getElementById("audioQueueClearBtn");
+    audioSaveProgressWrap = document.getElementById("audioSaveProgressWrap");
+    audioSaveProgressFill = document.getElementById("audioSaveProgressFill");
+    audioSaveProgressText = document.getElementById("audioSaveProgressText");
     audioFileInput = document.getElementById("audioFileInput");
     audioDropzone = document.getElementById("audioDropzone");
     audioFileBadge = document.getElementById("audioFileBadge");
     audioBadgeFileName = document.getElementById("audioBadgeFileName");
     audioBadgeFileSize = document.getElementById("audioBadgeFileSize");
     audioSaveBtn = document.getElementById("audioSaveBtn");
+
+    if(audioQueueClearBtn){
+      audioQueueClearBtn.addEventListener("click", resetAddAudioForm);
+    }
 
     if(audioBookSelect){
       audioBookSelect.addEventListener("change", function(){
@@ -840,7 +1011,7 @@
         e.preventDefault();
         audioDropzone.classList.remove("dragover");
         if(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length){
-          handleAudioFilePicked(e.dataTransfer.files[0]);
+          handleAudioFilesPicked(e.dataTransfer.files);
         }
       });
     }
@@ -848,7 +1019,19 @@
     if(audioFileInput){
       audioFileInput.addEventListener("change", function(){
         if(audioFileInput.files && audioFileInput.files.length){
-          handleAudioFilePicked(audioFileInput.files[0]);
+          handleAudioFilesPicked(audioFileInput.files);
+        }
+      });
+    }
+
+    // Çalma listesi alanına dosya sürüklendiğinde de modalı aç ve dosyaları yükle
+    if(playlistView){
+      playlistView.addEventListener("dragover", function(e){ e.preventDefault(); });
+      playlistView.addEventListener("drop", function(e){
+        e.preventDefault();
+        if(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length){
+          openAddAudioModal();
+          handleAudioFilesPicked(e.dataTransfer.files);
         }
       });
     }

@@ -1446,12 +1446,23 @@ body.is-admin .admin-badge {
 }
 .add-audio-panel {
   position: relative;
-  width: min(540px, 94vw);
+  width: min(640px, 95vw);
+  max-height: 90vh;
+  overflow-y: auto;
   background: radial-gradient(ellipse at 50% 15%, #261c12 0%, #15100b 60%, #0c0907 100%);
   border: 1px solid rgba(212,175,55,0.5);
   border-radius: 10px;
   box-shadow: 0 30px 80px rgba(0,0,0,0.92), 0 0 45px rgba(212,175,55,0.22);
-  padding: 30px 32px 28px;
+  padding: 28px 30px 24px;
+}
+.add-audio-panel::-webkit-scrollbar,
+.aam-queue-list::-webkit-scrollbar {
+  width: 6px;
+}
+.add-audio-panel::-webkit-scrollbar-thumb,
+.aam-queue-list::-webkit-scrollbar-thumb {
+  background: rgba(212,175,55,0.3);
+  border-radius: 3px;
 }
 .add-audio-close {
   position: absolute;
@@ -1555,6 +1566,12 @@ body.is-admin .admin-badge {
   color: var(--parchment-dim);
   margin: 0;
 }
+.aam-drop-sub {
+  display: block;
+  font-size: 0.76rem;
+  color: rgba(212,175,55,0.7);
+  margin-top: 4px;
+}
 .aam-file-badge {
   margin-top: 10px;
   display: inline-flex;
@@ -1572,6 +1589,140 @@ body.is-admin .admin-badge {
 .aam-badge-size {
   color: #ffd700;
   font-weight: 600;
+}
+.aam-queue-wrap {
+  margin-top: 14px;
+  background: rgba(0,0,0,0.45);
+  border: 1px solid rgba(212,175,55,0.3);
+  border-radius: 8px;
+  padding: 12px;
+}
+.aam-queue-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.82rem;
+  color: #ffd700;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(212,175,55,0.2);
+}
+.aam-queue-clear {
+  background: none;
+  border: 1px solid rgba(224,122,95,0.4);
+  color: #e07a5f;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.aam-queue-clear:hover {
+  background: rgba(224,122,95,0.15);
+  color: #ff9d85;
+}
+.aam-queue-tip {
+  font-size: 0.74rem;
+  color: var(--parchment-dim);
+  margin: 6px 0 8px;
+  font-style: italic;
+}
+.aam-queue-list {
+  max-height: 220px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-right: 4px;
+}
+.aam-queue-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(212,175,55,0.06);
+  border: 1px solid rgba(212,175,55,0.18);
+  border-radius: 6px;
+  padding: 6px 10px;
+  transition: border-color 0.2s;
+}
+.aam-queue-item:hover {
+  border-color: rgba(212,175,55,0.4);
+}
+.aam-queue-item-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+.aam-queue-item-main {
+  flex: 1;
+  min-width: 0;
+}
+.aam-queue-item-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 3px;
+}
+.aam-queue-item-file {
+  font-size: 0.74rem;
+  color: var(--parchment-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.aam-queue-item-size {
+  font-size: 0.72rem;
+  color: #ffd700;
+  flex-shrink: 0;
+}
+.aam-queue-item-input {
+  width: 100%;
+  padding: 5px 8px;
+  background: rgba(10,8,6,0.9);
+  border: 1px solid rgba(212,175,55,0.3);
+  border-radius: 4px;
+  color: #f7e7ce;
+  font-size: 0.82rem;
+  outline: none;
+}
+.aam-queue-item-input:focus {
+  border-color: #ffd700;
+}
+.aam-queue-item-del {
+  background: none;
+  border: none;
+  color: rgba(255,110,110,0.7);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  transition: color 0.2s;
+}
+.aam-queue-item-del:hover {
+  color: #ff5555;
+}
+.aam-progress-wrap {
+  margin-top: 14px;
+  display: none;
+}
+.aam-progress-bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(0,0,0,0.6);
+  border: 1px solid rgba(212,175,55,0.3);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.aam-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #d4af37, #ffd700);
+  transition: width 0.2s ease;
+}
+.aam-progress-text {
+  font-size: 0.78rem;
+  color: #ffd700;
+  text-align: center;
+  margin-top: 5px;
 }
 .aam-actions {
   display: flex;
@@ -2023,11 +2174,11 @@ body.is-admin .admin-badge {
     <div class="aam-crest">✦</div>
     <div class="aam-kicker">Hazine-i Evrak · Sesli Risale-i Nur</div>
     <h3 class="aam-title">Yeni Sesli Eser / MP3 Ekle</h3>
-    <p class="aam-desc">Elinizdeki Risale ses kaydını kitap adı ve alt başlığıyla sisteme ekleyin. Üstad portresi bu kaydı dudaklarını oynatarak okuyacaktır.</p>
+    <p class="aam-desc">Elinizdeki Risale ses kayıtlarını (tek tek veya <strong>aynı anda birden fazla</strong>) kitap adı ve alt başlıklarıyla sisteme ekleyin. Üstad portresi bu kayıtları dudaklarını oynatarak okuyacaktır.</p>
 
     <form id="addAudioForm" onsubmit="return false;">
       <div class="aam-group">
-        <label for="audioBookSelect">Ait Olduğu Eser / Kitap:</label>
+        <label for="audioBookSelect">Ait Olduğu Eser / Kitap (Tüm Seçilenler İçin):</label>
         <select id="audioBookSelect" class="aam-select"></select>
       </div>
 
@@ -2037,21 +2188,41 @@ body.is-admin .admin-badge {
       </div>
 
       <div class="aam-group">
-        <label for="audioSubTitleInput">Alt Başlık / Bahis / Bölüm Adı:</label>
-        <input type="text" id="audioSubTitleInput" class="aam-input" placeholder="Örn: 1. Söz · Bismillah, 10. Söz · Haşir Risalesi..." required>
-      </div>
-
-      <div class="aam-group">
-        <label>MP3 Ses Dosyası:</label>
+        <label>MP3 Ses Dosyaları (Tek veya Çoklu Seçim):</label>
         <div class="aam-dropzone" id="audioDropzone">
           <span class="aam-drop-icon">🎵</span>
-          <p id="audioDropText">MP3 Dosyasını Buraya Sürükleyin veya Tıklayın</p>
-          <input type="file" id="audioFileInput" accept="audio/mp3,audio/*" style="display:none;">
+          <p id="audioDropText">MP3 Dosyalarını Buraya Sürükleyin veya Tıklayın</p>
+          <span class="aam-drop-sub">İster 1 dosya, ister aynı anda onlarca MP3 seçip yükleyebilirsiniz</span>
+          <input type="file" id="audioFileInput" accept="audio/mp3,audio/*,audio/mpeg" multiple style="display:none;">
           <div id="audioFileBadge" class="aam-file-badge" style="display:none;">
             <span class="aam-badge-name" id="audioBadgeFileName"></span>
             <span class="aam-badge-size" id="audioBadgeFileSize"></span>
           </div>
         </div>
+      </div>
+
+      <!-- Tek dosya seçildiğinde kullanılan alt başlık kutusu -->
+      <div class="aam-group" id="audioSingleSubTitleWrap">
+        <label for="audioSubTitleInput">Alt Başlık / Bahis / Bölüm Adı:</label>
+        <input type="text" id="audioSubTitleInput" class="aam-input" placeholder="Örn: 1. Söz · Bismillah, 10. Söz · Haşir Risalesi...">
+      </div>
+
+      <!-- Çoklu dosya seçildiğinde listelenen dinamik liste -->
+      <div id="audioQueueContainer" class="aam-queue-wrap" style="display:none;">
+        <div class="aam-queue-header">
+          <span>✨ Seçilen MP3'ler (<strong id="audioQueueCount">0</strong> Dosya · <span id="audioQueueTotalSize">0 MB</span>)</span>
+          <button type="button" class="aam-queue-clear" id="audioQueueClearBtn">Listeyi Temizle</button>
+        </div>
+        <p class="aam-queue-tip">Aşağıdaki alt başlıklar dosya isimlerinden otomatik üretildi. Dilerseniz değiştirebilirsiniz:</p>
+        <div id="audioQueueList" class="aam-queue-list"></div>
+      </div>
+
+      <!-- Kaydetme esnasındaki ilerleme çubuğu -->
+      <div id="audioSaveProgressWrap" class="aam-progress-wrap">
+        <div class="aam-progress-bar">
+          <div id="audioSaveProgressFill" class="aam-progress-fill"></div>
+        </div>
+        <div id="audioSaveProgressText" class="aam-progress-text">Kaydediliyor...</div>
       </div>
 
       <div class="aam-actions">
