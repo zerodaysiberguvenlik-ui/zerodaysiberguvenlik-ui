@@ -1145,6 +1145,7 @@ body.is-admin .admin-badge {
   height: 100%;
   object-fit: contain;
   filter: drop-shadow(0 6px 16px rgba(0,0,0,0.85));
+  pointer-events: none;
 }
 .tp-candle-halo {
   position: absolute;
@@ -1186,6 +1187,7 @@ body.is-admin .admin-badge {
 #portraitWaveCanvas {
   width: 100%;
   height: 100%;
+  pointer-events: none;
 }
 
 /* İlerleme Çubuğu */
@@ -1218,6 +1220,8 @@ body.is-admin .admin-badge {
   display: flex;
   gap: 8px;
   margin-top: 2px;
+  position: relative;
+  z-index: 10;
 }
 .tp-btn-primary {
   flex: 1;
