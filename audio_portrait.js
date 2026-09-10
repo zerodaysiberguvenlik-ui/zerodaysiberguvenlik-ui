@@ -483,7 +483,7 @@
             "<div class='pl-track-sub'>" + escHTML(track.subTitle || track.title || "Bölüm") + "</div>" +
             "<div class='pl-track-dur'>" + (track.duration || "Sesli Kayıt") + "</div>" +
           "</div>" +
-          (track.isDefault ? "" : "<button type='button' class='pl-delete-btn' title='Bölümü Sil'>🗑️</button>");
+          "<button type='button' class='pl-delete-btn' title='Bölümü Sil'>🗑️</button>";
 
         item.querySelector(".pl-play-icon-btn").addEventListener("click", function(e){
           e.stopPropagation();
@@ -1218,7 +1218,10 @@
           openPlayer();
           playTrack(found);
         } else {
-          openPlayer(t + " (Sesli Risale)", "risale_audio_sample.mp3");
+          openPlayer();
+          if(playlist.length > 0){
+            playTrack(playlist[0]);
+          }
         }
       });
     }
@@ -1238,7 +1241,7 @@
     await NurAudioStorage.init();
     var loadedTracks = await NurAudioStorage.getAll();
 
-    // Yerel sunucu kataloğunu (audio_catalog.json) da yükle (D: diskindeki veya klasördeki hazır parçalar)
+    // Yerel sunucu kataloğunu (audio_catalog.json) da yükle (D: diskindeki hazır parçalar)
     var serverTracks = [];
     try{
       var catRes = await fetch("audio_catalog.json?v=" + Date.now());
@@ -1249,22 +1252,16 @@
       console.warn("audio_catalog fetch:", err);
     }
 
-    var defaultSample = {
-      id: "sample_birinci_soz",
-      bookTitle: "Sözler",
-      subTitle: "Birinci Söz · Bismillah Her Hayrın Başıdır",
-      src: "risale_audio_sample.mp3",
-      duration: "02:59",
-      isDefault: true,
-      createdAt: 1788942658257
-    };
-
-    var allTracks = [defaultSample];
+    var allTracks = [];
     if(serverTracks && serverTracks.length){
       allTracks = allTracks.concat(serverTracks);
     }
     if(loadedTracks && loadedTracks.length){
       loadedTracks.forEach(function(lt){
+        if(lt.id === "sample_birinci_soz" || (lt.src && lt.src.indexOf("risale_audio_sample") !== -1)){
+          NurAudioStorage.remove(lt.id);
+          return;
+        }
         if(!allTracks.some(function(t){ return t.id === lt.id; })){
           allTracks.push(lt);
         }
@@ -1273,9 +1270,15 @@
 
     playlist = allTracks;
 
-    currentTrack = playlist[0];
-    if(titleEl) titleEl.textContent = currentTrack.subTitle;
-    if(bookTagEl) bookTagEl.textContent = "📖 " + currentTrack.bookTitle;
+    if(playlist.length > 0){
+      currentTrack = playlist[0];
+      if(titleEl) titleEl.textContent = currentTrack.subTitle;
+      if(bookTagEl) bookTagEl.textContent = "📖 " + currentTrack.bookTitle;
+    } else {
+      currentTrack = null;
+      if(titleEl) titleEl.textContent = "Parça Seçiniz";
+      if(bookTagEl) bookTagEl.textContent = "📖 Risale-i Nur";
+    }
 
     updatePlaylistBadge();
     renderPlaylist();
