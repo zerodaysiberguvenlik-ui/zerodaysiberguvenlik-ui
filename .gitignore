@@ -13,3 +13,9 @@ npm-debug.log*
 
 # Local raw books cache (full multi-hundred MB extracted images)
 books_data/
+
+# D: Disk junction - yerel ses arşivi (D: diskine bağlı, repoya eklenmemeli)
+audio_depo/
+
+# MP3 ses dosyaları (büyük binary dosyalar, repoya eklenmemeli)
+*.mp3
