@@ -537,12 +537,26 @@
     }
     if(!audioElement) return;
 
+    if(!audioElement.src || audioElement.src === "" || audioElement.src === window.location.href){
+      if(currentTrack){
+        playTrack(currentTrack);
+        return;
+      } else if(playlist && playlist.length > 0){
+        playTrack(playlist[0]);
+        return;
+      }
+    }
+
     if(audioElement.paused){
       audioElement.play().then(function(){
         updatePlayBtnIcon(true);
         renderPlaylist();
       }).catch(function(err){
         console.warn("Play blocked:", err);
+        updatePlayBtnIcon(false);
+        if(typeof showToast === "function"){
+          showToast("⚠️ Ses dosyası açılamadı. D: sürücüsündeki ses dosyalarını veya '+ MP3 Ekle' butonunu kontrol ediniz.");
+        }
       });
     } else {
       audioElement.pause();
@@ -1176,6 +1190,11 @@
         renderPlaylist();
         if(progressFill) progressFill.style.width = "0%";
       });
+      audioElement.addEventListener("error", function(){
+        updatePlayBtnIcon(false);
+        renderPlaylist();
+        console.warn("Audio element error: dosya bulunamadı veya açılamadı.");
+      });
     }
 
     if(progressBar){
@@ -1242,28 +1261,52 @@
     var loadedTracks = await NurAudioStorage.getAll();
 
     // Yerel sunucu kataloğunu (audio_catalog.json) da yükle (D: diskindeki hazır parçalar)
+    // Önce erişilebilirlik kontrolü yapıyoruz - 404 döndürürse ekleme
     var serverTracks = [];
     try{
       var catRes = await fetch("audio_catalog.json?v=" + Date.now());
       if(catRes.ok){
-        serverTracks = await catRes.json();
+        var rawCatalog = await catRes.json();
+        // İlk parçanın erişilebilir olup olmadığını test et
+        var firstTrack = rawCatalog && rawCatalog[0];
+        if(firstTrack){
+          var testUrl = firstTrack.audioUrl || firstTrack.src || "";
+          var accessible = false;
+          if(testUrl){
+            try{
+              var testRes = await fetch(testUrl, { method: "HEAD" });
+              accessible = testRes.ok;
+            }catch(e){ accessible = false; }
+          }
+          if(accessible){
+            serverTracks = rawCatalog;
+          } else {
+            console.warn("audio_catalog.json dosyaları erişilemiyor (D: diski yok). IndexedDB parçaları kullanılıyor.");
+          }
+        }
       }
     }catch(err){
       console.warn("audio_catalog fetch:", err);
     }
 
     var allTracks = [];
-    if(serverTracks && serverTracks.length){
-      allTracks = allTracks.concat(serverTracks);
-    }
+
+    // Önce IndexedDB blob parçaları (bunlar her zaman çalışır)
     if(loadedTracks && loadedTracks.length){
       loadedTracks.forEach(function(lt){
         if(lt.id === "sample_birinci_soz" || (lt.src && lt.src.indexOf("risale_audio_sample") !== -1)){
           NurAudioStorage.remove(lt.id);
           return;
         }
-        if(!allTracks.some(function(t){ return t.id === lt.id; })){
-          allTracks.push(lt);
+        allTracks.push(lt);
+      });
+    }
+
+    // Sonra sunucu parçaları (sadece erişilebilirlerse)
+    if(serverTracks && serverTracks.length){
+      serverTracks.forEach(function(st){
+        if(!allTracks.some(function(t){ return t.id === st.id; })){
+          allTracks.push(st);
         }
       });
     }
@@ -1272,8 +1315,15 @@
 
     if(playlist.length > 0){
       currentTrack = playlist[0];
-      if(titleEl) titleEl.textContent = currentTrack.subTitle;
-      if(bookTagEl) bookTagEl.textContent = "📖 " + currentTrack.bookTitle;
+      if(titleEl) titleEl.textContent = currentTrack.subTitle || currentTrack.title || "Sesli Risale";
+      if(bookTagEl) bookTagEl.textContent = "📖 " + (currentTrack.bookTitle || "Risale-i Nur");
+      var initSrc = "";
+      if(currentTrack.audioBlob){
+        initSrc = URL.createObjectURL(currentTrack.audioBlob);
+      } else {
+        initSrc = currentTrack.audioUrl || currentTrack.src || "";
+      }
+      if(initSrc && audioElement) audioElement.src = initSrc;
     } else {
       currentTrack = null;
       if(titleEl) titleEl.textContent = "Parça Seçiniz";
