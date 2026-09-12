@@ -1,12 +1,32 @@
+# Environment variables and secrets (CRITICAL: NEVER COMMIT)
+.env
+.env.*
+*.key
+*.pem
+*.secret
+secrets.*
+credentials.*
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Python cache and bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
 # OS generated files
 .DS_Store
 Thumbs.db
 desktop.ini
 
-# Logs
+# Logs & temporary files
 *.log
 npm-debug.log*
-
-# Temporary files
 *.tmp
 *.bak

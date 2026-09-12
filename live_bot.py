@@ -25,10 +25,10 @@ BASE_RPC_POOL = [
     "https://1rpc.io/base"
 ]
 
-# ⚙️ SİSTEM VE CÜZDAN AYARLARI
-WALLET_ADDRESS = os.getenv("WALLET_ADDRESS", "0xf803Ea5fba43ca564216F79Ddf11fFe9477b20B6")
-PRIVATE_KEY = os.getenv("PRIVATE_KEY", "31d2cb88211ff005849bf119670599739745fa784e37894deccb261e2eaf149d")
-ARBITRAGE_CONTRACT_ADDRESS = os.getenv("ARBITRAGE_CONTRACT_ADDRESS", "0x128F85bC1313cDa9465e91041D06a3A8Ed88e5C2")
+# ⚙️ SİSTEM VE CÜZDAN AYARLARI (GÜVENLİK: KESİNLİKLE KOD İÇİNDE SAKLANMAZ)
+WALLET_ADDRESS = os.getenv("WALLET_ADDRESS", "").strip()
+PRIVATE_KEY = os.getenv("PRIVATE_KEY", "").strip()
+ARBITRAGE_CONTRACT_ADDRESS = os.getenv("ARBITRAGE_CONTRACT_ADDRESS", "").strip()
 
 # 📱 TELEGRAM BİLDİRİM VE KOMUT AYARLARI
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "8616834174:AAGI83WG25nYCn9OAsAXYxYX0FYSOMATgtg").strip()
@@ -285,24 +285,34 @@ class TelegramInteractiveCommandHandler:
 
                             elif text in ["/durum", "/status", "durum"]:
                                 status_badge = "⏸️ DURDURULDU (Beklemede)" if BOT_IS_PAUSED else "🟢 ÇALIŞIYOR (Aktif Pusu)"
+                                mode_badge = "✅ Canlı İnfaz" if (WALLET_ADDRESS and PRIVATE_KEY) else "🛡️ Güvenli Gözlemci (Risksiz)"
                                 reply = (
                                     f"📊 <b>BASE ON-CHAIN MEV DURUM RAPORU</b>\n\n"
-                                    f"⚡ <b>Çalışma Modu:</b> {status_badge}\n"
+                                    f"⚡ <b>Çalışma Durumu:</b> {status_badge}\n"
+                                    f"🛡️ <b>İşlem Modu:</b> {mode_badge}\n"
                                     "🟢 <b>Sunucu:</b> Frankfurt (2ms / Kesintisiz)\n"
                                     "🌐 <b>DEX Motoru:</b> BaseSwap, SushiSwap, AlienBase\n"
                                     "💎 <b>Odak:</b> WETH, USDC, BRETT, TOSHI, DEGEN\n"
-                                    "🛡️ <b>0-Gas Kalkanı:</b> %100 Ön-Simülasyon Koruması Devrede\n"
-                                    "⛽ <b>Gas Güvencesi:</b> 0.00445 ETH Hazır"
+                                    "🛡️ <b>0-Gas Kalkanı:</b> %100 Ön-Simülasyon Koruması Devrede"
                                 )
                                 TelegramNotifier.send_alert(reply, force=True)
 
                             elif text in ["/kasa", "/bakiye", "/balance", "kasa"]:
+                                c_disp = f"{ARBITRAGE_CONTRACT_ADDRESS[:10]}..." if ARBITRAGE_CONTRACT_ADDRESS else "Tanımlanmadı"
+                                w_disp = f"{WALLET_ADDRESS[:10]}..." if WALLET_ADDRESS else "Tanımlanmadı"
+                                real_eth_bal = 0.0
+                                try:
+                                    w3_tmp, _ = get_resilient_web3()
+                                    if WALLET_ADDRESS:
+                                        real_eth_bal = float(w3_tmp.from_wei(w3_tmp.eth.get_balance(WALLET_ADDRESS), 'ether'))
+                                except Exception:
+                                    pass
                                 reply = (
                                     "🏦 <b>KASA VE CÜZDAN RAPORU</b>\n\n"
-                                    f"📜 <b>Sözleşme:</b> <code>{ARBITRAGE_CONTRACT_ADDRESS[:10]}...</code>\n"
-                                    f"👤 <b>MetaMask:</b> <code>{WALLET_ADDRESS[:10]}...</code>\n"
+                                    f"📜 <b>Sözleşme:</b> <code>{c_disp}</code>\n"
+                                    f"👤 <b>Cüzdan:</b> <code>{w_disp}</code>\n"
+                                    f"⛽ <b>Canlı Gas Bakiyesi:</b> {real_eth_bal:.6f} ETH (~${real_eth_bal * 2500:.2f})\n"
                                     "💵 <b>Sözleşmedeki USDC:</b> $0.00 USDC\n"
-                                    "⛽ <b>Gas Yakıtı:</b> 0.00445 ETH (~$11.00 Hazır)\n"
                                     "🔄 <b>Otomatik Çekim:</b> $20 Üzeri Otomatik Aktarılır"
                                 )
                                 TelegramNotifier.send_alert(reply, force=True)
@@ -430,6 +440,11 @@ def start_institutional_master_engine():
     w3, active_rpc = get_resilient_web3()
     multicall = w3.eth.contract(address=Web3.to_checksum_address(MULTICALL3_ADDRESS), abi=MULTICALL3_ABI)
     account = w3.eth.account.from_key(PRIVATE_KEY) if PRIVATE_KEY else None
+
+    if account:
+        logger.info(f"👤 Canlı İnfaz Cüzdanı: {account.address}")
+    else:
+        logger.warning("🛡️ [GÖZLEMCİ MODU]: Özel anahtar tanımlanmamış. Bot güvenli gözetleme ve risksiz pusu modunda çalışıyor.")
 
     iteration = 0
     total_net_profit_usdc = 0.0
