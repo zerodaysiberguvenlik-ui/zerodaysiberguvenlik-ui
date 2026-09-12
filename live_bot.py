@@ -317,13 +317,42 @@ class TelegramInteractiveCommandHandler:
                                 )
                                 TelegramNotifier.send_alert(reply, force=True)
 
+                            elif text in ["/deploy", "/sozlesme", "deploy"]:
+                                w3_tmp, _ = get_resilient_web3()
+                                if not PRIVATE_KEY:
+                                    reply = "❌ <b>Hata:</b> PRIVATE_KEY tanımlanmamış!"
+                                else:
+                                    try:
+                                        from deploy_contract import deploy_new_contract
+                                        res = deploy_new_contract(w3_tmp, PRIVATE_KEY)
+                                        if res.get("success"):
+                                            ARBITRAGE_CONTRACT_ADDRESS = res["contract_address"]
+                                            reply = (
+                                                f"👑 <b>YENİ ARBİTRAJ SÖZLEŞMESİ DEPLOY EDİLDİ!</b>\n\n"
+                                                f"📍 <b>Sözleşme:</b>\n<code>{res['contract_address']}</code>\n\n"
+                                                f"👤 <b>Sahip (Owner):</b>\n<code>{res['deployer']}</code>\n\n"
+                                                f"🔗 <b>BaseScan:</b> https://basescan.org/address/{res['contract_address']}\n\n"
+                                                f"🚀 Bot yeni sözleşmeyi anında kullanmaya başladı!"
+                                            )
+                                        else:
+                                            reply = (
+                                                f"⚠️ <b>Sözleşme Henüz Deploy Edilemedi</b>\n\n"
+                                                f"ℹ️ <b>Sebep:</b> {res.get('message')}\n\n"
+                                                f"📬 <b>Yeni Cüzdanınız:</b>\n<code>{res.get('deployer')}</code>\n\n"
+                                                f"👉 Base ağında bu adrese 0.0003 ETH (~$0.75 USD) gönderip tekrar <code>/deploy</code> yazın."
+                                            )
+                                    except Exception as deploy_err:
+                                        reply = f"❌ Deploy hatası: {deploy_err}"
+                                TelegramNotifier.send_alert(reply, force=True)
+
                             elif text in ["/yardim", "/help", "/komutlar", "yardım"]:
                                 reply = (
                                     "📖 <b>TELEGRAM BOT KOMUT REHBERİ</b>\n\n"
                                     "⏸️ <code>/durdur</code> - Botu geçici olarak durdurur.\n"
                                     "▶️ <code>/baslat</code> - Botu yeniden çalıştırır.\n"
                                     "🔹 <code>/durum</code> - Güncel çalışma durumu.\n"
-                                    "🔹 <code>/kasa</code> - Kasa ve bakiye raporu.\n\n"
+                                    "🔹 <code>/kasa</code> - Kasa ve bakiye raporu.\n"
+                                    "🚀 <code>/deploy</code> - Yeni akıllı sözleşmeyi deploy eder.\n\n"
                                     "🔇 Telefonunuzu yormamak için bot sessiz avlanma modundadır!"
                                 )
                                 TelegramNotifier.send_alert(reply, force=True)
