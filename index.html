@@ -219,7 +219,7 @@ footer{position:relative;z-index:2;padding:34px 6vw 40px;display:flex;justify-co
 .page-nav:hover{border-color:var(--gold);background:rgba(212,175,55,0.25);transform:scale(1.1);box-shadow:0 0 20px rgba(212,175,55,0.4);}
 .page-nav:disabled{opacity:0.18;cursor:default;transform:none !important;box-shadow:none;}
 .tome-casing{position:relative;width:auto;max-width:min(860px,92vw);height:min(84vh,880px);display:flex;align-items:center;justify-content:center;border-radius:8px;background:linear-gradient(135deg,#4a0f15 0%,#29080c 45%,#180407 100%);padding:12px;box-shadow:0 30px 80px rgba(0,0,0,0.92),0 0 40px rgba(212,175,55,0.12),inset 0 0 0 1px rgba(212,175,55,0.35);transition:all .3s ease;}
-.tome-casing.pdf-mode{background:rgba(18,14,10,0.85);backdrop-filter:blur(10px);padding:8px;border:1px solid rgba(212,175,55,0.35);box-shadow:0 24px 60px rgba(0,0,0,0.9);}
+.tome-casing.pdf-mode{background:rgba(18,14,10,0.85);backdrop-filter:blur(10px);padding:0;border:1px solid rgba(212,175,55,0.35);box-shadow:0 24px 60px rgba(0,0,0,0.9);width:auto;height:min(84vh,880px);aspect-ratio:210/297;max-width:min(92vw,640px);}
 .tome-casing::before{content:"";position:absolute;inset:6px;border:1px solid rgba(212,175,55,0.28);border-radius:6px;pointer-events:none;}
 .tome-casing.pdf-mode::before{display:none;}
 .tome-book{position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;border-radius:4px;overflow:hidden;background:#f6f0df;box-shadow:0 10px 30px rgba(0,0,0,0.5);}
@@ -227,7 +227,7 @@ footer{position:relative;z-index:2;padding:34px 6vw 40px;display:flex;justify-co
 .tome-page{position:relative;width:100%;height:100%;display:flex;flex-direction:column;overflow:hidden;cursor:pointer;user-select:none;background:linear-gradient(to right,#ece4cf 0%,#f7f2e4 50%,#ece4cf 100%);}
 .tome-casing.pdf-mode .tome-page{background:transparent;}
 .tome-paper{position:relative;width:100%;height:100%;display:flex;flex-direction:column;padding:26px 36px 18px;box-sizing:border-box;overflow:hidden;}
-.tome-paper.has-pdf{padding:0 !important;background:transparent !important;display:flex;align-items:center;justify-content:center;}
+.tome-paper.has-pdf{padding:0 !important;background:transparent !important;display:flex;flex-direction:column;align-items:stretch;justify-content:stretch;overflow:hidden;}
 .tome-filigree-rim{position:absolute;inset:14px;border:1px solid rgba(190,145,45,0.32);pointer-events:none;}
 .tome-filigree-rim::before{content:"❖";position:absolute;top:-9px;left:-7px;font-size:12px;color:#b88b2a;}
 .tome-filigree-rim::after{content:"❖";position:absolute;top:-9px;right:-7px;font-size:12px;color:#b88b2a;}
@@ -245,8 +245,8 @@ footer{position:relative;z-index:2;padding:34px 6vw 40px;display:flex;justify-co
 .tome-content p:first-of-type::first-letter{font-size:2.8em;float:left;line-height:0.85;padding:4px 8px 0 0;color:#821c25;font-weight:bold;font-family:"Fraunces",serif;}
 /* PDF TEK SAYFA GÖRÜNTÜSÜ – EKRANA VE KUTUYA TAM SIĞMA */
 .tome-content .pdf-canvas-wrap{width:100%;height:100%;display:flex;align-items:center;justify-content:center;margin:0;padding:0;}
-.tome-content .pdf-page-render{max-height:calc(84vh - 40px);max-width:min(92vw,900px);width:auto;height:auto;object-fit:contain;display:block;border-radius:4px;border:1px solid rgba(212,175,55,0.3);box-shadow:0 12px 35px rgba(0,0,0,0.65);image-rendering:auto;-ms-interpolation-mode:bicubic;}
-.tome-paper.has-pdf .tome-content{overflow:hidden;display:flex;align-items:center;justify-content:center;padding:0;}
+.tome-content .pdf-page-render{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block;border-radius:4px;border:1px solid rgba(212,175,55,0.3);box-shadow:0 12px 35px rgba(0,0,0,0.65);image-rendering:auto;-ms-interpolation-mode:bicubic;}
+.tome-paper.has-pdf .tome-content{flex:1;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:0;height:100%;}
 .tome-footer{display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid rgba(184,139,42,0.18);font-size:0.78rem;color:#735b2a;margin-top:10px;}
 .tome-turn-hint{font-size:0.74rem;font-style:italic;color:#a17822;opacity:0.8;}
 .tome-page-num{font-weight:bold;font-family:"Fraunces",serif;font-size:0.9rem;}
@@ -2168,7 +2168,7 @@ body.is-admin .admin-badge {
       </div>
     </div>
   </div>
-  <audio id="risaleAudioSource" preload="metadata"></audio>
+  <audio id="risaleAudioSource" preload="metadata" crossorigin="anonymous"></audio>
 </div>
 
 <!-- 🎙️ YENİ SESLİ ESER / MP3 EKLEME MODALI -->

@@ -160,6 +160,7 @@
     if(isAudioSetup) return;
     try{
       var AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if(!AudioContextClass) return;
       audioCtx = new AudioContextClass();
       analyser = audioCtx.createAnalyser();
       analyser.fftSize = 512;
@@ -167,6 +168,9 @@
       freqData = new Uint8Array(analyser.frequencyBinCount);
 
       if(audioElement){
+        audioElement.crossOrigin = "anonymous";
+        audioElement.volume = 1.0;
+        audioElement.muted = false;
         audioSource = audioCtx.createMediaElementSource(audioElement);
         audioSource.connect(analyser);
         analyser.connect(audioCtx.destination);
@@ -412,10 +416,6 @@
   function playTrack(track){
     if(!track) return;
     currentTrack = track;
-    initAudioEngine();
-    if(audioCtx && audioCtx.state === "suspended"){
-      audioCtx.resume();
-    }
 
     var src = "";
     if(track.audioBlob){
@@ -428,19 +428,34 @@
 
     if(!src) return;
 
-    audioElement.src = src;
+    if(audioElement){
+      audioElement.crossOrigin = "anonymous";
+      audioElement.volume = 1.0;
+      audioElement.muted = false;
+      if(audioElement.src !== src){
+        audioElement.src = src;
+      }
+    }
+
+    initAudioEngine();
+    if(audioCtx && audioCtx.state === "suspended"){
+      audioCtx.resume();
+    }
+
     if(titleEl) titleEl.textContent = track.subTitle || track.title || "Sesli Risale";
     if(bookTagEl) bookTagEl.textContent = "📖 " + (track.bookTitle || "Risale-i Nur");
 
-    audioElement.play().then(function(){
-      updatePlayBtnIcon(true);
-      renderPlaylist();
-      if(typeof showToast === "function"){
-        showToast("🎙️ " + (track.bookTitle ? (track.bookTitle + " · ") : "") + (track.subTitle || track.title) + " okunuyor...");
-      }
-    }).catch(function(err){
-      console.warn("Playback error:", err);
-    });
+    if(audioElement){
+      audioElement.play().then(function(){
+        updatePlayBtnIcon(true);
+        renderPlaylist();
+        if(typeof showToast === "function"){
+          showToast("🎙️ " + (track.bookTitle ? (track.bookTitle + " · ") : "") + (track.subTitle || track.title) + " okunuyor...");
+        }
+      }).catch(function(err){
+        console.warn("Playback error:", err);
+      });
+    }
   }
 
   function renderPlaylist(){
@@ -531,6 +546,11 @@
 
   /* ── 6. OYNATICI KONTROLLERİ ─────────────────────────────── */
   function togglePlay(){
+    if(audioElement){
+      audioElement.crossOrigin = "anonymous";
+      audioElement.volume = 1.0;
+      audioElement.muted = false;
+    }
     initAudioEngine();
     if(audioCtx && audioCtx.state === "suspended"){
       audioCtx.resume();
@@ -1047,6 +1067,11 @@
     }
 
     audioElement = document.getElementById("risaleAudioSource");
+    if(audioElement){
+      audioElement.crossOrigin = "anonymous";
+      audioElement.volume = 1.0;
+      audioElement.muted = false;
+    }
     playPauseBtn = document.getElementById("portraitPlayPause");
     progressBar = document.getElementById("portraitProgressWrap");
     progressFill = document.getElementById("portraitProgressFill");
@@ -1260,28 +1285,35 @@
     await NurAudioStorage.init();
     var loadedTracks = await NurAudioStorage.getAll();
 
-    // Yerel sunucu kataloğunu (audio_catalog.json) da yükle (D: diskindeki hazır parçalar)
-    // Önce erişilebilirlik kontrolü yapıyoruz - 404 döndürürse ekleme
+    // Yerel veya online sunucu kataloğunu (audio_catalog.json) yükle
     var serverTracks = [];
     try{
       var catRes = await fetch("audio_catalog.json?v=" + Date.now());
       if(catRes.ok){
         var rawCatalog = await catRes.json();
-        // İlk parçanın erişilebilir olup olmadığını test et
-        var firstTrack = rawCatalog && rawCatalog[0];
-        if(firstTrack){
+        if(Array.isArray(rawCatalog) && rawCatalog.length > 0){
+          var firstTrack = rawCatalog[0];
           var testUrl = firstTrack.audioUrl || firstTrack.src || "";
-          var accessible = false;
-          if(testUrl){
+          
+          // Eğer online bir URL (CDN) ise doğrudan geçerli kabul et (CORS HEAD hatasına takılmamak için)
+          if(testUrl && (testUrl.startsWith("http://") || testUrl.startsWith("https://"))){
+            serverTracks = rawCatalog;
+            console.log("Online ses kataloğu yüklendi:", rawCatalog.length, "parça");
+          } else if(testUrl){
+            // Yerel dosya ise erişilebilirlik kontrolü yap
+            var accessible = false;
             try{
               var testRes = await fetch(testUrl, { method: "HEAD" });
               accessible = testRes.ok;
             }catch(e){ accessible = false; }
-          }
-          if(accessible){
-            serverTracks = rawCatalog;
+
+            if(accessible){
+              serverTracks = rawCatalog;
+            } else {
+              console.warn("audio_catalog.json yerel dosyaları erişilemiyor.");
+            }
           } else {
-            console.warn("audio_catalog.json dosyaları erişilemiyor (D: diski yok). IndexedDB parçaları kullanılıyor.");
+            serverTracks = rawCatalog;
           }
         }
       }
@@ -1323,7 +1355,12 @@
       } else {
         initSrc = currentTrack.audioUrl || currentTrack.src || "";
       }
-      if(initSrc && audioElement) audioElement.src = initSrc;
+      if(initSrc && audioElement){
+        audioElement.crossOrigin = "anonymous";
+        audioElement.volume = 1.0;
+        audioElement.muted = false;
+        audioElement.src = initSrc;
+      }
     } else {
       currentTrack = null;
       if(titleEl) titleEl.textContent = "Parça Seçiniz";
