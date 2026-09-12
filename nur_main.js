@@ -567,6 +567,23 @@ walkerGeo.translate(0, 1.025, 0); // Pivot tam ayak hizasında (y=0)
 var walkerMesh = new THREE.Mesh(walkerGeo, walkerMat);
 walkerGroup.add(walkerMesh);
 
+// ── Kitabı Elleriyle Takdim Eden Ön Görünüm (Presenting) ──
+var presentingTex = new THREE.TextureLoader().load('bediuzzaman_presenting.png');
+presentingTex.anisotropy = 4;
+var presentingMat = new THREE.MeshStandardMaterial({
+  map: presentingTex,
+  transparent: true,
+  alphaTest: 0.05,
+  roughness: 0.62,
+  metalness: 0.04,
+  side: THREE.DoubleSide
+});
+var presentingGeo = new THREE.PlaneGeometry(1.17, 2.05);
+presentingGeo.translate(0, 1.025, 0); // Pivot ayak hizasında (y=0)
+var presenterMesh = new THREE.Mesh(presentingGeo, presentingMat);
+presenterMesh.visible = false;
+walkerGroup.add(presenterMesh);
+
 // Yumuşak Temas Zemin Gölgesi (Contact Shadow)
 var shCanvas = document.createElement("canvas");
 shCanvas.width = 128; shCanvas.height = 128;
@@ -702,94 +719,135 @@ function animate(){
   var lookY=1.55+endBlend*0.65; // Portre merkezine bakar
   camera.lookAt(Math.sin(t*0.2)*0.3*(1-endBlend),lookY,curZ-8);
 
-  // ── YÜRÜYEN ŞAHIS ANİMASYONU VE KORİDORDA İLERLEME / TAKDİM ──
+  // ── SİNEMATİK TAKDİM: ÜSTAD'IN KİTABI RAFTAN ALIP EKRANA VERMESİ ──
   if(isPresentingBook && presentationMesh){
     var pElapsed = (performance.now() - presentationStartTime) / 1000;
     var dir = presentationOrigin.dir; // 1: sol duvar, -1: sağ duvar
 
-    if(pElapsed < 0.8){
-      // Faz 1: Üstad rafa döner, kitap raftan süzülerek Üstad'ın göğüs hizasına gelir
-      var t1 = pElapsed / 0.8;
+    if(pElapsed < 0.85){
+      // ── FAZ 1 (0.0s - 0.85s): Üstad rafa yönelir, elleriyle kitabı raftan alır ──
+      var t1 = pElapsed / 0.85;
       var ease1 = Math.sin(t1 * Math.PI / 2);
 
-      var targetTurn = (dir > 0) ? -0.42 : 0.42;
+      walkerMesh.visible = true;
+      presenterMesh.visible = false;
+
+      var targetTurn = (dir > 0) ? -0.45 : 0.45;
       walkerMesh.rotation.y = THREE.MathUtils.lerp(0, targetTurn, ease1);
       walkerMesh.rotation.z = 0;
       walkerMesh.rotation.x = 0;
 
-      walkerGroup.position.x = THREE.MathUtils.lerp(presentationInitialWalker.x, -dir * 0.35, ease1);
-      walkerGroup.position.z = THREE.MathUtils.lerp(presentationInitialWalker.z, presentationOrigin.z + 1.1, ease1);
+      walkerGroup.position.x = THREE.MathUtils.lerp(presentationInitialWalker.x, -dir * 0.42, ease1);
+      walkerGroup.position.z = THREE.MathUtils.lerp(presentationInitialWalker.z, presentationOrigin.z + 0.92, ease1);
       walkerGroup.position.y = 0;
-      walkerLight.intensity = 2.4 + ease1 * 1.6;
+      walkerLight.intensity = 2.4 + ease1 * 1.8;
 
-      var targetBookMidX = walkerGroup.position.x + (dir * 0.32);
-      var targetBookMidY = 1.35;
-      var targetBookMidZ = walkerGroup.position.z - 0.42;
+      // Kitap raftan süzülerek Üstad'ın ellerine doğru gelir
+      var targetBookMidX = walkerGroup.position.x + (dir * 0.28);
+      var targetBookMidY = 1.25;
+      var targetBookMidZ = walkerGroup.position.z - 0.35;
 
       presentationMesh.position.x = THREE.MathUtils.lerp(presentationOrigin.x, targetBookMidX, ease1);
       presentationMesh.position.y = THREE.MathUtils.lerp(presentationOrigin.y, targetBookMidY, ease1);
       presentationMesh.position.z = THREE.MathUtils.lerp(presentationOrigin.z, targetBookMidZ, ease1);
 
       var startRotY = (dir > 0) ? -Math.PI / 2 : Math.PI / 2;
-      presentationMesh.rotation.y = THREE.MathUtils.lerp(startRotY, (dir > 0) ? -0.2 : 0.2, ease1);
-      presentationMesh.rotation.x = ease1 * 0.28;
+      presentationMesh.rotation.y = THREE.MathUtils.lerp(startRotY, (dir > 0) ? -0.22 : 0.22, ease1);
+      presentationMesh.rotation.x = ease1 * 0.26;
       presentationMesh.rotation.z = ease1 * (dir * 0.08);
 
       if(presentationHaloLight){
         presentationHaloLight.position.copy(presentationMesh.position);
-        presentationHaloLight.intensity = ease1 * 3.2;
+        presentationHaloLight.intensity = ease1 * 3.4;
       }
 
-    } else if(pElapsed < 2.0){
-      // Faz 2: Üstad bize yönelir ve kameraya doğru yürür, kitap refakatinde öne doğru süzülür
-      var t2 = (pElapsed - 0.8) / 1.2;
+    } else if(pElapsed < 1.70){
+      // ── FAZ 2 (0.85s - 1.70s): Üstad bize (kameraya) döner, kitabı iki eliyle tutarak bize yaklaşır ──
+      var t2 = (pElapsed - 0.85) / 0.85;
       var ease2 = 0.5 - 0.5 * Math.cos(t2 * Math.PI);
 
-      var prevTurn = (dir > 0) ? -0.42 : 0.42;
-      walkerMesh.rotation.y = THREE.MathUtils.lerp(prevTurn, 0, Math.min(1, t2 * 2.2));
+      // Dönüş anında öne bakan ve ellerinde kitabı tutan figüre geçiş
+      if(pElapsed >= 0.95){
+        walkerMesh.visible = false;
+        presenterMesh.visible = true;
+      }
 
-      var walkStartZ = presentationOrigin.z + 1.1;
-      var walkTargetZ = camera.position.z - 2.3;
+      var turnAngle = THREE.MathUtils.lerp((dir > 0) ? -0.45 : 0.45, 0, ease2);
+      walkerMesh.rotation.y = turnAngle;
+      presenterMesh.rotation.y = turnAngle;
+
+      var walkStartZ = presentationOrigin.z + 0.92;
+      var walkTargetZ = camera.position.z - 2.15;
       walkerGroup.position.z = THREE.MathUtils.lerp(walkStartZ, walkTargetZ, ease2);
-      walkerGroup.position.x = THREE.MathUtils.lerp(-dir * 0.35, 0, ease2);
+      walkerGroup.position.x = THREE.MathUtils.lerp(-dir * 0.42, 0, ease2);
 
-      walkPhase += 0.14;
-      walkerGroup.position.y = Math.abs(Math.sin(walkPhase * 2)) * 0.045;
-      walkerMesh.rotation.z = Math.sin(walkPhase) * 0.016;
+      // Adım atma canlılığı
+      walkPhase += 0.16;
+      walkerGroup.position.y = Math.abs(Math.sin(walkPhase * 2)) * 0.04;
+      presenterMesh.rotation.z = Math.sin(walkPhase) * 0.012;
       walkerLight.intensity = 3.6;
 
-      var bookStartZ = walkStartZ - 0.42;
-      var bookTargetZ = camera.position.z - 0.88;
-      presentationMesh.position.z = THREE.MathUtils.lerp(bookStartZ, bookTargetZ, ease2);
-      presentationMesh.position.x = THREE.MathUtils.lerp(walkerGroup.position.x + (dir * 0.32), 0, ease2);
-      presentationMesh.position.y = THREE.MathUtils.lerp(1.35, 1.55, ease2);
+      // Kitap tam Üstad'ın elleri üzerinde durur
+      var bookHandX = walkerGroup.position.x;
+      var bookHandY = walkerGroup.position.y + 1.05;
+      var bookHandZ = walkerGroup.position.z + 0.22;
 
-      presentationMesh.rotation.y = THREE.MathUtils.lerp((dir > 0) ? -0.2 : 0.2, 0, ease2);
-      presentationMesh.rotation.x = THREE.MathUtils.lerp(0.28, 0.06, ease2);
+      presentationMesh.position.x = THREE.MathUtils.lerp(walkerGroup.position.x + (dir * 0.28), bookHandX, ease2);
+      presentationMesh.position.y = THREE.MathUtils.lerp(1.25, bookHandY, ease2);
+      presentationMesh.position.z = THREE.MathUtils.lerp(walkStartZ - 0.35, bookHandZ, ease2);
+
+      presentationMesh.rotation.y = THREE.MathUtils.lerp((dir > 0) ? -0.22 : 0.22, 0, ease2);
+      presentationMesh.rotation.x = THREE.MathUtils.lerp(0.26, 0.12, ease2);
       presentationMesh.rotation.z = THREE.MathUtils.lerp(dir * 0.08, 0, ease2);
 
-      var scaleVal = 1.0 + ease2 * 1.25;
+      var scaleVal = 1.0 + ease2 * 0.25;
       presentationMesh.scale.set(scaleVal, scaleVal, scaleVal);
 
       if(presentationHaloLight){
         presentationHaloLight.position.copy(presentationMesh.position);
-        presentationHaloLight.intensity = 3.2 + Math.sin(pElapsed * 8) * 0.6;
+        presentationHaloLight.intensity = 3.4 + Math.sin(pElapsed * 8) * 0.8;
       }
       if(presentationParticles){
-        presentationParticles.rotation.y += 0.03;
+        presentationParticles.rotation.y += 0.04;
       }
 
-    } else if(pElapsed < 2.4){
-      // Faz 3: Kitap tam karşımızda parıldayarak açılma anı
-      var t3 = (pElapsed - 2.0) / 0.4;
-      var ease3 = Math.sin(t3 * Math.PI / 2);
+    } else if(pElapsed < 2.90){
+      // ── FAZ 3 (1.70s - 2.90s): Üstad elleriyle kitabı öne uzatır, kitap ekrana doğru hediye gibi yaklaşır ──
+      var t3 = (pElapsed - 1.70) / 1.20;
+      var ease3 = 0.5 - 0.5 * Math.cos(t3 * Math.PI);
 
-      presentationMesh.position.z = camera.position.z - 0.88 + (ease3 * 0.06);
-      presentationMesh.scale.setScalar(2.25 + ease3 * 0.15);
+      walkerMesh.visible = false;
+      presenterMesh.visible = true;
+      presenterMesh.rotation.set(0, 0, 0);
+
+      // Üstad hafifçe öne doğru eğilerek ikram/sunum tavrını pekiştirir
+      presenterMesh.rotation.x = ease3 * 0.05;
+
+      // Kitap Üstad'ın ellerinden bize (ekrana) doğru süzülüp büyür
+      var bookHandZ = walkerGroup.position.z + 0.22;
+      var screenTargetZ = camera.position.z - 0.78;
+
+      presentationMesh.position.x = 0;
+      presentationMesh.position.y = THREE.MathUtils.lerp(1.05, 1.48, ease3);
+      presentationMesh.position.z = THREE.MathUtils.lerp(bookHandZ, screenTargetZ, ease3);
+
+      // Kitabın bize doğru hafif aralanıp parıldaması
+      presentationMesh.rotation.x = THREE.MathUtils.lerp(0.12, -0.05, ease3);
+      presentationMesh.rotation.y = Math.sin(ease3 * Math.PI) * 0.08;
+
+      var scaleVal = 1.25 + ease3 * 1.35; // Ekranda görkemli boyut (~2.6x)
+      presentationMesh.scale.set(scaleVal, scaleVal, scaleVal);
+
       if(presentationHaloLight){
-        presentationHaloLight.intensity = 3.8 + ease3 * 1.5;
+        presentationHaloLight.position.copy(presentationMesh.position);
+        presentationHaloLight.intensity = 4.0 + ease3 * 2.8;
       }
+      if(presentationParticles){
+        presentationParticles.rotation.y += 0.06;
+      }
+
     } else {
+      // ── FAZ 4: Okuma Ekranına Geçiş ──
       finishPresentationAndOpenReader();
     }
 
@@ -1165,6 +1223,12 @@ function startBookPresentation(targetBook){
     z: walkerGroup.position.z
   };
 
+  // Başlangıçta yürüyüş modu açık, takdim ön modu kapalı
+  walkerMesh.visible = true;
+  presenterMesh.visible = false;
+  walkerMesh.rotation.set(0, 0, 0);
+  presenterMesh.rotation.set(0, 0, 0);
+
   // 3D Takdim Kitabı Modeli
   var texs = getBookTextures(title, "kulliyat", "ruby");
   var bw = 0.52, bh = 0.76, bd = 0.14; // En, boy, kalınlık
@@ -1196,20 +1260,20 @@ function startBookPresentation(targetBook){
   scene.add(presentationHaloLight);
 
   // Kitabın çevresindeki ışıltılı altın zerrecikler
-  var haloCount = 48;
+  var haloCount = 56;
   var haloPos = new Float32Array(haloCount * 3);
   for(var hi = 0; hi < haloCount; hi++){
     var angle = (hi / haloCount) * Math.PI * 2;
-    var rad = 0.42 + Math.random() * 0.28;
+    var rad = 0.42 + Math.random() * 0.32;
     haloPos[hi * 3] = Math.cos(angle) * rad;
-    haloPos[hi * 3 + 1] = (Math.random() - 0.5) * 0.7;
+    haloPos[hi * 3 + 1] = (Math.random() - 0.5) * 0.8;
     haloPos[hi * 3 + 2] = Math.sin(angle) * rad;
   }
   var haloGeo = new THREE.BufferGeometry();
   haloGeo.setAttribute("position", new THREE.BufferAttribute(haloPos, 3));
   presentationParticles = new THREE.Points(haloGeo, new THREE.PointsMaterial({
     color: 0xFFE082,
-    size: 0.045,
+    size: 0.048,
     transparent: true,
     opacity: 0.95
   }));
@@ -1221,13 +1285,26 @@ function startBookPresentation(targetBook){
   isPresentingBook = true;
   presentationStartTime = performance.now();
 
-  // Manevi ney / çan tınısı
+  // Bilgilendirme Rozetini Göster
+  var badge = document.getElementById("presentationBadge");
+  var badgeText = document.getElementById("presentationBadgeText");
+  if(badge && badgeText){
+    badgeText.textContent = "✦ Üstad '" + title + "' Eserini Takdim Ediyor ✦";
+    badge.classList.add("active");
+    badge.onclick = function(){ finishPresentationAndOpenReader(); };
+  }
+
+  // Manevi ney & sayfa tınısı
+  if(typeof playBookOpenSound === "function") playBookOpenSound();
   if(typeof playChime === "function") playChime();
 }
 
 function finishPresentationAndOpenReader(){
   if(!isPresentingBook) return;
   isPresentingBook = false;
+
+  var badge = document.getElementById("presentationBadge");
+  if(badge) badge.classList.remove("active");
 
   if(presentationBookSourceMesh){
     presentationBookSourceMesh.visible = true;
@@ -1244,10 +1321,11 @@ function finishPresentationAndOpenReader(){
     presentationHaloLight = null;
   }
 
-  // Üstad duruşunu sıfırla
-  walkerMesh.rotation.y = 0;
-  walkerMesh.rotation.z = 0;
-  walkerMesh.rotation.x = 0;
+  // Üstad duruşunu ve figürünü sıfırla
+  presenterMesh.visible = false;
+  walkerMesh.visible = true;
+  walkerMesh.rotation.set(0, 0, 0);
+  presenterMesh.rotation.set(0, 0, 0);
 
   var bookToOpen = presentationBookData;
   presentationBookData = null;
