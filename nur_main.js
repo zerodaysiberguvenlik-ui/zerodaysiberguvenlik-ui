@@ -3654,8 +3654,8 @@ async function extractPdfDocument(file, onProgress){
 
   // Cihaz ve sayfa sayısına göre optimize render ölçeği (büyük kitaplarda bellek korumalı)
   var deviceScale = Math.min(window.devicePixelRatio || 1, 2);
-  var renderScale = total > 250 ? 1.35 : Math.max(1.5, deviceScale);
-  var quality = total > 250 ? 0.82 : 0.88;
+  var renderScale = total > 250 ? 1.8 : Math.max(2.0, deviceScale * 1.5);
+  var quality = total > 250 ? 0.92 : 0.95;
 
   for(var i=1; i<=total; i++){
     if(onProgress) onProgress(i, total);
@@ -3670,6 +3670,8 @@ async function extractPdfDocument(file, onProgress){
         offCanvas.width = viewport.width;
         offCanvas.height = viewport.height;
         var offCtx = offCanvas.getContext("2d");
+        offCtx.imageSmoothingEnabled = true;
+        offCtx.imageSmoothingQuality = "high";
         offCtx.fillStyle = "#f8f4e8";
         offCtx.fillRect(0, 0, offCanvas.width, offCanvas.height);
         await page.render({ canvasContext: offCtx, viewport: viewport, background: "rgba(248,244,232,1)" }).promise;
