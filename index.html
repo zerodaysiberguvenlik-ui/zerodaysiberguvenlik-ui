@@ -421,6 +421,18 @@ footer{position:relative;z-index:2;padding:34px 6vw 40px;display:flex;justify-co
   color:var(--parchment-dim);
   margin-top:4px;
 }
+/* Sesli okuma çalışma odası veya modallar açıkken koridor ipucunu zorunlu olarak gizle */
+body:has(#talkingPortraitPlayer.open:not(.minimized)) .corridor-book-tooltip,
+body:has(#book-reader.open) .corridor-book-tooltip,
+body:has(#pdf-modal.open) .corridor-book-tooltip,
+body:has(#book-modal.open) .corridor-book-tooltip,
+body:has(#hikmet-modal.open) .corridor-book-tooltip,
+body:has(#search-overlay.open) .corridor-book-tooltip {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
 /* ============================================================
    YÖNETİCİ KİLİDİ (ADMIN GATEWAY - ŞİFRE: 2147)
    Varsayılan: Ziyaretçi modu (Ekleme ve Silme butonları gizli)

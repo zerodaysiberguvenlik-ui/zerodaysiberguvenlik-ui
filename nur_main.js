@@ -954,7 +954,24 @@ window.addEventListener("pointermove", function(e){
 
   if(!corridorTooltipEl) corridorTooltipEl = document.getElementById("corridorBookTooltip");
 
-  var overInteractive = e.target.closest("button, input, textarea, a, #book-reader, #pdf-modal, #hikmet-modal, #book-modal, #search-overlay, #fihristDrawer, .fihrist-panel, #adminModal, header");
+  // Sesli okuma odası veya modallar açıksa koridor raycast ve tooltipini tamamen sustur
+  var tpPlayer = document.getElementById("talkingPortraitPlayer");
+  var isPlayerActive = tpPlayer && tpPlayer.classList.contains("open") && !tpPlayer.classList.contains("minimized");
+  var overInteractive = isPlayerActive || e.target.closest("button, input, textarea, a, #talkingPortraitPlayer, #addAudioModal, #book-reader, #pdf-modal, #hikmet-modal, #book-modal, #search-overlay, #fihristDrawer, .fihrist-panel, #adminModal, header");
+
+  if(overInteractive){
+    if(corridorTooltipEl) corridorTooltipEl.classList.remove("active");
+    if(hoveredCorridorBook){
+      if(hoveredCorridorBook.userData && hoveredCorridorBook.userData.spineMat){
+        hoveredCorridorBook.userData.spineMat.emissive.setHex(hoveredCorridorBook.userData.isCustom ? 0x2e1804 : 0x000000);
+      }
+      hoveredCorridorBook = null;
+    }
+    if(canvas && canvas.style.cursor === "pointer"){
+      canvas.style.cursor = "default";
+    }
+    return;
+  }
 
   if(!overInteractive){
     corridorRaycaster.setFromCamera({ x: nx, y: ny }, camera);
@@ -1023,7 +1040,9 @@ window.addEventListener("pointermove", function(e){
 
 // Koridordaki raflardan kitap seçme veya mühür tıklama
 window.addEventListener("click", function(e){
-  var overInteractive = e.target.closest("button, input, textarea, a, #book-reader, #pdf-modal, #hikmet-modal, #book-modal, #search-overlay, #fihristDrawer, .fihrist-panel, #adminModal, header");
+  var tpPlayer = document.getElementById("talkingPortraitPlayer");
+  var isPlayerActive = tpPlayer && tpPlayer.classList.contains("open") && !tpPlayer.classList.contains("minimized");
+  var overInteractive = isPlayerActive || e.target.closest("button, input, textarea, a, #talkingPortraitPlayer, #addAudioModal, #book-reader, #pdf-modal, #hikmet-modal, #book-modal, #search-overlay, #fihristDrawer, .fihrist-panel, #adminModal, header");
   if(overInteractive) return;
 
   // Takdim animasyonu sırasında herhangi bir yere tıklanırsa hemen okuyucuya geç
