@@ -70,27 +70,32 @@
   var audioSaveBtn = null;
   var selectedAudioFiles = []; // Dizi: { id, file, subTitle }
 
-  // Üstad Portresi Görüntüsü
+  // 3D Mouse Parallax
+  var mouseX = 0, mouseY = 0, targetMouseX = 0, targetMouseY = 0;
+
+  // Üstad Çalışma Odası & Portresi Görüntüsü
   var portraitImg = new Image();
-  portraitImg.src = "bediuzzaman_poster.png";
+  portraitImg.src = "ustad_study_room.jpg";
   var imgLoaded = false;
   portraitImg.onload = function(){
     imgLoaded = true;
     renderFrame();
   };
 
-  // Anatomik Koordinatlar (252 x 297 bediuzzaman_poster.png referansı)
+  // Anatomik Koordinatlar (1376 x 768 ustad_study_room.jpg referansı)
   var COORDS = {
-    w: 252,
-    h: 297,
-    mouthX: 134,
-    mouthY: 153,
-    mouthW: 36,
-    mouthH: 26,
-    lipSeamY: 154,
-    chinBottomY: 180,
-    leftEye: { x: 132, y: 122, rX: 9, rY: 5 },
-    rightEye: { x: 168, y: 122, rX: 9, rY: 5 }
+    w: 1376,
+    h: 768,
+    mouthX: 830,
+    mouthY: 317,
+    mouthW: 66,
+    mouthH: 48,
+    lipSeamY: 318,
+    chinBottomY: 365,
+    leftEye: { x: 828, y: 234, rX: 18, rY: 8 },
+    rightEye: { x: 892, y: 233, rX: 18, rY: 8 },
+    lampFlame: { x: 204, y: 375, r: 55 },
+    bookCenter: { x: 530, y: 675, rx: 270, ry: 95 }
   };
 
   /* ── 2. INDEXEDDB SES KÜTÜPHANESİ DEPOSU (NurAudioDB) ────── */
@@ -225,15 +230,21 @@
     var cw = portraitCanvas.width;
     var ch = portraitCanvas.height;
 
-    // Yumuşak geçiş (Attack / Decay)
-    var attackSpeed = 0.45;
-    var decaySpeed = 0.25;
+    // Yumuşak dudak geçişi (Attack / Decay)
+    var attackSpeed = 0.50;
+    var decaySpeed = 0.28;
     if(mouthTarget > mouthOpen){
       mouthOpen += (mouthTarget - mouthOpen) * attackSpeed;
     } else {
       mouthOpen += (mouthTarget - mouthOpen) * decaySpeed;
     }
     if(mouthOpen < 0.01) mouthOpen = 0;
+
+    // 3D Parallax Yumuşatma
+    mouseX += (targetMouseX - mouseX) * 0.06;
+    mouseY += (targetMouseY - mouseY) * 0.06;
+    var pX = mouseX * 8;
+    var pY = mouseY * 5;
 
     // Göz kırpma
     var now = Date.now();
@@ -250,108 +261,138 @@
       }
     }
 
-    // Nefes ve mikro salınım
-    breathPhase += 0.03;
+    // Nefes ve mikro baş salınımı
+    breathPhase += 0.025;
     var breathY = Math.sin(breathPhase) * 1.2;
-    var nodY = headNod * 1.5;
+    var nodY = headNod * 1.8;
 
     ctx.clearRect(0, 0, cw, ch);
 
-    // 1. Arka Plan Nur Işıltısı
-    var glowRadius = cw * 0.6 + (mouthOpen * 25);
-    var glowGrad = ctx.createRadialGradient(cw * 0.55, ch * 0.45, 10, cw * 0.55, ch * 0.45, glowRadius);
-    glowGrad.addColorStop(0, "rgba(212, 175, 55, " + (0.12 + mouthOpen * 0.15) + ")");
-    glowGrad.addColorStop(0.6, "rgba(200, 140, 40, " + (0.04 + mouthOpen * 0.08) + ")");
-    glowGrad.addColorStop(1, "rgba(10, 8, 6, 0)");
-    ctx.fillStyle = glowGrad;
-    ctx.fillRect(0, 0, cw, ch);
+    var scaleX = cw / COORDS.w;
+    var scaleY = ch / COORDS.h;
 
-    // 2. Ana Portre Katmanı
+    // 1. Ana Çalışma Odası & Oturan Üstad Portresi (Parallax ile)
+    var padX = 14;
+    var padY = 8;
     ctx.save();
-    ctx.translate(0, breathY + nodY);
-    ctx.drawImage(portraitImg, 0, 0, cw, ch);
+    ctx.drawImage(portraitImg, -padX + pX, -padY + pY, cw + padX * 2, ch + padY * 2);
 
-    // 3. Konuşma ve Dudak Deformasyonu
-    if(mouthOpen > 0.02){
-      var maxDrop = 9.0;
+    // 2. Masadaki Kandil Alevi Titreşimi (Warm Golden Oil Lamp Flicker)
+    var flk = Math.sin(now * 0.007) * 0.09 + Math.sin(now * 0.015) * 0.05 + (Math.random() * 0.025);
+    var fx = (COORDS.lampFlame.x * scaleX) - padX + pX * 1.15;
+    var fy = (COORDS.lampFlame.y * scaleY) - padY + pY * 1.15;
+    var flameR = COORDS.lampFlame.r * scaleX + flk * 22;
+
+    var flameGrad = ctx.createRadialGradient(fx, fy, 3, fx, fy, flameR);
+    flameGrad.addColorStop(0, "rgba(255, 250, 210, " + (0.70 + flk * 0.2) + ")");
+    flameGrad.addColorStop(0.28, "rgba(255, 180, 50, " + (0.42 + flk * 0.15) + ")");
+    flameGrad.addColorStop(0.65, "rgba(212, 115, 20, " + (0.15 + flk * 0.08) + ")");
+    flameGrad.addColorStop(1, "rgba(90, 35, 5, 0)");
+    ctx.fillStyle = flameGrad;
+    ctx.beginPath();
+    ctx.arc(fx, fy, flameR, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 3. Masadaki Açık Risale-i Nur Sayfaları Işıltısı (Reading Aura)
+    var bx = (COORDS.bookCenter.x * scaleX) - padX + pX * 0.85;
+    var by = (COORDS.bookCenter.y * scaleY) - padY + pY * 0.85;
+    var brx = COORDS.bookCenter.rx * scaleX;
+    var bry = COORDS.bookCenter.ry * scaleY;
+    var isPlaying = audioElement && !audioElement.paused;
+    var bookAura = (isPlaying ? 0.14 : 0.07) + (mouthOpen * 0.22) + (Math.sin(now * 0.004) * 0.03);
+
+    var bookGrad = ctx.createRadialGradient(bx, by, 15, bx, by, brx);
+    bookGrad.addColorStop(0, "rgba(255, 245, 200, " + bookAura + ")");
+    bookGrad.addColorStop(0.45, "rgba(225, 180, 75, " + (bookAura * 0.55) + ")");
+    bookGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+    ctx.fillStyle = bookGrad;
+    ctx.beginPath();
+    ctx.ellipse(bx, by, brx, bry, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 4. Konuşma ve Dudak Senkronizasyonu (Gerçekçi Lip-Sync)
+    if(mouthOpen > 0.015){
+      var maxDrop = 11.0;
       var drop = mouthOpen * maxDrop;
       var spread = mouthWidthMod * 4.0;
 
-      var sx = COORDS.mouthX;
+      var sx = COORDS.mouthX - 4;
       var sy = COORDS.lipSeamY;
-      var sw = COORDS.mouthW;
-      var sh = COORDS.chinBottomY - COORDS.lipSeamY;
+      var sw = COORDS.mouthW + 8;
+      var sh = COORDS.chinBottomY - COORDS.lipSeamY + 6;
 
-      var scaleX = cw / COORDS.w;
-      var scaleY = ch / COORDS.h;
-
-      var dx = (sx - spread * 0.5) * scaleX;
-      var dy = (sy + drop) * scaleY;
+      var dx = (sx - spread * 0.5) * scaleX - padX + pX;
+      var dy = (sy + drop) * scaleY - padY + pY + (breathY + nodY) * 0.6;
       var dw = (sw + spread) * scaleX;
       var dh = sh * scaleY;
 
-      // 3.a. İç Ağız Boşluğu & Gölgesi
+      // 4.a. Ağız İçi Boşluğu (Derinlik & Koyu Gölge)
       ctx.save();
       ctx.beginPath();
-      var cavityX = (COORDS.mouthX + 4) * scaleX;
-      var cavityY = (COORDS.lipSeamY - 1) * scaleY;
-      var cavityW = (COORDS.mouthW - 8) * scaleX;
-      var cavityH = drop * scaleY * 1.1;
-      ctx.ellipse(cavityX + cavityW / 2, cavityY + cavityH / 2, cavityW / 2, Math.max(1, cavityH / 2), 0, 0, Math.PI * 2);
-      
+      var cavX = (COORDS.mouthX + 12) * scaleX - padX + pX;
+      var cavY = (COORDS.lipSeamY + 1) * scaleY - padY + pY + (breathY + nodY) * 0.6;
+      var cavW = (COORDS.mouthW - 24) * scaleX + spread;
+      var cavH = Math.max(2, drop * scaleY * 1.15);
+      ctx.ellipse(cavX + cavW / 2, cavY + cavH / 2, cavW / 2, Math.max(1, cavH / 2), 0, 0, Math.PI * 2);
+
       var cavGrad = ctx.createRadialGradient(
-        cavityX + cavityW / 2, cavityY + cavityH / 2, 1,
-        cavityX + cavityW / 2, cavityY + cavityH / 2, cavityW / 2
+        cavX + cavW / 2, cavY + cavH / 2, 1,
+        cavX + cavW / 2, cavY + cavH / 2, cavW / 2
       );
-      cavGrad.addColorStop(0, "#280b0e");
-      cavGrad.addColorStop(0.7, "#1a0809");
-      cavGrad.addColorStop(1, "#0c0405");
+      cavGrad.addColorStop(0, "#1f0709");
+      cavGrad.addColorStop(0.7, "#140405");
+      cavGrad.addColorStop(1, "#070202");
       ctx.fillStyle = cavGrad;
       ctx.fill();
+
+      // İnce diş ışıltısı / aydınlığı
+      if(drop > 4.5){
+        ctx.fillStyle = "rgba(220, 205, 195, 0.45)";
+        ctx.beginPath();
+        ctx.ellipse(cavX + cavW / 2, cavY + 2.5, cavW * 0.35, 1.6, 0, 0, Math.PI);
+        ctx.fill();
+      }
       ctx.restore();
 
-      // 3.b. Alt Dudak ve Çene
+      // 4.b. Alt Dudak ve Çene Hareketi (Doku Kırpma)
       ctx.save();
       ctx.beginPath();
-      ctx.ellipse(dx + dw / 2, dy + dh * 0.45, dw * 0.58, dh * 0.55, 0, 0, Math.PI * 2);
+      ctx.ellipse(dx + dw / 2, dy + dh * 0.44, dw * 0.52, dh * 0.50, 0, 0, Math.PI * 2);
       ctx.clip();
       ctx.drawImage(portraitImg, sx, sy, sw, sh, dx, dy, dw, dh);
       ctx.restore();
 
-      // Dudak Seam Çizgisi
+      // 4.c. Dudak Birleşim Çizgisi Gölgesi
       ctx.save();
-      ctx.strokeStyle = "rgba(40, 15, 15, " + (0.5 * (1 - mouthOpen * 0.4)) + ")";
-      ctx.lineWidth = 1.2;
+      ctx.strokeStyle = "rgba(35, 15, 12, " + (0.55 * (1 - mouthOpen * 0.35)) + ")";
+      ctx.lineWidth = 1.4;
       ctx.beginPath();
-      ctx.moveTo(dx + 2, dy);
-      ctx.lineTo(dx + dw - 2, dy);
+      ctx.moveTo(dx + 3, dy + 0.5);
+      ctx.lineTo(dx + dw - 3, dy + 0.5);
       ctx.stroke();
       ctx.restore();
     }
 
-    // 4. Doğal Göz Kırpma
+    // 5. Doğal Göz Kırpma (Eyelid Blink)
     if(isBlinking && blinkProgress > 0){
       var blinkY = Math.sin(blinkProgress * Math.PI);
-      if(blinkY > 0.1){
-        var scaleX = cw / COORDS.w;
-        var scaleY = ch / COORDS.h;
-
+      if(blinkY > 0.08){
         [COORDS.leftEye, COORDS.rightEye].forEach(function(eye){
-          var ex = eye.x * scaleX;
-          var ey = eye.y * scaleY;
+          var ex = eye.x * scaleX - padX + pX;
+          var ey = (eye.y * scaleY - padY + pY) + (breathY + nodY) * 0.4;
           var erx = eye.rX * scaleX;
           var ery = eye.rY * scaleY * blinkY;
 
           ctx.save();
           ctx.beginPath();
           ctx.ellipse(ex, ey, erx, ery, 0, 0, Math.PI * 2);
-          ctx.fillStyle = "#b48c66";
+          ctx.fillStyle = "#9c7654";
           ctx.fill();
 
-          ctx.strokeStyle = "rgba(50, 32, 20, 0.85)";
-          ctx.lineWidth = 1.4;
+          ctx.strokeStyle = "rgba(42, 26, 16, 0.9)";
+          ctx.lineWidth = 1.5;
           ctx.beginPath();
-          ctx.ellipse(ex, ey + ery * 0.2, erx * 0.95, 1, 0, 0, Math.PI);
+          ctx.ellipse(ex, ey + ery * 0.15, erx * 0.95, 1.2, 0, 0, Math.PI);
           ctx.stroke();
           ctx.restore();
         });
@@ -445,6 +486,11 @@
     if(titleEl) titleEl.textContent = track.subTitle || track.title || "Sesli Risale";
     if(bookTagEl) bookTagEl.textContent = "📖 " + (track.bookTitle || "Risale-i Nur");
 
+    var headerBadge = document.getElementById("portraitHeaderBadge");
+    if(headerBadge){
+      headerBadge.textContent = "📖 " + (track.bookTitle || "Risale-i Nur") + " · " + (track.subTitle || track.title || "Bölüm");
+    }
+
     if(audioElement){
       audioElement.play().then(function(){
         updatePlayBtnIcon(true);
@@ -458,7 +504,7 @@
     }
   }
 
-  function renderPlaylist(){
+  function renderPlaylist(searchQuery){
     if(!playlistContainer) return;
     playlistContainer.innerHTML = "";
 
@@ -467,9 +513,23 @@
       return;
     }
 
+    var itemsToRender = playlist;
+    if(searchQuery){
+      var q = searchQuery.toLowerCase().trim();
+      itemsToRender = playlist.filter(function(t){
+        return (t.bookTitle && t.bookTitle.toLowerCase().includes(q)) ||
+               (t.subTitle && t.subTitle.toLowerCase().includes(q)) ||
+               (t.title && t.title.toLowerCase().includes(q));
+      });
+      if(!itemsToRender.length){
+        playlistContainer.innerHTML = "<div class='pl-empty'>\"" + escHTML(searchQuery) + "\" ile eşleşen sesli bölüm bulunamadı.</div>";
+        return;
+      }
+    }
+
     // Kitap adına göre grupla
     var grouped = {};
-    playlist.forEach(function(t){
+    itemsToRender.forEach(function(t){
       var bName = t.bookTitle || "Genel Eserler";
       if(!grouped[bName]) grouped[bName] = [];
       grouped[bName].push(t);
@@ -1055,15 +1115,15 @@
     portraitCanvas = document.getElementById("talkingPortraitCanvas");
     if(portraitCanvas){
       ctx = portraitCanvas.getContext("2d");
-      portraitCanvas.width = 252;
-      portraitCanvas.height = 297;
+      portraitCanvas.width = 1376;
+      portraitCanvas.height = 768;
     }
 
     waveCanvas = document.getElementById("portraitWaveCanvas");
     if(waveCanvas){
       waveCtx = waveCanvas.getContext("2d");
-      waveCanvas.width = 240;
-      waveCanvas.height = 26;
+      waveCanvas.width = 160;
+      waveCanvas.height = 18;
     }
 
     audioElement = document.getElementById("risaleAudioSource");
@@ -1087,6 +1147,19 @@
     tabPlaylistBtn = document.getElementById("tabPlaylistBtn");
     playlistContainer = document.getElementById("playlistContainer");
     playlistBadge = document.getElementById("playlistBadge");
+
+    // 3D Mouse Parallax Olayı
+    if(portraitStage){
+      portraitStage.addEventListener("mousemove", function(e){
+        var r = portraitStage.getBoundingClientRect();
+        targetMouseX = ((e.clientX - r.left) / r.width - 0.5) * 2;
+        targetMouseY = ((e.clientY - r.top) / r.height - 0.5) * 2;
+      });
+      portraitStage.addEventListener("mouseleave", function(){
+        targetMouseX = 0;
+        targetMouseY = 0;
+      });
+    }
 
     if(tabPortraitBtn) tabPortraitBtn.addEventListener("click", function(){ showTab("portrait"); });
     if(tabPlaylistBtn) tabPlaylistBtn.addEventListener("click", function(){ showTab("playlist"); });
@@ -1237,6 +1310,87 @@
 
     var closeBtn = document.getElementById("portraitCloseBtn");
     if(closeBtn) closeBtn.addEventListener("click", closePlayer);
+
+    var plToggleBtn = document.getElementById("portraitPlaylistToggleBtn");
+    if(plToggleBtn){
+      plToggleBtn.addEventListener("click", function(){
+        if(playlistView){
+          playlistView.classList.toggle("open");
+          if(playerPanel) playerPanel.classList.toggle("drawer-open", playlistView.classList.contains("open"));
+          renderPlaylist();
+        }
+      });
+    }
+
+    var drawerCloseBtn = document.getElementById("portraitPlaylistDrawerCloseBtn");
+    if(drawerCloseBtn){
+      drawerCloseBtn.addEventListener("click", function(){
+        if(playlistView){
+          playlistView.classList.remove("open");
+          if(playerPanel) playerPanel.classList.remove("drawer-open");
+        }
+      });
+    }
+
+    var fsBtn = document.getElementById("portraitFullscreenBtn");
+    if(fsBtn){
+      fsBtn.addEventListener("click", function(){
+        if(playerPanel) playerPanel.classList.toggle("fullscreen");
+      });
+    }
+
+    var prevBtn = document.getElementById("portraitPrevTrack");
+    if(prevBtn){
+      prevBtn.addEventListener("click", function(){
+        if(!playlist || !playlist.length) return;
+        var idx = playlist.indexOf(currentTrack);
+        if(idx > 0) playTrack(playlist[idx - 1]);
+        else playTrack(playlist[playlist.length - 1]);
+      });
+    }
+
+    var nextBtn = document.getElementById("portraitNextTrack");
+    if(nextBtn){
+      nextBtn.addEventListener("click", function(){
+        if(!playlist || !playlist.length) return;
+        var idx = playlist.indexOf(currentTrack);
+        if(idx !== -1 && idx < playlist.length - 1) playTrack(playlist[idx + 1]);
+        else playTrack(playlist[0]);
+      });
+    }
+
+    var volSlider = document.getElementById("portraitVolumeSlider");
+    var muteBtn = document.getElementById("portraitMuteBtn");
+    if(volSlider){
+      volSlider.addEventListener("input", function(){
+        var val = parseFloat(volSlider.value) / 100;
+        if(audioElement){
+          audioElement.volume = val;
+          audioElement.muted = (val === 0);
+        }
+        if(muteBtn) muteBtn.textContent = val === 0 ? "🔇" : (val < 0.5 ? "🔉" : "🔊");
+      });
+    }
+    if(muteBtn){
+      muteBtn.addEventListener("click", function(){
+        if(!audioElement) return;
+        audioElement.muted = !audioElement.muted;
+        if(audioElement.muted){
+          muteBtn.textContent = "🔇";
+        } else {
+          var v = audioElement.volume;
+          muteBtn.textContent = v < 0.5 ? "🔉" : "🔊";
+        }
+      });
+    }
+
+    var searchInput = document.getElementById("audioTrackSearchInput");
+    if(searchInput){
+      searchInput.addEventListener("input", function(){
+        var q = searchInput.value.trim();
+        renderPlaylist(q);
+      });
+    }
 
     var openBtnHeader = document.getElementById("headerAudioPortraitBtn");
     if(openBtnHeader) openBtnHeader.addEventListener("click", function(){
