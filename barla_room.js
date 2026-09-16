@@ -46,7 +46,7 @@
   var ustadTexture = null;
   var ustadImg = new Image();
   var ustadImgLoaded = false;
-  ustadImg.src = "ustad_study_room.jpg";
+  ustadImg.src = "ustad_seated_clean.png?v=4.5";
   ustadImg.onload = function(){
     ustadImgLoaded = true;
   };
@@ -610,36 +610,216 @@
     roomGroup.add(shelfSection);
   }
 
-  /* ── 3. ÇALIŞMA MASASI, KANDİL VE OKUYAN ÜSTAD ─────────────── */
+  /* ── 3. ÇALIŞMA MASASI, KOLTUK, KANDİL VE OTURAN 3D ÜSTAD ───────── */
+  function getOpenRisaleTexture(){
+    var c = document.createElement("canvas");
+    c.width = 1024; c.height = 512;
+    var ctx = c.getContext("2d");
+    
+    // Antik krem parşömen
+    var bgGrad = ctx.createLinearGradient(0, 0, 1024, 0);
+    bgGrad.addColorStop(0, "#e8dcbe");
+    bgGrad.addColorStop(0.48, "#f6edd5");
+    bgGrad.addColorStop(0.50, "#c4b595");
+    bgGrad.addColorStop(0.52, "#f6edd5");
+    bgGrad.addColorStop(1, "#e8dcbe");
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, 1024, 512);
+
+    // Varaklı bordür
+    [24, 536].forEach(function(ox){
+      ctx.strokeStyle = "#c9a038";
+      ctx.lineWidth = 4;
+      ctx.strokeRect(ox, 24, 464, 464);
+      ctx.strokeStyle = "#8a1c28";
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(ox + 8, 32, 448, 448);
+
+      ctx.fillStyle = "#c9a038";
+      ctx.font = "bold 16px serif";
+      ctx.fillText("❖", ox + 14, 46);
+      ctx.fillText("❖", ox + 450, 46);
+      ctx.fillText("❖", ox + 14, 474);
+      ctx.fillText("❖", ox + 450, 474);
+    });
+
+    // Besmele (Sağ sayfa)
+    ctx.fillStyle = "#8a1c28";
+    ctx.font = "bold 26px 'Amiri', Georgia, serif";
+    ctx.textAlign = "center";
+    ctx.fillText("بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيمِ", 768, 75);
+
+    ctx.fillStyle = "#7a1620";
+    ctx.font = "bold 20px 'Cinzel', serif";
+    ctx.fillText("BİRİNCİ SÖZ", 768, 112);
+
+    ctx.strokeStyle = "#c9a038";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(580, 126); ctx.lineTo(956, 126);
+    ctx.stroke();
+
+    var rightLines = [
+      "Bismillah her hayrın başıdır. Biz dahi başta ona başlarız.",
+      "Bilmeli ki ey nefsim, şu mübarek kelime İslâm nişanı olduğu gibi,",
+      "bütün mevcudatın lisan-ı haliyle vird-i zebanıdır.",
+      "Bismillah ne büyük tükenmez bir kuvvet, ne çok bitmez bir bereket",
+      "olduğunu anlamak istersen, şu temsilî hikâyeciğe bak, dinle:",
+      "Bedevî Arab çöllerinde seyahat eden adama gerektir ki,",
+      "bir kabile reisinin ismini alsın ve himayesine girsin.",
+      "Tâ şakilerin şerrinden kurtulup hâcatını tedarik edebilsin.",
+      "Yoksa tek başıyla hadsiz düşman ve ihtiyacatına karşı perişan olur.",
+      "İşte böyle bir seyahat için iki adam sahraya çıkıp giderler..."
+    ];
+    ctx.fillStyle = "#2c2217";
+    ctx.font = "14px 'Amiri', Georgia, serif";
+    rightLines.forEach(function(ln, idx){
+      ctx.fillText(ln, 768, 155 + idx * 28);
+    });
+
+    // Sol Sayfa
+    ctx.fillStyle = "#7a1620";
+    ctx.font = "bold 18px 'Cinzel', serif";
+    ctx.fillText("RİSALE-İ NUR KÜLLİYATI", 256, 75);
+    ctx.strokeStyle = "#c9a038";
+    ctx.beginPath();
+    ctx.moveTo(68, 90); ctx.lineTo(444, 90);
+    ctx.stroke();
+
+    var leftLines = [
+      "İşte ey mağrur nefsim! Sen o seyyahsın. Şu dünya ise bir çöldür.",
+      "Aczin ve fakrın hadsizdir. Düşmanın, hacatın nihayetsizdir.",
+      "Madem öyledir; şu sahranın Mâlik-i Ebedîsi ve Hâkim-i Ezelîsinin",
+      "ismini al. Tâ bütün kâinatın dilenciliğinden ve her hâdisatın",
+      "karşısında titremekten kurtulasın.",
+      "Evet, bu kelime öyle mübarek bir definedir ki: Senin nihayetsiz",
+      "aczin ve fakrın, seni nihayetsiz kudret ve rahmete raptedip",
+      "Kadir-i Rahîm'in dergâhında aczi, fakrı en makbul bir şefaatçi yapar.",
+      "Evet, bu kelime ile hareket eden o adama benzer ki,",
+      "askere kaydolur, devlet namına hareket eder.",
+      "Hiçbir kimseden pervası kalmaz. Kanun namına, devlet namına der,",
+      "her işi biter, her şeye karşı mukavemet eder..."
+    ];
+    ctx.fillStyle = "#2c2217";
+    ctx.font = "14px 'Amiri', Georgia, serif";
+    leftLines.forEach(function(ln, idx){
+      ctx.fillText(ln, 256, 120 + idx * 28);
+    });
+
+    ctx.fillStyle = "#8a6b28";
+    ctx.font = "12px serif";
+    ctx.fillText("• 1 •", 256, 470);
+    ctx.fillText("• 2 •", 768, 470);
+
+    var tex = new THREE.CanvasTexture(c);
+    tex.anisotropy = 4;
+    return tex;
+  }
+
   function buildUstadDeskCenterpiece(){
     var deskGroup = new THREE.Group();
-    deskGroup.position.set(0, 0, -3.8); // Kuzey duvarının önü
+    deskGroup.position.set(0, 0, -3.75); // Kuzey duvarının önü
 
-    var woodMat = new THREE.MeshStandardMaterial({ color: 0x3b2314, roughness: 0.65 });
+    var walnutMat = new THREE.MeshStandardMaterial({ color: 0x361f12, roughness: 0.55 });
+    var darkWoodMat = new THREE.MeshStandardMaterial({ color: 0x24140b, roughness: 0.65 });
 
-    // Masanın tablası
-    var tableTop = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.09, 1.6), woodMat);
+    // 1. Antik Çalışma Masası Tablası
+    var tableTop = new THREE.Mesh(new THREE.BoxGeometry(3.1, 0.08, 1.45), walnutMat);
     tableTop.position.set(0, 0.88, 0);
+    tableTop.castShadow = true;
+    tableTop.receiveShadow = true;
     deskGroup.add(tableTop);
 
-    // Masa bacakları (4 adet oymalı)
-    [[-1.4, -0.65], [1.4, -0.65], [-1.4, 0.65], [1.4, 0.65]].forEach(function(pos){
-      var leg = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.88, 0.12), woodMat);
+    // Masa Kenar Profili
+    var tableTrim = new THREE.Mesh(new THREE.BoxGeometry(3.14, 0.04, 1.49), darkWoodMat);
+    tableTrim.position.set(0, 0.84, 0);
+    deskGroup.add(tableTrim);
+
+    // Masa Bacakları (4 Adet torna bacak)
+    [[-1.38, -0.58], [1.38, -0.58], [-1.38, 0.58], [1.38, 0.58]].forEach(function(pos){
+      var leg = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.045, 0.88, 12), walnutMat);
       leg.position.set(pos[0], 0.44, pos[1]);
+      leg.castShadow = true;
       deskGroup.add(leg);
     });
 
-    // Açık Risale-i Nur Cildi (Masada)
-    var bookMat = new THREE.MeshStandardMaterial({ color: 0xf5ecd7, roughness: 0.85 });
-    var openBook = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.05, 0.65), bookMat);
-    openBook.position.set(0, 0.94, 0.15);
-    openBook.rotation.x = 0.08;
-    deskGroup.add(openBook);
+    // 2. Antik Çalışma Koltuğu (Üstad'ın oturduğu gerçek 3D ahşap koltuk)
+    var chairGroup = new THREE.Group();
+    chairGroup.position.set(0, 0, -0.52);
 
-    // Masada Pirinç Gaz Lambası / Kandil
+    var chairSeat = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.1, 0.95), darkWoodMat);
+    chairSeat.position.set(0, 0.54, 0);
+    chairGroup.add(chairSeat);
+
+    var velvetMat = new THREE.MeshStandardMaterial({ color: 0x4a121a, roughness: 0.85 });
+    var cushion = new THREE.Mesh(new THREE.BoxGeometry(1.05, 0.06, 0.82), velvetMat);
+    cushion.position.set(0, 0.60, 0);
+    chairGroup.add(cushion);
+
+    [[-0.5, -0.38], [0.5, -0.38], [-0.5, 0.38], [0.5, 0.38]].forEach(function(pos){
+      var cLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.03, 0.54, 8), darkWoodMat);
+      cLeg.position.set(pos[0], 0.27, pos[1]);
+      chairGroup.add(cLeg);
+    });
+
+    [-0.52, 0.52].forEach(function(px){
+      var post = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 1.35, 8), darkWoodMat);
+      post.position.set(px, 1.25, -0.4);
+      chairGroup.add(post);
+
+      var finial = new THREE.Mesh(new THREE.SphereGeometry(0.045, 10, 10), darkWoodMat);
+      finial.position.set(px, 1.94, -0.4);
+      chairGroup.add(finial);
+    });
+
+    var backTop = new THREE.Mesh(new THREE.BoxGeometry(1.15, 0.12, 0.06), darkWoodMat);
+    backTop.position.set(0, 1.84, -0.4);
+    chairGroup.add(backTop);
+
+    var backCushion = new THREE.Mesh(new THREE.BoxGeometry(0.96, 0.9, 0.04), velvetMat);
+    backCushion.position.set(0, 1.28, -0.39);
+    chairGroup.add(backCushion);
+
+    [-0.56, 0.56].forEach(function(ax){
+      var arm = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.04, 0.75), darkWoodMat);
+      arm.position.set(ax, 0.86, -0.02);
+      chairGroup.add(arm);
+
+      var armSupport = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.32, 8), darkWoodMat);
+      armSupport.position.set(ax, 0.70, 0.26);
+      chairGroup.add(armSupport);
+    });
+
+    deskGroup.add(chairGroup);
+
+    // 3. Masadaki Açık Risale-i Nur Cildi (3D Rahle & Hat Yazılı Sayfalar)
+    var rahleGroup = new THREE.Group();
+    rahleGroup.position.set(0, 0.92, 0.22);
+    rahleGroup.rotation.x = -0.15;
+
+    var rahleBase = new THREE.Mesh(new THREE.BoxGeometry(1.02, 0.03, 0.65), darkWoodMat);
+    rahleGroup.add(rahleBase);
+
+    var openBookMat = new THREE.MeshStandardMaterial({
+      map: getOpenRisaleTexture(),
+      roughness: 0.75,
+      metalness: 0.02
+    });
+    var pagesMesh = new THREE.Mesh(new THREE.BoxGeometry(0.96, 0.04, 0.58), openBookMat);
+    pagesMesh.position.set(0, 0.035, 0);
+    rahleGroup.add(pagesMesh);
+
+    var ribbonMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, roughness: 0.4 });
+    var ribbon = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.005, 0.62), ribbonMat);
+    ribbon.position.set(0, 0.06, 0.03);
+    rahleGroup.add(ribbon);
+
+    deskGroup.add(rahleGroup);
+
+    // 4. Masadaki Pirinç Kandil / Gaz Lambası
     var brassMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.85, roughness: 0.25 });
     var lampBase = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.16, 0.22, 16), brassMat);
-    lampBase.position.set(-1.1, 1.03, 0.2);
+    lampBase.position.set(-1.05, 1.03, 0.25);
     deskGroup.add(lampBase);
 
     var glassMat = new THREE.MeshPhysicalMaterial({
@@ -650,38 +830,41 @@
       transmission: 0.9
     });
     var lampChimney = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 0.35, 16), glassMat);
-    lampChimney.position.set(-1.1, 1.25, 0.2);
+    lampChimney.position.set(-1.05, 1.25, 0.25);
     deskGroup.add(lampChimney);
 
-    // Titreşen kandil alevi (PointLight)
-    lampLight = new THREE.PointLight(0xff9922, 1.8, 8, 1.5);
-    lampLight.position.set(-1.1, 1.22, 0.2);
+    // Kandil alevi ışığı (PointLight)
+    lampLight = new THREE.PointLight(0xff9922, 2.2, 7.5, 1.4);
+    lampLight.position.set(-1.05, 1.22, 0.25);
     deskGroup.add(lampLight);
 
-    // Kandil alevi görsel küresi
     var flameMat = new THREE.MeshBasicMaterial({ color: 0xffe680 });
-    lampFlameMesh = new THREE.Mesh(new THREE.SphereGeometry(0.025, 8, 8), flameMat);
-    lampFlameMesh.position.set(-1.1, 1.22, 0.2);
+    lampFlameMesh = new THREE.Mesh(new THREE.SphereGeometry(0.028, 8, 8), flameMat);
+    lampFlameMesh.position.set(-1.05, 1.22, 0.25);
     deskGroup.add(lampFlameMesh);
 
-    // OKUYAN ÜSTAD BEDİÜZZAMAN PORTRE TUVALİ (Arka planda masada oturan)
+    // 5. 3D OTURAN ÜSTAD BEDİÜZZAMAN FİGÜRÜ (Şeffaf / Saydam, Arka Resimsiz)
     ustadCanvas = document.createElement("canvas");
-    ustadCanvas.width = 1376;
-    ustadCanvas.height = 768;
+    ustadCanvas.width = 896;
+    ustadCanvas.height = 1200;
     ustadCtx = ustadCanvas.getContext("2d");
 
     ustadTexture = new THREE.CanvasTexture(ustadCanvas);
-    ustadTexture.anisotropy = 4;
+    ustadTexture.anisotropy = 8;
 
     var ustadMat = new THREE.MeshStandardMaterial({
       map: ustadTexture,
-      roughness: 0.6,
-      metalness: 0.05
+      transparent: true,
+      alphaTest: 0.05,
+      roughness: 0.65,
+      metalness: 0.05,
+      side: THREE.DoubleSide
     });
 
-    var ustadGeo = new THREE.PlaneGeometry(3.6, 2.02);
+    var ustadGeo = new THREE.PlaneGeometry(1.65, 2.20);
     ustadMesh = new THREE.Mesh(ustadGeo, ustadMat);
-    ustadMesh.position.set(0, 1.78, -0.6); // Masanın hemen arkası
+    // Üstad masanın arkasındaki koltuğa oturur, elleri masa tablasının üzerinde durur
+    ustadMesh.position.set(0, 1.62, -0.36);
     deskGroup.add(ustadMesh);
 
     roomGroup.add(deskGroup);
@@ -694,78 +877,39 @@
     var cw = ustadCanvas.width;
     var ch = ustadCanvas.height;
 
-    // audio_portrait.js durumundan lip-sync değerlerini al
     var mouthOpen = window.__liveMouthOpen || 0;
     var isBlinking = window.__liveIsBlinking || false;
     var blinkProgress = window.__liveBlinkProgress || 0;
+    var headNod = window.__liveHeadNod || 0;
 
-    // Arka plan oda ve Üstad
-    ustadCtx.clearRect(0, 0, cw, ch);
-    ustadCtx.drawImage(ustadImg, 0, 0, cw, ch);
-
-    // Kandil Alevi Işıltısı
     var now = Date.now();
-    var flk = Math.sin(now * 0.007) * 0.09 + Math.sin(now * 0.015) * 0.05;
-    var fx = 204, fy = 375;
-    var flameGrad = ustadCtx.createRadialGradient(fx, fy, 4, fx, fy, 60 + flk * 20);
-    flameGrad.addColorStop(0, "rgba(255, 245, 190, 0.75)");
-    flameGrad.addColorStop(0.35, "rgba(255, 175, 40, 0.45)");
-    flameGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
-    ustadCtx.fillStyle = flameGrad;
-    ustadCtx.beginPath();
-    ustadCtx.arc(fx, fy, 60 + flk * 20, 0, Math.PI * 2);
-    ustadCtx.fill();
+    var breathY = Math.sin(now * 0.0025) * 1.5;
+    var nodY = headNod * 2.0;
 
-    // Sayfa Işıltısı (Açık Risale)
-    var bookAura = 0.12 + mouthOpen * 0.22;
-    var bookGrad = ustadCtx.createRadialGradient(530, 675, 20, 530, 675, 270);
-    bookGrad.addColorStop(0, "rgba(255, 240, 190, " + bookAura + ")");
-    bookGrad.addColorStop(0.5, "rgba(220, 180, 70, " + (bookAura * 0.5) + ")");
-    bookGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
-    ustadCtx.fillStyle = bookGrad;
-    ustadCtx.beginPath();
-    ustadCtx.ellipse(530, 675, 270, 95, 0, 0, Math.PI * 2);
-    ustadCtx.fill();
+    ustadCtx.clearRect(0, 0, cw, ch);
+    ustadCtx.drawImage(ustadImg, 0, breathY + nodY, cw, ch);
 
-    // Dudak Senkronizasyonu (Lip-Sync)
+    // Dudak Senkronizasyonu (ustad_seated_clean.png: ağız merkezi x=525, y=482)
     if(mouthOpen > 0.015){
       var drop = mouthOpen * 11.0;
-      var sx = 826, sy = 318, sw = 74, sh = 53;
-      var dx = sx, dy = sy + drop, dw = sw, dh = sh;
 
-      // Ağız içi karanlığı
+      // Ağız içi karanlık boşluğu
       ustadCtx.save();
       ustadCtx.beginPath();
-      ustadCtx.ellipse(863, 321 + drop * 0.5, 24, Math.max(1, drop * 0.85), 0, 0, Math.PI * 2);
-      ustadCtx.fillStyle = "#150406";
+      ustadCtx.ellipse(525, 482 + drop * 0.40 + breathY + nodY, 22, Math.max(1.5, drop * 0.75), 0, 0, Math.PI * 2);
+      ustadCtx.fillStyle = "#140808";
       ustadCtx.fill();
       ustadCtx.restore();
 
-      // Alt dudak ve çene dokusu
+      // Alt dudak ve bıyık altı / çene dokusu
+      var sx = 475, sy = 482, sw = 100, sh = 55;
+      var dx = sx, dy = sy + drop + breathY + nodY, dw = sw, dh = sh;
       ustadCtx.save();
       ustadCtx.beginPath();
-      ustadCtx.ellipse(dx + dw / 2, dy + dh * 0.44, dw * 0.52, dh * 0.50, 0, 0, Math.PI * 2);
+      ustadCtx.ellipse(dx + dw / 2, dy + dh * 0.45, dw * 0.52, dh * 0.50, 0, 0, Math.PI * 2);
       ustadCtx.clip();
       ustadCtx.drawImage(ustadImg, sx, sy, sw, sh, dx, dy, dw, dh);
       ustadCtx.restore();
-    }
-
-    // Göz kırpma
-    if(isBlinking && blinkProgress > 0){
-      var blinkY = Math.sin(blinkProgress * Math.PI);
-      if(blinkY > 0.08){
-        [{ x: 828, y: 234 }, { x: 892, y: 233 }].forEach(function(eye){
-          ustadCtx.save();
-          ustadCtx.beginPath();
-          ustadCtx.ellipse(eye.x, eye.y, 18, 8 * blinkY, 0, 0, Math.PI * 2);
-          ustadCtx.fillStyle = "#9c7654";
-          ustadCtx.fill();
-          ustadCtx.strokeStyle = "rgba(42, 26, 16, 0.9)";
-          ustadCtx.lineWidth = 1.5;
-          ustadCtx.stroke();
-          ustadCtx.restore();
-        });
-      }
     }
 
     ustadTexture.needsUpdate = true;
@@ -923,6 +1067,46 @@
     }
   }
 
+  function getAvailableTracks(){
+    if(window.TalkingPortrait && window.TalkingPortrait.getPlaylist){
+      var p = window.TalkingPortrait.getPlaylist();
+      if(p && p.length) return p;
+    }
+    if(window.DEFAULT_AUDIO_CATALOG && window.DEFAULT_AUDIO_CATALOG.length){
+      return window.DEFAULT_AUDIO_CATALOG;
+    }
+    if(window.nurPlaylist && window.nurPlaylist.length){
+      return window.nurPlaylist;
+    }
+    if(window.__AUDIO_CATALOG && window.__AUDIO_CATALOG.length){
+      return window.__AUDIO_CATALOG;
+    }
+    return [];
+  }
+
+  function playTrackInBarlaRoom(track){
+    if(!track) return;
+    if(window.TalkingPortrait && window.TalkingPortrait.playTrack){
+      window.TalkingPortrait.playTrack(track);
+    }
+    updateBarlaPlayerUI(track);
+    setCameraPreset("desk");
+  }
+
+  function updateBarlaPlayerUI(track){
+    if(!track) return;
+    var bTag = document.getElementById("brpBookTag");
+    var tTitle = document.getElementById("brpTrackTitle");
+    if(bTag) bTag.textContent = "📖 " + (track.bookTitle || "Risale-i Nur");
+    if(tTitle) tTitle.textContent = track.subTitle || track.title || "Sesli Risale";
+
+    var playBtn = document.getElementById("brpPlayBtn");
+    if(playBtn){
+      playBtn.innerHTML = "<span>⏸</span> Duraklat";
+      playBtn.classList.add("playing");
+    }
+  }
+
   // Bu Eserin Ses Dosyalarını Çekmecede Göster
   function openShelfChapterDrawer(bookTitle, trackFilter){
     var drawer = document.getElementById("barlaShelfDrawer");
@@ -931,12 +1115,7 @@
 
     if(!drawer || !drawerList) return;
 
-    if(drawerTitle) drawerTitle.textContent = "📚 " + bookTitle;
-    drawerList.innerHTML = "";
-
-    // audio_portrait.js içindeki playlist'ten bu kitaba ait olanları filtrele
-    var allTracks = (window.TalkingPortrait && window.TalkingPortrait.getPlaylist) ? 
-                    window.TalkingPortrait.getPlaylist() : (window.nurPlaylist || []);
+    var allTracks = getAvailableTracks();
 
     function normalizeStr(str){
       return (str || "").toLowerCase()
@@ -953,6 +1132,11 @@
       return bt.includes(qFilter) || qFilter.includes(bt);
     });
 
+    if(drawerTitle){
+      drawerTitle.textContent = "📚 " + (isAll ? "Tüm Külliyat" : bookTitle) + " (" + matchedTracks.length + " Bölüm)";
+    }
+    drawerList.innerHTML = "";
+
     if(matchedTracks.length === 0){
       drawerList.innerHTML = "<div class='bsd-empty'>Bu esere ait ses kaydı bulunamadı.</div>";
     } else {
@@ -963,14 +1147,11 @@
           "<button type='button' class='bsd-play-icon'>▶</button>" +
           "<div class='bsd-meta'>" +
             "<div class='bsd-name'>" + (track.subTitle || track.title || ("Bölüm " + (idx + 1))) + "</div>" +
-            "<div class='bsd-dur'>" + (track.duration || "Sesli Kayıt") + "</div>" +
+            "<div class='bsd-dur'>" + (track.bookTitle ? "📖 " + track.bookTitle + " &bull; " : "") + (track.duration || "Sesli Kayıt") + "</div>" +
           "</div>";
 
         item.addEventListener("click", function(){
-          if(window.TalkingPortrait && window.TalkingPortrait.playTrack){
-            window.TalkingPortrait.playTrack(track);
-            setCameraPreset("desk");
-          }
+          playTrackInBarlaRoom(track);
         });
 
         drawerList.appendChild(item);
@@ -981,20 +1162,14 @@
   }
 
   function playFirstTrackOfBook(bookTitle){
-    var allTracks = (window.TalkingPortrait && window.TalkingPortrait.getPlaylist) ? 
-                    window.TalkingPortrait.getPlaylist() : (window.nurPlaylist || []);
-
-    var q = bookTitle.toLowerCase();
+    var allTracks = getAvailableTracks();
+    var q = (bookTitle || "").toLowerCase();
     var found = allTracks.find(function(t){
       return (t.bookTitle || "").toLowerCase().includes(q);
     });
 
-    if(found && window.TalkingPortrait && window.TalkingPortrait.playTrack){
-      window.TalkingPortrait.playTrack(found);
-      // Kamerayı masadaki Üstad'a çevir
-      setTimeout(function(){
-        setCameraPreset("desk");
-      }, 400);
+    if(found){
+      playTrackInBarlaRoom(found);
     }
   }
 
@@ -1028,7 +1203,41 @@
     // 4. Masadaki Canlı Üstad Tuvalini Güncelle
     updateUstadCanvasFrame();
 
-    // 5. Render
+    // 5. Barla Ses Oynatıcı Çubuğu Canlı Senkronizasyonu
+    var audioEl = (window.TalkingPortrait && window.TalkingPortrait.getAudioElement) ? 
+                  window.TalkingPortrait.getAudioElement() : document.getElementById("risaleAudioSource");
+    if(audioEl && !audioEl.paused){
+      var cur = audioEl.currentTime || 0;
+      var tot = audioEl.duration || 0;
+      var fillEl = document.getElementById("brpProgressFill");
+      var curTimeEl = document.getElementById("brpCurrentTime");
+      var totTimeEl = document.getElementById("brpTotalTime");
+      if(fillEl && tot > 0){
+        fillEl.style.width = (cur / tot * 100) + "%";
+      }
+      function fmt(sec){
+        if(isNaN(sec) || !isFinite(sec)) return "00:00";
+        var m = Math.floor(sec / 60);
+        var s = Math.floor(sec % 60);
+        return (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s);
+      }
+      if(curTimeEl) curTimeEl.textContent = fmt(cur);
+      if(totTimeEl && tot > 0) totTimeEl.textContent = fmt(tot);
+
+      var playBtn = document.getElementById("brpPlayBtn");
+      if(playBtn && !playBtn.classList.contains("playing")){
+        playBtn.innerHTML = "<span>⏸</span> Duraklat";
+        playBtn.classList.add("playing");
+      }
+    } else {
+      var playBtn = document.getElementById("brpPlayBtn");
+      if(playBtn && playBtn.classList.contains("playing")){
+        playBtn.innerHTML = "<span>▶</span> Dinle";
+        playBtn.classList.remove("playing");
+      }
+    }
+
+    // 6. Render
     renderer.render(scene, camera);
     animFrameId = requestAnimationFrame(animateBarlaRoom);
   }
@@ -1213,6 +1422,70 @@
         e.preventDefault();
         e.stopPropagation();
         openBarlaRoom();
+      });
+    }
+
+    // Barla Player Çubuğu Düğmeleri
+    var brpPlayBtn = document.getElementById("brpPlayBtn");
+    if(brpPlayBtn){
+      brpPlayBtn.addEventListener("click", function(){
+        if(window.TalkingPortrait && window.TalkingPortrait.togglePlay){
+          window.TalkingPortrait.togglePlay();
+        }
+      });
+    }
+    var brpPrevBtn = document.getElementById("brpPrevBtn");
+    if(brpPrevBtn){
+      brpPrevBtn.addEventListener("click", function(){
+        var tracks = getAvailableTracks();
+        var cur = (window.TalkingPortrait && window.TalkingPortrait.getCurrentTrack) ? window.TalkingPortrait.getCurrentTrack() : null;
+        var idx = cur ? tracks.findIndex(function(t){ return t.id === cur.id; }) : -1;
+        if(idx > 0){
+          playTrackInBarlaRoom(tracks[idx - 1]);
+        }
+      });
+    }
+    var brpNextBtn = document.getElementById("brpNextBtn");
+    if(brpNextBtn){
+      brpNextBtn.addEventListener("click", function(){
+        var tracks = getAvailableTracks();
+        var cur = (window.TalkingPortrait && window.TalkingPortrait.getCurrentTrack) ? window.TalkingPortrait.getCurrentTrack() : null;
+        var idx = cur ? tracks.findIndex(function(t){ return t.id === cur.id; }) : -1;
+        if(idx >= 0 && idx < tracks.length - 1){
+          playTrackInBarlaRoom(tracks[idx + 1]);
+        }
+      });
+    }
+    var brpTrack = document.getElementById("brpProgressTrack");
+    if(brpTrack){
+      brpTrack.addEventListener("click", function(e){
+        var audioEl = (window.TalkingPortrait && window.TalkingPortrait.getAudioElement) ? 
+                      window.TalkingPortrait.getAudioElement() : document.getElementById("risaleAudioSource");
+        if(!audioEl || !audioEl.duration) return;
+        var rect = brpTrack.getBoundingClientRect();
+        var pct = (e.clientX - rect.left) / rect.width;
+        audioEl.currentTime = Math.max(0, Math.min(1, pct)) * audioEl.duration;
+      });
+    }
+    var brpVol = document.getElementById("brpVolSlider");
+    if(brpVol){
+      brpVol.addEventListener("input", function(){
+        var audioEl = (window.TalkingPortrait && window.TalkingPortrait.getAudioElement) ? 
+                      window.TalkingPortrait.getAudioElement() : document.getElementById("risaleAudioSource");
+        if(audioEl){
+          audioEl.volume = brpVol.value / 100;
+        }
+      });
+    }
+    var brpMute = document.getElementById("brpMuteBtn");
+    if(brpMute){
+      brpMute.addEventListener("click", function(){
+        var audioEl = (window.TalkingPortrait && window.TalkingPortrait.getAudioElement) ? 
+                      window.TalkingPortrait.getAudioElement() : document.getElementById("risaleAudioSource");
+        if(audioEl){
+          audioEl.muted = !audioEl.muted;
+          brpMute.textContent = audioEl.muted ? "🔇" : "🔊";
+        }
       });
     }
   }

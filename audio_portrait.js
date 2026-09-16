@@ -13,7 +13,11 @@
   var freqData = null;
   var isAudioSetup = false;
   var currentTrack = null;
-  var playlist = [];
+  var playlist = (typeof window !== "undefined" && window.DEFAULT_AUDIO_CATALOG && Array.isArray(window.DEFAULT_AUDIO_CATALOG)) ? window.DEFAULT_AUDIO_CATALOG.slice() : [];
+  if(typeof window !== "undefined"){
+    window.nurPlaylist = playlist;
+    window.__AUDIO_CATALOG = playlist;
+  }
 
   // Animasyon Değişkenleri
   var mouthOpen = 0;       // 0 (kapalı) - 1 (tam açık)
@@ -1510,7 +1514,15 @@
       });
     }
 
+    if((!allTracks || !allTracks.length) && window.DEFAULT_AUDIO_CATALOG && window.DEFAULT_AUDIO_CATALOG.length){
+      allTracks = window.DEFAULT_AUDIO_CATALOG.slice();
+    }
+
     playlist = allTracks;
+    if(typeof window !== "undefined"){
+      window.nurPlaylist = playlist;
+      window.__AUDIO_CATALOG = playlist;
+    }
 
     if(playlist.length > 0){
       currentTrack = playlist[0];

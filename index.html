@@ -2317,7 +2317,132 @@ body.is-admin .admin-badge {
   font-size: 0.75rem;
   color: rgba(247,231,206,0.75);
   pointer-events: none;
-  border-top: 1px solid rgba(212,175,55,0.15);
+}
+
+/* Alt Ses Konsolu (Barla Odası İçi) */
+.br-player-bar {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(880px, 94vw);
+  background: rgba(20, 14, 9, 0.94);
+  border: 1.5px solid rgba(212, 175, 55, 0.6);
+  border-radius: 35px;
+  box-shadow: 0 12px 35px rgba(0,0,0,0.85), 0 0 25px rgba(212, 175, 55, 0.25);
+  padding: 8px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  z-index: 30;
+  backdrop-filter: blur(10px);
+  pointer-events: auto;
+}
+.brp-meta {
+  min-width: 130px;
+  max-width: 200px;
+}
+.brp-book-tag {
+  font-size: 0.68rem;
+  color: #d4af37;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.brp-track-name {
+  font-family: "Cinzel", "Amiri", Georgia, serif;
+  font-size: 0.88rem;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.brp-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.brp-btn {
+  background: rgba(212, 175, 55, 0.15);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  color: #ffd700;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.brp-btn:hover {
+  background: rgba(212, 175, 55, 0.35);
+  transform: scale(1.1);
+  border-color: #ffd700;
+}
+.brp-btn-play {
+  width: auto;
+  border-radius: 20px;
+  padding: 5px 16px;
+  background: linear-gradient(135deg, #7a1620, #4c0e14);
+  font-weight: 700;
+  gap: 6px;
+}
+.brp-btn-play.playing {
+  background: linear-gradient(135deg, #2b1a0d, #150d06);
+  border-color: #ffd700;
+}
+.brp-progress-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.brp-progress-track {
+  flex: 1;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+  cursor: pointer;
+  overflow: hidden;
+  position: relative;
+}
+.brp-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #d4af37, #ffd700);
+  box-shadow: 0 0 8px rgba(212, 175, 55, 0.8);
+  transition: width 0.1s linear;
+}
+.brp-times {
+  font-size: 0.72rem;
+  color: rgba(247, 231, 206, 0.8);
+  font-family: monospace;
+  white-space: nowrap;
+}
+.brp-sep {
+  opacity: 0.5;
+  margin: 0 2px;
+}
+.brp-volume {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100px;
+}
+.brp-vol-icon {
+  background: none;
+  border: none;
+  color: #ffd700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  padding: 0;
+}
+.brp-slider {
+  width: 70px;
+  accent-color: #ffd700;
+  cursor: pointer;
 }
 </style>
 </head>
@@ -2907,6 +3032,33 @@ body.is-admin .admin-badge {
     <div class="bsd-list" id="bsdList"></div>
   </div>
 
+  <!-- Alt Ses Oynatıcı Konsolu (Barla Odası İçi) -->
+  <div class="br-player-bar" id="brPlayerBar">
+    <div class="brp-meta">
+      <div class="brp-book-tag" id="brpBookTag">📖 Sözler</div>
+      <div class="brp-track-name" id="brpTrackTitle">1. Söz</div>
+    </div>
+    <div class="brp-controls">
+      <button type="button" id="brpPrevBtn" class="brp-btn" title="Önceki Bölüm">⏮</button>
+      <button type="button" id="brpPlayBtn" class="brp-btn brp-btn-play" title="Oynat / Duraklat">▶ Dinle</button>
+      <button type="button" id="brpNextBtn" class="brp-btn" title="Sonraki Bölüm">⏭</button>
+    </div>
+    <div class="brp-progress-wrap">
+      <div class="brp-progress-track" id="brpProgressTrack" title="İlerletmek için tıklayın">
+        <div class="brp-progress-fill" id="brpProgressFill"></div>
+      </div>
+      <div class="brp-times">
+        <span id="brpCurrentTime">00:00</span>
+        <span class="brp-sep">/</span>
+        <span id="brpTotalTime">--:--</span>
+      </div>
+    </div>
+    <div class="brp-volume">
+      <button type="button" id="brpMuteBtn" class="brp-vol-icon" title="Sesi Aç / Kapat">🔊</button>
+      <input type="range" id="brpVolSlider" min="0" max="100" value="100" class="brp-slider" title="Ses Seviyesi">
+    </div>
+  </div>
+
   <!-- Alt İpucu Şeridi -->
   <div class="br-hint-banner">
     <span>🖱️ Odayı 360° incelemek için fareyi sürükleyin &bull; Raftaki kitaplara tıklayarak doğrudan dinleyin &bull; Masa kandili ve canlı Üstad ile Barla atmosferi</span>
@@ -2920,6 +3072,7 @@ body.is-admin .admin-badge {
 </footer>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="books_catalog.js?v=4.0"></script>
+<script src="audio_catalog.js?v=4.0"></script>
 <script src="audio_portrait.js?v=4.0"></script>
 <script src="barla_room.js?v=4.0"></script>
 <script src="nur_main.js?v=4.0"></script>
