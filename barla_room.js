@@ -1,6 +1,7 @@
 /* ============================================================
-   NUR KORİDORU - 3D BÜYÜK BARLA ÇALIŞMA ODASI
-   Dört Duvarda Ahşap Raflar & Sesli Risale Kütüphanesi Motoru
+   NUR KORİDORU - 3D NOSTALJİK BARLA KIŞ ÇALIŞMA ODASI
+   360° Gezilebilir Oda, Kuzine Soba, Canlı Ateş, Çaydanlık Buharı,
+   Karlı Köy Penceresi, Rahle Başında Üstad & 684 Sesli Risale
    ============================================================ */
 
 (function(){
@@ -14,65 +15,55 @@
   var raycaster, mouse;
   var isDragging = false;
   var prevMouseX = 0, prevMouseY = 0;
-  var lon = -90, lat = 0; // Başlangıçta masaya (Kuzey, Z=-) bakış
-  var targetLon = -90, targetLat = 0;
-  var fov = 60;
+  var lon = -80, lat = -4; // Başlangıçta rahle başındaki Üstad'a bakış
+  var targetLon = -80, targetLat = -4;
+  var fov = 52;
+  var targetFov = 52;
 
-  // Kamera Presetleri
+  // Kamera Presetleri (360° İnceleme)
   var cameraPresets = {
-    desk: { lon: -90, lat: -4, distance: 3.8, targetY: 1.45 },
-    west: { lon: 180, lat: 5, distance: 4.2, targetY: 1.8 },
-    east: { lon: 0, lat: 5, distance: 4.2, targetY: 1.8 },
-    south: { lon: 90, lat: 2, distance: 4.2, targetY: 1.8 },
-    overview: { lon: -125, lat: 18, distance: 6.0, targetY: 1.6 }
+    desk: { lon: -80, lat: -4, fov: 52 },       // Rahle & Üstad
+    stove: { lon: -125, lat: -6, fov: 48 },     // Kuzine Soba, Çaydanlık & Kedi
+    window: { lon: -56, lat: 4, fov: 46 },      // Karlı Köy Penceresi & Düşen Karlar
+    west: { lon: 180, lat: 0, fov: 56 },       // Sol Duvar: Lem'alar & Lâhikalar
+    east: { lon: 0, lat: 0, fov: 56 },         // Sağ Duvar: Şualar & Asa-yı Musa
+    south: { lon: 90, lat: 0, fov: 56 },       // Arka Duvar: Tarihçe & Barla Kapısı
+    overview: { lon: -88, lat: 8, fov: 68 }     // 360° Tüm Oda Kuşbakışı
   };
   var currentPreset = "desk";
   var isTransitioningCamera = false;
   var camTransProgress = 1.0;
 
-  // 3D Nesneler
+  // 3D Sahne Nesneleri
   var roomGroup = null;
   var shelfBooks = [];
   var hoveredBook = null;
   var selectedBook = null;
-  var lampLight = null;
-  var lampFlameMesh = null;
-  var windowBeamMesh = null;
 
-  // Üstad Canlı Portre Tuvali ve Dokusu
-  var ustadMesh = null;
-  var ustadCanvas = null;
-  var ustadCtx = null;
-  var ustadTexture = null;
-  var ustadImg = new Image();
-  var ustadImgLoaded = false;
-  ustadImg.src = "ustad_seated_clean.png?v=4.5";
-  ustadImg.onload = function(){
-    ustadImgLoaded = true;
+  // Canlı Işık ve Parçacık Sistemleri
+  var stoveLight = null;
+  var ceilingLampLight = null;
+  var steamParticles = null;
+  var steamGeo = null;
+  var steamData = [];
+  var snowParticles = null;
+  var snowGeo = null;
+  var snowData = [];
+
+  // Ana Kış Odası & Üstad Canlı Tuvali
+  var roomCanvas = null;
+  var roomCtx = null;
+  var roomTexture = null;
+  var roomMesh = null;
+  var roomImg = new Image();
+  var roomImgLoaded = false;
+  roomImg.src = "barla_cozy_room.jpg?v=5.0";
+  roomImg.onload = function(){
+    roomImgLoaded = true;
   };
 
   // Sesli Risale Eserleri ve Duvar Eşleştirmesi (YALNIZCA SESLİ ESERLER)
   var AUDIO_WALLS_DATA = [
-    {
-      wall: "north", // Ön Duvar (Masa yanı)
-      name: "Ön Duvar (Masa ve Mihrap)",
-      bays: [
-        {
-          title: "Sözler",
-          volumes: ["1. Cilt: 1-14. Söz", "2. Cilt: 15-24. Söz", "3. Cilt: 25. Söz (İ'caz)", "4. Cilt: 26-30. Söz", "5. Cilt: 31-33. Söz"],
-          trackFilter: "Sözler",
-          color: "#7A1620",
-          desc: "İman Hakikatleri ve Kur'anî Bürhanlar (117 Sesli Bölüm)"
-        },
-        {
-          title: "Mektubat",
-          volumes: ["1. Cilt: 1-15. Mektup", "2. Cilt: 16-23. Mektup", "3. Cilt: 24-29. Mektup", "4. Cilt: Hakikat Çekirdekleri"],
-          trackFilter: "Mektubat",
-          color: "#1c3b2b",
-          desc: "Tevhid, Sünnet ve İrşad Mektupları"
-        }
-      ]
-    },
     {
       wall: "west", // Sol Duvar (Lem'alar & Lâhikalar)
       name: "Sol Duvar (Lem'alar & Lâhika Rafları)",
@@ -100,50 +91,50 @@
         },
         {
           title: "Emirdağ Lâhikası",
-          volumes: ["1. Cilt: Emirdağ 1", "2. Cilt: Emirdağ 2 (Âlem-i İslam)"],
+          volumes: ["1. Cilt: Emirdağ Mektupları", "2. Cilt: İttihad ve Uhuvvet"],
           trackFilter: "Emirdağ Lâhikası",
-          color: "#28341b",
-          desc: "Son Dönem Mektupları ve Vasiyetler (61 Sesli Bölüm)"
+          color: "#283424",
+          desc: "Alem-i İslam ve Nur Talebeleri Mektupları (25 Sesli Bölüm)"
         }
       ]
     },
     {
-      wall: "east", // Sağ Duvar (Güneşli Pencere Yanı: Şualar & Asa-yı Musa)
+      wall: "east", // Sağ Duvar (Şualar, Asa-yı Musa, İman Hakikatleri)
       name: "Sağ Duvar (Şualar & Asa-yı Musa)",
       bays: [
         {
           title: "Şualar",
-          volumes: ["1. Cilt: 1-6. Şua", "2. Cilt: 7. Şua (Âyetü'l-Kübra)", "3. Cilt: 11. Şua (Meyve)", "4. Cilt: 13-15. Şua (Afyon)"],
+          volumes: ["1. Cilt: 1-6. Şua", "2. Cilt: 7. Şua (Ayetü'l-Kübra)", "3. Cilt: 9-11. Şua (Meyve)", "4. Cilt: 13-14. Şua (Afyon)"],
           trackFilter: "Şualar",
-          color: "#541620",
-          desc: "Tevhid Bürhanları ve Âyetü'l-Kübra (101 Sesli Bölüm)"
+          color: "#1d3246",
+          desc: "Tevhid Bürhanları ve Mahkeme Müdafaaları (133 Sesli Bölüm)"
         },
         {
           title: "Asa-yı Musa",
-          volumes: ["1. Kısım: Meyve Risalesi", "2. Kısım: Hüccetü'l-Bâliğa"],
+          volumes: ["1. Cilt: Meyve Risalesi", "2. Cilt: Hüccetü'l-Bâliğa"],
           trackFilter: "Asa-yı Musa",
-          color: "#422812",
-          desc: "İman Kurtarma Rehberi ve Gençlik Rehberi (47 Sesli Bölüm)"
+          color: "#452e18",
+          desc: "Gençlik Rehberi ve İman Delilleri (36 Sesli Bölüm)"
         },
         {
-          title: "İman ve Küfür Muvazeneleri",
-          volumes: ["1. Cilt: Nur'un İlk Kapısı", "2. Cilt: Muvazeneler"],
-          trackFilter: "İman ve Küfür Muvazeneleri",
-          color: "#251829",
-          desc: "İman ve Dalalet Mukayesesi (33 Sesli Bölüm)"
+          title: "Gençlik Rehberi",
+          volumes: ["1. Cilt: Gençlik Rehberi"],
+          trackFilter: "Gençlik Rehberi",
+          color: "#243c2c",
+          desc: "Gençliğin İstikamet ve Ebedî Saadet Rehberi (23 Sesli Bölüm)"
         }
       ]
     },
     {
-      wall: "south", // Arka Duvar (Giriş Kapısı Yanı)
-      name: "Arka Duvar (Tarihçe & Mesnevi Rafları)",
+      wall: "south", // Arka Duvar (Kapı Yanı: Tarihçe, Mesnevi, İşarat, Sikke)
+      name: "Arka Duvar (Tarihçe-i Hayat & Mesnevi-i Nuriye)",
       bays: [
         {
           title: "Tarihçe-i Hayat",
-          volumes: ["1. Cilt: İlk Hayatı & Barla", "2. Cilt: Eskişehir & Kastamonu", "3. Cilt: Denizli & Afyon", "4. Cilt: Son Yıllar & Tahliller"],
+          volumes: ["1. Cilt: İlk Hayatı & Barla", "2. Cilt: Eskişehir & Kastamonu", "3. Cilt: Denizli & Afyon", "4. Cilt: Isparta & Son Dönem"],
           trackFilter: "Tarihçe-i Hayat",
-          color: "#46181f",
-          desc: "Bediüzzaman'ın Hayatı ve Dava Mücadelesi (86 Sesli Bölüm)"
+          color: "#3e1c22",
+          desc: "Bediüzzaman'ın İlmî ve Manevi Mücadele Tarihi (65 Sesli Bölüm)"
         },
         {
           title: "Mesnevi-i Nuriye",
@@ -170,58 +161,57 @@
     }
   ];
 
-  /* ── 1. PROCEDURAL DOKU ÜRETİCİLERİ ───────────────────────── */
+  /* ── 1. PROCEDURAL DOKULAR (Halı, Ahşap ve Hat Levhası) ───── */
   var texCache = {};
 
-  // Geleneksel Isparta / Barla El Dokuma Kilimi Dokusu
-  function getCarpetTex(){
-    if(texCache.carpet) return texCache.carpet;
+  // Geleneksel Anadolu Kırmızı Dokuma Halısı Dokusu
+  function getAnatolianRugTex(){
+    if(texCache.rug) return texCache.rug;
     var c = document.createElement("canvas");
     c.width = 1024; c.height = 1024;
     var cx = c.getContext("2d");
 
-    // Zemin kadife bordo
-    cx.fillStyle = "#4a1017";
+    // Zemin geleneksel kök boya kiremit/bordo
+    cx.fillStyle = "#5c131a";
     cx.fillRect(0, 0, 1024, 1024);
 
-    // Bordürler
+    // Dış bordürler (Altın & lacivert)
     for(var b = 0; b < 4; b++){
-      var inset = b * 32;
-      cx.strokeStyle = b % 2 === 0 ? "#d4af37" : "#1f2d3d";
-      cx.lineWidth = b % 2 === 0 ? 8 : 16;
+      var inset = b * 26;
+      cx.strokeStyle = b % 2 === 0 ? "#c99a38" : "#1b2633";
+      cx.lineWidth = b % 2 === 0 ? 8 : 14;
       cx.strokeRect(inset, inset, 1024 - inset * 2, 1024 - inset * 2);
     }
 
-    // Geleneksel geometrik mihrab & baklava motifi
-    cx.fillStyle = "#6d1924";
-    cx.fillRect(160, 160, 704, 704);
+    // İç geometrik mihrap ve baklava motifleri
+    cx.fillStyle = "#7b1c26";
+    cx.fillRect(130, 130, 764, 764);
 
-    cx.strokeStyle = "rgba(212, 175, 55, 0.75)";
-    cx.lineWidth = 10;
+    cx.strokeStyle = "#e5b74c";
+    cx.lineWidth = 8;
     cx.beginPath();
-    // Büyük merkezi baklava
-    cx.moveTo(512, 220);
-    cx.lineTo(780, 512);
-    cx.lineTo(512, 804);
-    cx.lineTo(244, 512);
+    cx.moveTo(512, 170);
+    cx.lineTo(840, 512);
+    cx.lineTo(512, 854);
+    cx.lineTo(184, 512);
     cx.closePath();
     cx.stroke();
 
-    // İç madalyon
-    cx.fillStyle = "#1e2a38";
+    // Merkezi lacivert göbek
+    cx.fillStyle = "#162330";
     cx.fill();
 
-    // Merkezi yıldız
+    // Yıldız motifi
     cx.fillStyle = "#d4af37";
     cx.beginPath();
-    cx.arc(512, 512, 60, 0, Math.PI * 2);
+    cx.arc(512, 512, 55, 0, Math.PI * 2);
     cx.fill();
 
-    // Yün dokuma greni
+    // Dokuma yün gren efekti
     var id = cx.getImageData(0, 0, 1024, 1024);
     var d = id.data;
     for(var i = 0; i < d.length; i += 4){
-      var noise = (Math.random() - 0.5) * 35;
+      var noise = (Math.random() - 0.5) * 32;
       d[i] = Math.min(255, Math.max(0, d[i] + noise));
       d[i+1] = Math.min(255, Math.max(0, d[i+1] + noise));
       d[i+2] = Math.min(255, Math.max(0, d[i+2] + noise));
@@ -229,34 +219,43 @@
     cx.putImageData(id, 0, 0);
 
     var tex = new THREE.CanvasTexture(c);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
     tex.anisotropy = 4;
-    texCache.carpet = tex;
+    texCache.rug = tex;
     return tex;
   }
 
-  // Ahşap Zemin / Mertek Kiriş Dokusu
-  function getWoodTex(colorBase, darkGrain){
-    var k = colorBase + "_" + darkGrain;
+  // Ahşap Zemin ve Tavan Kirişi Dokusu
+  function getWoodPlankTex(baseHex, grainHex){
+    var k = baseHex + "_" + grainHex;
     if(texCache[k]) return texCache[k];
     var c = document.createElement("canvas");
     c.width = 512; c.height = 512;
     var cx = c.getContext("2d");
 
-    cx.fillStyle = colorBase;
+    cx.fillStyle = baseHex;
     cx.fillRect(0, 0, 512, 512);
 
-    // Ahşap damarları
-    cx.strokeStyle = darkGrain;
-    for(var i = 0; i < 60; i++){
-      cx.lineWidth = 1 + Math.random() * 3;
-      cx.globalAlpha = 0.15 + Math.random() * 0.25;
+    cx.strokeStyle = grainHex;
+    for(var i = 0; i < 50; i++){
+      var y = Math.random() * 512;
+      cx.lineWidth = 1 + Math.random() * 2;
       cx.beginPath();
-      var y = i * (512 / 60);
       cx.moveTo(0, y);
-      cx.bezierCurveTo(150, y + (Math.random()-0.5)*30, 350, y + (Math.random()-0.5)*30, 512, y);
+      cx.bezierCurveTo(170, y + (Math.random() - 0.5) * 16, 340, y + (Math.random() - 0.5) * 16, 512, y);
       cx.stroke();
     }
-    cx.globalAlpha = 1.0;
+
+    // Tahta derz çizgileri
+    cx.strokeStyle = "rgba(0,0,0,0.4)";
+    cx.lineWidth = 3;
+    for(var p = 0; p <= 512; p += 64){
+      cx.beginPath();
+      cx.moveTo(0, p);
+      cx.lineTo(512, p);
+      cx.stroke();
+    }
 
     var tex = new THREE.CanvasTexture(c);
     tex.wrapS = THREE.RepeatWrapping;
@@ -265,107 +264,179 @@
     return tex;
   }
 
-  // Hakiki Ciltli Sesli Risale Kitap Sırtı Dokusu (Gold Calligraphy)
-  function getSpineTexture(title, volLabel, colorHex){
-    var key = title + "_" + (volLabel || "");
-    if(texCache[key]) return texCache[key];
-
+  // Kitap Sırtı Dokusu
+  function getBookSpineTex(title, volLabel, colorHex){
     var c = document.createElement("canvas");
     c.width = 128; c.height = 512;
     var cx = c.getContext("2d");
 
-    // Deri zemin rengi
     var grad = cx.createLinearGradient(0, 0, 128, 0);
-    grad.addColorStop(0, "#0e0608");
-    grad.addColorStop(0.3, colorHex || "#7a1620");
-    grad.addColorStop(0.7, colorHex || "#7a1620");
-    grad.addColorStop(1, "#0e0608");
+    grad.addColorStop(0, "#080504");
+    grad.addColorStop(0.25, colorHex);
+    grad.addColorStop(0.75, colorHex);
+    grad.addColorStop(1, "#080504");
     cx.fillStyle = grad;
     cx.fillRect(0, 0, 128, 512);
 
-    // Altın bordür çizgileri
-    cx.strokeStyle = "#ffd700";
+    // Varaklı altın bordürler
+    cx.strokeStyle = "#d4af37";
     cx.lineWidth = 3;
-    cx.strokeRect(8, 14, 112, 484);
+    cx.strokeRect(6, 12, 116, 488);
+    cx.strokeRect(12, 20, 104, 472);
 
-    cx.lineWidth = 1.2;
-    cx.strokeRect(12, 18, 104, 476);
-
-    // Üst & Alt Şemse / Hilal motifi
-    [32, 480].forEach(function(y){
-      cx.fillStyle = "#ffd700";
-      cx.beginPath();
-      cx.arc(64, y, 9, 0, Math.PI * 2);
-      cx.fill();
-    });
-
-    // Cilt başlığı (Dikey hat sanatı)
+    // Eser Başlığı
     cx.save();
     cx.translate(64, 256);
     cx.rotate(Math.PI / 2);
-    cx.fillStyle = "#fff8db";
-    cx.shadowColor = "#ffd700";
-    cx.shadowBlur = 6;
+    cx.fillStyle = "#f9df88";
+    cx.font = "bold 24px 'Cinzel', 'Amiri', serif";
     cx.textAlign = "center";
     cx.textBaseline = "middle";
-
-    // Başlık boyutu
-    var fontSize = title.length > 14 ? 26 : 32;
-    cx.font = "bold " + fontSize + "px 'Amiri', 'Cinzel', serif";
-    cx.fillText(title, 0, -4);
+    cx.fillText(title, 0, 0);
 
     if(volLabel){
-      cx.font = "italic 16px 'Instrument Sans', sans-serif";
-      cx.fillStyle = "#e0cf9b";
-      cx.shadowBlur = 0;
-      cx.fillText(volLabel, 0, 24);
+      cx.font = "14px 'Cinzel', serif";
+      cx.fillStyle = "#c99a38";
+      cx.fillText(volLabel, 0, 26);
     }
     cx.restore();
 
     var tex = new THREE.CanvasTexture(c);
     tex.anisotropy = 4;
-    texCache[key] = tex;
     return tex;
   }
 
-  /* ── 2. 3D BARLA ODASI İNŞASI ─────────────────────────────── */
-  function buildBarlaRoom(){
+  // Hat Levhası ("Lafzullah" & "Kelime-i Tevhid")
+  function getCalligraphyTex(text, subText){
+    var c = document.createElement("canvas");
+    c.width = 512; c.height = 384;
+    var cx = c.getContext("2d");
+
+    // Ahşap altın varak çerçeve
+    cx.fillStyle = "#1e130a";
+    cx.fillRect(0, 0, 512, 384);
+    cx.strokeStyle = "#c99a38";
+    cx.lineWidth = 12;
+    cx.strokeRect(10, 10, 492, 364);
+
+    // Zemin siyah kadife
+    cx.fillStyle = "#0c0806";
+    cx.fillRect(24, 24, 464, 336);
+
+    cx.fillStyle = "#f5d77f";
+    cx.textAlign = "center";
+    cx.font = "bold 56px 'Amiri', Georgia, serif";
+    cx.fillText(text, 256, 190);
+
+    if(subText){
+      cx.font = "bold 24px 'Cinzel', serif";
+      cx.fillStyle = "#c99a38";
+      cx.fillText(subText, 256, 265);
+    }
+
+    var tex = new THREE.CanvasTexture(c);
+    return tex;
+  }
+
+  // Yumuşak Dairesel Parçacık Dokusu (Buhar ve Kar Taneleri İçin)
+  function getSoftCircleTex(){
+    if(texCache.softCircle) return texCache.softCircle;
+    var c = document.createElement("canvas");
+    c.width = 64; c.height = 64;
+    var cx = c.getContext("2d");
+    var grad = cx.createRadialGradient(32, 32, 0, 32, 32, 32);
+    grad.addColorStop(0, "rgba(255, 255, 255, 1)");
+    grad.addColorStop(0.35, "rgba(255, 255, 255, 0.7)");
+    grad.addColorStop(1, "rgba(255, 255, 255, 0)");
+    cx.fillStyle = grad;
+    cx.fillRect(0, 0, 64, 64);
+    var tex = new THREE.CanvasTexture(c);
+    texCache.softCircle = tex;
+    return tex;
+  }
+
+  /* ── 2. SAHNE, IŞIKLAR VE 3D KIŞ ODASI İNŞASI ─────────────── */
+  function initThreeScene(){
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0a0705);
+    scene.fog = new THREE.FogExp2(0x0a0705, 0.015);
+
+    camera = new THREE.PerspectiveCamera(fov, containerEl.clientWidth / containerEl.clientHeight, 0.1, 100);
+    camera.position.set(0, 1.4, 0);
+
+    renderer = new THREE.WebGLRenderer({ canvas: canvasEl, antialias: true, powerPreference: "high-performance" });
+    renderer.setSize(containerEl.clientWidth, containerEl.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    raycaster = new THREE.Raycaster();
+    mouse = new THREE.Vector2();
+
+    setupRoomLighting();
+    buildCozyWinterRoom();
+    setupAtmosphericParticles();
+  }
+
+  // Sahne Işıklandırması (Sıcak Barla Kış Ambiyansı)
+  function setupRoomLighting(){
+    // Sıcak ortam ışığı (Kuzine soba & tavan lambası sıcaklığı)
+    var ambient = new THREE.AmbientLight(0xffecd0, 0.75);
+    scene.add(ambient);
+
+    // Tavan Asma Sarkıt Lambası (Warm Amber Pendant Light)
+    ceilingLampLight = new THREE.PointLight(0xffdf99, 1.8, 14, 1.5);
+    ceilingLampLight.position.set(0.6, 3.6, -2.2);
+    ceilingLampLight.castShadow = true;
+    scene.add(ceilingLampLight);
+
+    // Kuzine Soba İçindeki Canlı Odun Ateşi Işığı (Flickering Stove Fire)
+    stoveLight = new THREE.PointLight(0xff6a14, 2.4, 7.5, 1.8);
+    stoveLight.position.set(-2.65, 0.75, -3.9);
+    stoveLight.castShadow = true;
+    scene.add(stoveLight);
+
+    // Karlı Pencereden Giren Gece/Ay Parıltısı
+    var moonLight = new THREE.DirectionalLight(0x8eb4e6, 0.65);
+    moonLight.position.set(4.0, 4.0, -6.0);
+    moonLight.target.position.set(1.5, 1.5, -3.5);
+    scene.add(moonLight);
+    scene.add(moonLight.target);
+  }
+
+  // Barla Kış Odası 3D Mimarisi
+  function buildCozyWinterRoom(){
     roomGroup = new THREE.Group();
     shelfBooks = [];
 
-    var roomW = 12, roomD = 12, roomH = 4.2;
+    var roomW = 10.0;
+    var roomH = 4.8;
+    var roomD = 9.0;
 
-    // 1. Zemin (Ahşap Parke + Kilim)
-    var floorTex = getWoodTex("#362313", "#1e1208");
+    // 1. AHŞAP TABAN VE GELENEKSEL KIRMIZI KİLİMLER
+    var floorTex = getWoodPlankTex("#3d2415", "#1c0f08");
     floorTex.repeat.set(8, 8);
-    var floorMat = new THREE.MeshStandardMaterial({
-      map: floorTex,
-      roughness: 0.75,
-      metalness: 0.05
-    });
-    var floorGeo = new THREE.PlaneGeometry(roomW, roomD);
-    var floorMesh = new THREE.Mesh(floorGeo, floorMat);
+    var floorMat = new THREE.MeshStandardMaterial({ map: floorTex, roughness: 0.75 });
+    var floorMesh = new THREE.Mesh(new THREE.PlaneGeometry(roomW, roomD), floorMat);
     floorMesh.rotation.x = -Math.PI / 2;
     floorMesh.position.y = 0;
     floorMesh.receiveShadow = true;
     roomGroup.add(floorMesh);
 
-    // Kilim (Masanın ortasında serili)
-    var carpetTex = getCarpetTex();
-    var carpetMat = new THREE.MeshStandardMaterial({
-      map: carpetTex,
-      roughness: 0.88,
-      metalness: 0.02
-    });
-    var carpetGeo = new THREE.PlaneGeometry(7.2, 7.2);
-    var carpetMesh = new THREE.Mesh(carpetGeo, carpetMat);
-    carpetMesh.rotation.x = -Math.PI / 2;
-    carpetMesh.position.set(0, 0.015, -0.4);
-    carpetMesh.receiveShadow = true;
-    roomGroup.add(carpetMesh);
+    // Zemin Boyunca Serili Geleneksel Anadolu Halısı
+    var rugTex = getAnatolianRugTex();
+    rugTex.repeat.set(2, 2);
+    var rugMat = new THREE.MeshStandardMaterial({ map: rugTex, roughness: 0.9 });
+    var rugMesh = new THREE.Mesh(new THREE.PlaneGeometry(7.6, 6.8), rugMat);
+    rugMesh.rotation.x = -Math.PI / 2;
+    rugMesh.position.set(0, 0.015, -0.6);
+    rugMesh.receiveShadow = true;
+    roomGroup.add(rugMesh);
 
-    // 2. Tavan ve Ahşap Mertek Kirişleri
-    var ceilingTex = getWoodTex("#402a18", "#221308");
+    // 2. AHŞAP TAVAN VE MERTEK KİRİŞLERİ
+    var ceilingTex = getWoodPlankTex("#2f1c10", "#140a05");
     ceilingTex.repeat.set(6, 6);
     var ceilingMat = new THREE.MeshStandardMaterial({ map: ceilingTex, roughness: 0.85 });
     var ceilingMesh = new THREE.Mesh(new THREE.PlaneGeometry(roomW, roomD), ceilingMat);
@@ -373,567 +444,395 @@
     ceilingMesh.position.y = roomH;
     roomGroup.add(ceilingMesh);
 
-    // 5 adet kalın ahşap tavan mertek kirişi
-    var beamMat = new THREE.MeshStandardMaterial({ color: 0x2e190d, roughness: 0.8 });
+    // 5 Adet Kalın Ahşap Tavan Mertek Kirişi
+    var beamMat = new THREE.MeshStandardMaterial({ color: 0x24140a, roughness: 0.8 });
     for(var bi = -2; bi <= 2; bi++){
       var beam = new THREE.Mesh(new THREE.BoxGeometry(roomW, 0.28, 0.32), beamMat);
-      beam.position.set(0, roomH - 0.14, bi * 2.2);
+      beam.position.set(0, roomH - 0.14, bi * 2.1);
       roomGroup.add(beam);
     }
 
-    // 3. Duvarlar (Sıvalı Barla Taş/Kerpiç Dokusu)
-    var wallMat = new THREE.MeshStandardMaterial({
-      color: 0xdfd4be, // Sıcak kireç sıva
-      roughness: 0.95,
-      metalness: 0.0
-    });
+    // 3D Tavan Asma Lambası (Vintage Desenli Başlık)
+    var shadeMat = new THREE.MeshStandardMaterial({ color: 0xf5ecd7, roughness: 0.4, emissive: 0xd4af37, emissiveIntensity: 0.3 });
+    var shadeMesh = new THREE.Mesh(new THREE.ConeGeometry(0.38, 0.32, 16, 1, true), shadeMat);
+    shadeMesh.position.set(0.6, roomH - 1.1, -2.2);
+    shadeMesh.rotation.x = Math.PI;
+    roomGroup.add(shadeMesh);
 
-    // Kuzey Duvarı (Ön - Masa Duvarı)
-    var northWall = new THREE.Mesh(new THREE.PlaneGeometry(roomW, roomH), wallMat);
-    northWall.position.set(0, roomH / 2, -roomD / 2);
-    roomGroup.add(northWall);
+    var cordMat = new THREE.MeshBasicMaterial({ color: 0x111111 });
+    var cordMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, 0.95, 8), cordMat);
+    cordMesh.position.set(0.6, roomH - 0.55, -2.2);
+    roomGroup.add(cordMesh);
 
-    // Güney Duvarı (Arka - Kapı Duvarı)
-    var southWall = new THREE.Mesh(new THREE.PlaneGeometry(roomW, roomH), wallMat);
+    // 3. DUVARLAR
+    var timberMat = new THREE.MeshStandardMaterial({ color: 0xd6c6aa, roughness: 0.92 }); // Sıcak kiremit-bej sıva
+
+    // Güney Duvarı (Arka Duvar - Kapı ve Kitaplık)
+    var southWall = new THREE.Mesh(new THREE.PlaneGeometry(roomW, roomH), timberMat);
     southWall.position.set(0, roomH / 2, roomD / 2);
     southWall.rotation.y = Math.PI;
     roomGroup.add(southWall);
 
-    // Doğu Duvarı (Sağ - Pencere Duvarı)
-    var eastWall = new THREE.Mesh(new THREE.PlaneGeometry(roomD, roomH), wallMat);
-    eastWall.position.set(roomW / 2, roomH / 2, 0);
-    eastWall.rotation.y = -Math.PI / 2;
-    roomGroup.add(eastWall);
-
-    // Batı Duvarı (Sol - Kitaplık Duvarı)
-    var westWall = new THREE.Mesh(new THREE.PlaneGeometry(roomD, roomH), wallMat);
+    // Batı Duvarı (Sol Duvar - Lem'alar & Lâhikalar)
+    var westWall = new THREE.Mesh(new THREE.PlaneGeometry(roomD, roomH), timberMat);
     westWall.position.set(-roomW / 2, roomH / 2, 0);
     westWall.rotation.y = Math.PI / 2;
     roomGroup.add(westWall);
 
-    // Süpürgelikler ve Ahşap Kuşaklar
-    var trimMat = new THREE.MeshStandardMaterial({ color: 0x3d2314, roughness: 0.7 });
-    var baseTrimN = new THREE.Mesh(new THREE.BoxGeometry(roomW, 0.22, 0.08), trimMat);
-    baseTrimN.position.set(0, 0.11, -roomD / 2 + 0.04);
-    roomGroup.add(baseTrimN);
+    // Doğu Duvarı (Sağ Duvar - Şualar & Asa-yı Musa)
+    var eastWall = new THREE.Mesh(new THREE.PlaneGeometry(roomD, roomH), timberMat);
+    eastWall.position.set(roomW / 2, roomH / 2, 0);
+    eastWall.rotation.y = -Math.PI / 2;
+    roomGroup.add(eastWall);
 
-    // 4. Doğu Duvarındaki Ahşap Kafesli Barla Penceresi
-    buildBarlaWindow(roomW / 2 - 0.04, 2.1, 0);
+    // 4. KUZEY DUVARI: NOSTALJİK KIŞ ODASI & RAHLE BAŞINDA ÜSTAD MERKEZİ
+    // (16:9 Oranında barla_cozy_room.jpg + Canlı Lip-Sync ve Nefes Motoru)
+    roomCanvas = document.createElement("canvas");
+    roomCanvas.width = 1376;
+    roomCanvas.height = 768;
+    roomCtx = roomCanvas.getContext("2d");
 
-    // 5. Güney Duvarındaki Ahşap Barla Kapısı
-    buildBarlaDoor(0, 1.4, roomD / 2 - 0.04);
+    roomTexture = new THREE.CanvasTexture(roomCanvas);
+    roomTexture.anisotropy = 8;
 
-    // 6. DÖRT DUVARDA SESLİ RİSALE KÜTÜPHANE RAFLARI
-    buildAllFourWallShelves(roomW, roomD);
+    var northMat = new THREE.MeshStandardMaterial({
+      map: roomTexture,
+      roughness: 0.65,
+      metalness: 0.02
+    });
 
-    // 7. ÇALIŞMA MASASI, KANDİL VE CANLI ÜSTAD BEDİÜZZAMAN
-    buildUstadDeskCenterpiece();
+    // Kuzey ana duvarı (Ön cephe)
+    var northWallW = roomW;
+    var northWallH = roomW * (768 / 1376); // 16:9 oran uyumu (~5.58m)
+    var northWallGeo = new THREE.PlaneGeometry(northWallW, northWallH);
+    roomMesh = new THREE.Mesh(northWallGeo, northMat);
+    roomMesh.position.set(0, northWallH / 2 - 0.15, -roomD / 2);
+    roomGroup.add(roomMesh);
+
+    // 5. SOL, SAĞ VE ARKA DUVARDA SESLİ RİSALE KÜTÜPHANE RAFLARI
+    build360WallShelves(roomW, roomD);
+
+    // 6. DUVARLARA NOSTALJİK HAT LEVHALARI VE SAAT
+    addWallDecorations(roomW, roomD);
 
     scene.add(roomGroup);
   }
 
-  // Ahşap Kafesli Barla Penceresi
-  function buildBarlaWindow(wx, wy, wz){
-    var winGroup = new THREE.Group();
-    winGroup.position.set(wx, wy, wz);
-    winGroup.rotation.y = -Math.PI / 2;
-
-    var frameMat = new THREE.MeshStandardMaterial({ color: 0x3d2112, roughness: 0.7 });
-    var winFrame = new THREE.Mesh(new THREE.BoxGeometry(2.4, 2.2, 0.14), frameMat);
-    winGroup.add(winFrame);
-
-    // Ahşap kafes şebekesi (Lattice)
-    var latticeMat = new THREE.MeshStandardMaterial({
-      color: 0x22130a,
-      roughness: 0.8
-    });
-    for(var k = -5; k <= 5; k++){
-      var barH = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.04, 0.04), latticeMat);
-      barH.position.set(0, k * 0.18, 0.02);
-      winGroup.add(barH);
-
-      var barV = new THREE.Mesh(new THREE.BoxGeometry(0.04, 1.9, 0.04), latticeMat);
-      barV.position.set(k * 0.18, 0, 0.02);
-      winGroup.add(barV);
-    }
-
-    // Pencereden giren parlak sabah ışığı (Güneş Işığı)
-    var sunLight = new THREE.DirectionalLight(0xffe2a4, 1.6);
-    sunLight.position.set(wx + 4, wy + 3, wz - 1);
-    sunLight.target.position.set(0, 1, -2);
-    scene.add(sunLight);
-    scene.add(sunLight.target);
-
-    roomGroup.add(winGroup);
-  }
-
-  // Barla Oda Kapısı
-  function buildBarlaDoor(dx, dy, dz){
-    var doorGroup = new THREE.Group();
-    doorGroup.position.set(dx, dy, dz);
-
-    var doorMat = new THREE.MeshStandardMaterial({ color: 0x381f10, roughness: 0.75 });
-    var door = new THREE.Mesh(new THREE.BoxGeometry(1.6, 2.6, 0.08), doorMat);
-    doorGroup.add(door);
-
-    // Kemerli kapı pervazı
-    var casingMat = new THREE.MeshStandardMaterial({ color: 0x2a160b, roughness: 0.8 });
-    var casing = new THREE.Mesh(new THREE.BoxGeometry(1.85, 2.85, 0.12), casingMat);
-    casing.position.z = -0.02;
-    doorGroup.add(casing);
-
-    // Pirinç kapı tokmağı
-    var handleMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.8, roughness: 0.3 });
-    var handle = new THREE.Mesh(new THREE.SphereGeometry(0.05, 12, 12), handleMat);
-    handle.position.set(0.6, 0, -0.06);
-    doorGroup.add(handle);
-
-    roomGroup.add(doorGroup);
-  }
-
-  // Dört Duvardaki Sesli Kitaplık Rafları
-  function buildAllFourWallShelves(roomW, roomD){
+  // Sol, Sağ ve Arka Duvarlara Ahşap Kitaplıklar ve 684 Sesli Bölümü Diz
+  function build360WallShelves(roomW, roomD){
     AUDIO_WALLS_DATA.forEach(function(wallData){
-      var wallName = wallData.wall;
-
-      if(wallName === "north"){
-        // Ön Duvar (Masanın solu ve sağı)
-        buildShelfSection(-3.4, 0, -5.85, 2.6, 3, 0, wallData.bays.slice(0, 1)); // Sol (Sözler)
-        buildShelfSection(3.4, 0, -5.85, 2.6, 3, 0, wallData.bays.slice(1, 2));  // Sağ (Mektubat)
+      if(wallData.wall === "west"){
+        // Sol Duvar (Lem'alar, Barla & Kastamonu Lâhikaları)
+        buildShelfBlock(-roomW / 2 + 0.35, 0, -1.8, 2.6, 3, Math.PI / 2, wallData.bays.slice(0, 2));
+        buildShelfBlock(-roomW / 2 + 0.35, 0, 1.8, 2.6, 3, Math.PI / 2, wallData.bays.slice(2, 4));
       }
-      else if(wallName === "west"){
-        // Sol Duvar (Lem'alar & Lâhikalar boydan boya)
-        buildShelfSection(-5.85, 0, -2.4, 2.6, 3, Math.PI / 2, wallData.bays.slice(0, 2));
-        buildShelfSection(-5.85, 0, 2.4, 2.6, 3, Math.PI / 2, wallData.bays.slice(2, 4));
+      else if(wallData.wall === "east"){
+        // Sağ Duvar (Şualar, Asa-yı Musa & Gençlik Rehberi)
+        buildShelfBlock(roomW / 2 - 0.35, 0, -1.8, 2.6, 3, -Math.PI / 2, wallData.bays.slice(0, 2));
+        buildShelfBlock(roomW / 2 - 0.35, 0, 1.8, 2.4, 3, -Math.PI / 2, wallData.bays.slice(2, 3));
       }
-      else if(wallName === "east"){
-        // Sağ Duvar (Pencerenin iki yanı: Şualar, Asa-yı Musa)
-        buildShelfSection(5.85, 0, -2.8, 2.2, 3, -Math.PI / 2, wallData.bays.slice(0, 2));
-        buildShelfSection(5.85, 0, 2.8, 2.2, 3, -Math.PI / 2, wallData.bays.slice(2, 3));
-      }
-      else if(wallName === "south"){
-        // Arka Duvar (Kapının iki yanı: Tarihçe, Mesnevi, İşarat, Sikke)
-        buildShelfSection(-3.2, 0, 5.85, 2.5, 3, Math.PI, wallData.bays.slice(0, 2));
-        buildShelfSection(3.2, 0, 5.85, 2.5, 3, Math.PI, wallData.bays.slice(2, 4));
+      else if(wallData.wall === "south"){
+        // Arka Duvar (Tarihçe-i Hayat, Mesnevi, İşaratü'l-İ'caz)
+        buildShelfBlock(-2.8, 0, roomD / 2 - 0.35, 2.5, 3, Math.PI, wallData.bays.slice(0, 2));
+        buildShelfBlock(2.8, 0, roomD / 2 - 0.35, 2.5, 3, Math.PI, wallData.bays.slice(2, 4));
       }
     });
   }
 
-  // Belirli Bir Duvar Dilimine Ahşap Raf ve Sesli Kitapları Diz
-  function buildShelfSection(x, y, z, width, tiers, rotY, bays){
-    var shelfSection = new THREE.Group();
-    shelfSection.position.set(x, y, z);
-    shelfSection.rotation.y = rotY;
+  function buildShelfBlock(x, y, z, width, tiers, rotY, bays){
+    var shelf = new THREE.Group();
+    shelf.position.set(x, y, z);
+    shelf.rotation.y = rotY;
 
-    var woodMat = new THREE.MeshStandardMaterial({ color: 0x331c0e, roughness: 0.72 });
-    var tierH = 0.95;
+    var woodMat = new THREE.MeshStandardMaterial({ color: 0x361f12, roughness: 0.7 });
+    var tierH = 0.92;
     var depth = 0.42;
 
     // Yan dikmeler
     [-width/2, width/2].forEach(function(px){
-      var upright = new THREE.Mesh(new THREE.BoxGeometry(0.08, tiers * tierH + 0.3, depth), woodMat);
-      upright.position.set(px, (tiers * tierH + 0.3) / 2, 0);
-      shelfSection.add(upright);
+      var post = new THREE.Mesh(new THREE.BoxGeometry(0.08, tiers * tierH + 0.25, depth), woodMat);
+      post.position.set(px, (tiers * tierH + 0.25) / 2, 0);
+      shelf.add(post);
     });
 
-    // Yatay ahşap raflar
+    // Raflar
     for(var t = 0; t <= tiers; t++){
-      var plank = new THREE.Mesh(new THREE.BoxGeometry(width, 0.06, depth), woodMat);
-      plank.position.set(0, t * tierH + 0.03, 0);
-      shelfSection.add(plank);
+      var plank = new THREE.Mesh(new THREE.BoxGeometry(width, 0.05, depth), woodMat);
+      plank.position.set(0, t * tierH + 0.025, 0);
+      shelf.add(plank);
     }
 
-    // Taç oyması (Üst kemer)
-    var crown = new THREE.Mesh(new THREE.BoxGeometry(width + 0.14, 0.16, depth + 0.06), woodMat);
-    crown.position.set(0, tiers * tierH + 0.35, 0);
-    shelfSection.add(crown);
+    // Taç Kemer
+    var crown = new THREE.Mesh(new THREE.BoxGeometry(width + 0.12, 0.14, depth + 0.05), woodMat);
+    crown.position.set(0, tiers * tierH + 0.32, 0);
+    shelf.add(crown);
 
-    // KİTAPLARI RAFLARA YERLEŞTİR
+    // Ciltleri Yerleştir
     if(bays && bays.length){
       var bayIdx = 0;
-      for(var tier = 0; tier < tiers; tier++){
-        var shelfY = tier * tierH + 0.06;
-        var currentBay = bays[bayIdx % bays.length];
+      for(var tr = 0; tr < tiers; tr++){
+        var shelfY = tr * tierH + 0.05;
+        var bay = bays[bayIdx % bays.length];
         bayIdx++;
 
-        // Bu rafa kaç cilt dizilecek
-        var vols = currentBay.volumes || [currentBay.title];
-        var copies = Math.max(vols.length, 6);
+        var vols = bay.volumes || [bay.title];
+        var copies = Math.max(vols.length, 5);
         var bookW = (width * 0.85) / copies;
 
         for(var i = 0; i < copies; i++){
           var volLabel = vols[i % vols.length];
-          var bw = Math.min(0.16, bookW * 0.92);
-          var bh = 0.62 + (i % 3) * 0.05;
-          var bd = 0.32;
-
+          var bw = Math.min(0.15, bookW * 0.92);
+          var bh = 0.58 + (i % 3) * 0.04;
+          var bd = 0.30;
           var bx = -width * 0.4 + i * (width * 0.8 / copies) + bw / 2;
-          var by = shelfY + bh / 2;
-          var bz = 0.04;
 
-          var spineTex = getSpineTexture(currentBay.title, volLabel, currentBay.color);
-          var spineMat = new THREE.MeshStandardMaterial({
-            map: spineTex,
-            roughness: 0.48,
-            metalness: 0.12,
-            emissive: new THREE.Color(0x000000)
-          });
-          var leatherMat = new THREE.MeshStandardMaterial({
-            color: new THREE.Color(currentBay.color).multiplyScalar(0.7),
-            roughness: 0.65
-          });
+          var spineTex = getBookSpineTex(bay.title, volLabel, bay.color || "#7a1620");
+          var spineMat = new THREE.MeshStandardMaterial({ map: spineTex, roughness: 0.65 });
+          var coverMat = new THREE.MeshStandardMaterial({ color: 0x1a120b, roughness: 0.75 });
+          var pagesMat = new THREE.MeshStandardMaterial({ color: 0xf5edd6, roughness: 0.9 });
 
-          // [right, left, top, bottom, front, back]
-          var materials = [leatherMat, leatherMat, leatherMat, leatherMat, spineMat, leatherMat];
+          var materials = [coverMat, coverMat, pagesMat, pagesMat, spineMat, coverMat];
           var bookMesh = new THREE.Mesh(new THREE.BoxGeometry(bw, bh, bd), materials);
+          bookMesh.position.set(bx, shelfY + bh / 2, 0.04);
 
-          bookMesh.position.set(bx, by, bz);
-
-          // Raycast ve tıklama bilgileri
           bookMesh.userData = {
-            isAudioShelfBook: true,
-            title: currentBay.title,
+            title: bay.title,
             volLabel: volLabel,
-            trackFilter: currentBay.trackFilter,
-            desc: currentBay.desc,
+            trackFilter: bay.trackFilter || bay.title,
+            desc: bay.desc,
+            spineMat: spineMat,
             basePos: bookMesh.position.clone(),
-            pullT: 0,
-            spineMat: spineMat
+            pullT: 0
           };
 
-          shelfSection.add(bookMesh);
+          shelf.add(bookMesh);
           shelfBooks.push(bookMesh);
         }
       }
     }
 
-    roomGroup.add(shelfSection);
+    roomGroup.add(shelf);
   }
 
-  /* ── 3. ÇALIŞMA MASASI, KOLTUK, KANDİL VE OTURAN 3D ÜSTAD ───────── */
-  function getOpenRisaleTexture(){
-    var c = document.createElement("canvas");
-    c.width = 1024; c.height = 512;
-    var ctx = c.getContext("2d");
-    
-    // Antik krem parşömen
-    var bgGrad = ctx.createLinearGradient(0, 0, 1024, 0);
-    bgGrad.addColorStop(0, "#e8dcbe");
-    bgGrad.addColorStop(0.48, "#f6edd5");
-    bgGrad.addColorStop(0.50, "#c4b595");
-    bgGrad.addColorStop(0.52, "#f6edd5");
-    bgGrad.addColorStop(1, "#e8dcbe");
-    ctx.fillStyle = bgGrad;
-    ctx.fillRect(0, 0, 1024, 512);
+  // Duvar Süslemeleri (Hat Levhası & Barla Kapısı)
+  function addWallDecorations(roomW, roomD){
+    // Sol duvarda Lafzullah Levhası
+    var allahTex = getCalligraphyTex("الله", "Celle Celâlühû");
+    var allahMesh = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 1.2), new THREE.MeshBasicMaterial({ map: allahTex }));
+    allahMesh.position.set(-roomW / 2 + 0.06, 3.1, 0);
+    allahMesh.rotation.y = Math.PI / 2;
+    roomGroup.add(allahMesh);
 
-    // Varaklı bordür
-    [24, 536].forEach(function(ox){
-      ctx.strokeStyle = "#c9a038";
-      ctx.lineWidth = 4;
-      ctx.strokeRect(ox, 24, 464, 464);
-      ctx.strokeStyle = "#8a1c28";
-      ctx.lineWidth = 1.5;
-      ctx.strokeRect(ox + 8, 32, 448, 448);
+    // Sağ duvarda Kelime-i Tevhid Levhası
+    var tevhidTex = getCalligraphyTex("لَا إِلٰهَ إِلَّا الله", "Bediüzzaman Barla");
+    var tevhidMesh = new THREE.Mesh(new THREE.PlaneGeometry(1.9, 1.2), new THREE.MeshBasicMaterial({ map: tevhidTex }));
+    tevhidMesh.position.set(roomW / 2 - 0.06, 3.1, 0);
+    tevhidMesh.rotation.y = -Math.PI / 2;
+    roomGroup.add(tevhidMesh);
 
-      ctx.fillStyle = "#c9a038";
-      ctx.font = "bold 16px serif";
-      ctx.fillText("❖", ox + 14, 46);
-      ctx.fillText("❖", ox + 450, 46);
-      ctx.fillText("❖", ox + 14, 474);
-      ctx.fillText("❖", ox + 450, 474);
-    });
-
-    // Besmele (Sağ sayfa)
-    ctx.fillStyle = "#8a1c28";
-    ctx.font = "bold 26px 'Amiri', Georgia, serif";
-    ctx.textAlign = "center";
-    ctx.fillText("بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيمِ", 768, 75);
-
-    ctx.fillStyle = "#7a1620";
-    ctx.font = "bold 20px 'Cinzel', serif";
-    ctx.fillText("BİRİNCİ SÖZ", 768, 112);
-
-    ctx.strokeStyle = "#c9a038";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(580, 126); ctx.lineTo(956, 126);
-    ctx.stroke();
-
-    var rightLines = [
-      "Bismillah her hayrın başıdır. Biz dahi başta ona başlarız.",
-      "Bilmeli ki ey nefsim, şu mübarek kelime İslâm nişanı olduğu gibi,",
-      "bütün mevcudatın lisan-ı haliyle vird-i zebanıdır.",
-      "Bismillah ne büyük tükenmez bir kuvvet, ne çok bitmez bir bereket",
-      "olduğunu anlamak istersen, şu temsilî hikâyeciğe bak, dinle:",
-      "Bedevî Arab çöllerinde seyahat eden adama gerektir ki,",
-      "bir kabile reisinin ismini alsın ve himayesine girsin.",
-      "Tâ şakilerin şerrinden kurtulup hâcatını tedarik edebilsin.",
-      "Yoksa tek başıyla hadsiz düşman ve ihtiyacatına karşı perişan olur.",
-      "İşte böyle bir seyahat için iki adam sahraya çıkıp giderler..."
-    ];
-    ctx.fillStyle = "#2c2217";
-    ctx.font = "14px 'Amiri', Georgia, serif";
-    rightLines.forEach(function(ln, idx){
-      ctx.fillText(ln, 768, 155 + idx * 28);
-    });
-
-    // Sol Sayfa
-    ctx.fillStyle = "#7a1620";
-    ctx.font = "bold 18px 'Cinzel', serif";
-    ctx.fillText("RİSALE-İ NUR KÜLLİYATI", 256, 75);
-    ctx.strokeStyle = "#c9a038";
-    ctx.beginPath();
-    ctx.moveTo(68, 90); ctx.lineTo(444, 90);
-    ctx.stroke();
-
-    var leftLines = [
-      "İşte ey mağrur nefsim! Sen o seyyahsın. Şu dünya ise bir çöldür.",
-      "Aczin ve fakrın hadsizdir. Düşmanın, hacatın nihayetsizdir.",
-      "Madem öyledir; şu sahranın Mâlik-i Ebedîsi ve Hâkim-i Ezelîsinin",
-      "ismini al. Tâ bütün kâinatın dilenciliğinden ve her hâdisatın",
-      "karşısında titremekten kurtulasın.",
-      "Evet, bu kelime öyle mübarek bir definedir ki: Senin nihayetsiz",
-      "aczin ve fakrın, seni nihayetsiz kudret ve rahmete raptedip",
-      "Kadir-i Rahîm'in dergâhında aczi, fakrı en makbul bir şefaatçi yapar.",
-      "Evet, bu kelime ile hareket eden o adama benzer ki,",
-      "askere kaydolur, devlet namına hareket eder.",
-      "Hiçbir kimseden pervası kalmaz. Kanun namına, devlet namına der,",
-      "her işi biter, her şeye karşı mukavemet eder..."
-    ];
-    ctx.fillStyle = "#2c2217";
-    ctx.font = "14px 'Amiri', Georgia, serif";
-    leftLines.forEach(function(ln, idx){
-      ctx.fillText(ln, 256, 120 + idx * 28);
-    });
-
-    ctx.fillStyle = "#8a6b28";
-    ctx.font = "12px serif";
-    ctx.fillText("• 1 •", 256, 470);
-    ctx.fillText("• 2 •", 768, 470);
-
-    var tex = new THREE.CanvasTexture(c);
-    tex.anisotropy = 4;
-    return tex;
+    // Arka duvarda Barla Giriş Kapısı
+    var doorMat = new THREE.MeshStandardMaterial({ color: 0x2e1a0e, roughness: 0.8 });
+    var doorMesh = new THREE.Mesh(new THREE.BoxGeometry(1.6, 2.7, 0.08), doorMat);
+    doorMesh.position.set(0, 1.35, roomD / 2 - 0.04);
+    roomGroup.add(doorMesh);
   }
 
-  function buildUstadDeskCenterpiece(){
-    var deskGroup = new THREE.Group();
-    deskGroup.position.set(0, 0, -3.75); // Kuzey duvarının önü
+  /* ── 3. CANLI BUHAR & KAR YAĞIŞI PARÇACIKLARI ──────────────── */
+  function setupAtmosphericParticles(){
+    // 1. Çaydanlıktan Tüten Canlı Buhar Parçacıkları (Kuzine Soba Üzeri)
+    var steamCount = 35;
+    steamGeo = new THREE.BufferGeometry();
+    var steamPos = new Float32Array(steamCount * 3);
+    steamData = [];
 
-    var walnutMat = new THREE.MeshStandardMaterial({ color: 0x361f12, roughness: 0.55 });
-    var darkWoodMat = new THREE.MeshStandardMaterial({ color: 0x24140b, roughness: 0.65 });
+    // Çaydanlığın soba üzerindeki konumu
+    var kettleX = -2.62, kettleY = 1.48, kettleZ = -4.15;
 
-    // 1. Antik Çalışma Masası Tablası
-    var tableTop = new THREE.Mesh(new THREE.BoxGeometry(3.1, 0.08, 1.45), walnutMat);
-    tableTop.position.set(0, 0.88, 0);
-    tableTop.castShadow = true;
-    tableTop.receiveShadow = true;
-    deskGroup.add(tableTop);
+    for(var s = 0; s < steamCount; s++){
+      var life = Math.random();
+      steamPos[s * 3] = kettleX + (Math.random() - 0.5) * 0.06;
+      steamPos[s * 3 + 1] = kettleY + life * 0.9;
+      steamPos[s * 3 + 2] = kettleZ + (Math.random() - 0.5) * 0.06;
 
-    // Masa Kenar Profili
-    var tableTrim = new THREE.Mesh(new THREE.BoxGeometry(3.14, 0.04, 1.49), darkWoodMat);
-    tableTrim.position.set(0, 0.84, 0);
-    deskGroup.add(tableTrim);
+      steamData.push({
+        baseX: kettleX,
+        baseY: kettleY,
+        baseZ: kettleZ,
+        life: life,
+        speed: 0.008 + Math.random() * 0.007,
+        driftX: (Math.random() - 0.5) * 0.004,
+        scale: 0.04 + Math.random() * 0.05
+      });
+    }
+    steamGeo.setAttribute("position", new THREE.BufferAttribute(steamPos, 3));
 
-    // Masa Bacakları (4 Adet torna bacak)
-    [[-1.38, -0.58], [1.38, -0.58], [-1.38, 0.58], [1.38, 0.58]].forEach(function(pos){
-      var leg = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.045, 0.88, 12), walnutMat);
-      leg.position.set(pos[0], 0.44, pos[1]);
-      leg.castShadow = true;
-      deskGroup.add(leg);
-    });
+    var softParticleTex = getSoftCircleTex();
 
-    // 2. Antik Çalışma Koltuğu (Üstad'ın oturduğu gerçek 3D ahşap koltuk)
-    var chairGroup = new THREE.Group();
-    chairGroup.position.set(0, 0, -0.52);
-
-    var chairSeat = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.1, 0.95), darkWoodMat);
-    chairSeat.position.set(0, 0.54, 0);
-    chairGroup.add(chairSeat);
-
-    var velvetMat = new THREE.MeshStandardMaterial({ color: 0x4a121a, roughness: 0.85 });
-    var cushion = new THREE.Mesh(new THREE.BoxGeometry(1.05, 0.06, 0.82), velvetMat);
-    cushion.position.set(0, 0.60, 0);
-    chairGroup.add(cushion);
-
-    [[-0.5, -0.38], [0.5, -0.38], [-0.5, 0.38], [0.5, 0.38]].forEach(function(pos){
-      var cLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.03, 0.54, 8), darkWoodMat);
-      cLeg.position.set(pos[0], 0.27, pos[1]);
-      chairGroup.add(cLeg);
-    });
-
-    [-0.52, 0.52].forEach(function(px){
-      var post = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 1.35, 8), darkWoodMat);
-      post.position.set(px, 1.25, -0.4);
-      chairGroup.add(post);
-
-      var finial = new THREE.Mesh(new THREE.SphereGeometry(0.045, 10, 10), darkWoodMat);
-      finial.position.set(px, 1.94, -0.4);
-      chairGroup.add(finial);
-    });
-
-    var backTop = new THREE.Mesh(new THREE.BoxGeometry(1.15, 0.12, 0.06), darkWoodMat);
-    backTop.position.set(0, 1.84, -0.4);
-    chairGroup.add(backTop);
-
-    var backCushion = new THREE.Mesh(new THREE.BoxGeometry(0.96, 0.9, 0.04), velvetMat);
-    backCushion.position.set(0, 1.28, -0.39);
-    chairGroup.add(backCushion);
-
-    [-0.56, 0.56].forEach(function(ax){
-      var arm = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.04, 0.75), darkWoodMat);
-      arm.position.set(ax, 0.86, -0.02);
-      chairGroup.add(arm);
-
-      var armSupport = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.32, 8), darkWoodMat);
-      armSupport.position.set(ax, 0.70, 0.26);
-      chairGroup.add(armSupport);
-    });
-
-    deskGroup.add(chairGroup);
-
-    // 3. Masadaki Açık Risale-i Nur Cildi (3D Rahle & Hat Yazılı Sayfalar)
-    var rahleGroup = new THREE.Group();
-    rahleGroup.position.set(0, 0.92, 0.22);
-    rahleGroup.rotation.x = -0.15;
-
-    var rahleBase = new THREE.Mesh(new THREE.BoxGeometry(1.02, 0.03, 0.65), darkWoodMat);
-    rahleGroup.add(rahleBase);
-
-    var openBookMat = new THREE.MeshStandardMaterial({
-      map: getOpenRisaleTexture(),
-      roughness: 0.75,
-      metalness: 0.02
-    });
-    var pagesMesh = new THREE.Mesh(new THREE.BoxGeometry(0.96, 0.04, 0.58), openBookMat);
-    pagesMesh.position.set(0, 0.035, 0);
-    rahleGroup.add(pagesMesh);
-
-    var ribbonMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, roughness: 0.4 });
-    var ribbon = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.005, 0.62), ribbonMat);
-    ribbon.position.set(0, 0.06, 0.03);
-    rahleGroup.add(ribbon);
-
-    deskGroup.add(rahleGroup);
-
-    // 4. Masadaki Pirinç Kandil / Gaz Lambası
-    var brassMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.85, roughness: 0.25 });
-    var lampBase = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.16, 0.22, 16), brassMat);
-    lampBase.position.set(-1.05, 1.03, 0.25);
-    deskGroup.add(lampBase);
-
-    var glassMat = new THREE.MeshPhysicalMaterial({
-      color: 0xffffff,
+    var steamMat = new THREE.PointsMaterial({
+      map: softParticleTex,
+      color: 0xfff4e6,
+      size: 0.18,
       transparent: true,
       opacity: 0.35,
-      roughness: 0.1,
-      transmission: 0.9
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
     });
-    var lampChimney = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 0.35, 16), glassMat);
-    lampChimney.position.set(-1.05, 1.25, 0.25);
-    deskGroup.add(lampChimney);
+    steamParticles = new THREE.Points(steamGeo, steamMat);
+    scene.add(steamParticles);
 
-    // Kandil alevi ışığı (PointLight)
-    lampLight = new THREE.PointLight(0xff9922, 2.2, 7.5, 1.4);
-    lampLight.position.set(-1.05, 1.22, 0.25);
-    deskGroup.add(lampLight);
+    // 2. Pencereden Dışarıda Süzülen Canlı Kar Taneleri (Yalnızca Pencere Camı Alanında)
+    var snowCount = 85;
+    snowGeo = new THREE.BufferGeometry();
+    var snowPos = new Float32Array(snowCount * 3);
+    snowData = [];
 
-    var flameMat = new THREE.MeshBasicMaterial({ color: 0xffe680 });
-    lampFlameMesh = new THREE.Mesh(new THREE.SphereGeometry(0.028, 8, 8), flameMat);
-    lampFlameMesh.position.set(-1.05, 1.22, 0.25);
-    deskGroup.add(lampFlameMesh);
+    // Pencere camı alanı: x = 2.1..4.4, y = 1.9..3.8, z = -4.2
+    for(var k = 0; k < snowCount; k++){
+      var sx = 2.1 + Math.random() * 2.3;
+      var sy = 1.9 + Math.random() * 1.9;
+      var sz = -4.25 + (Math.random() - 0.5) * 0.1;
 
-    // 5. 3D OTURAN ÜSTAD BEDİÜZZAMAN FİGÜRÜ (Şeffaf / Saydam, Arka Resimsiz)
-    ustadCanvas = document.createElement("canvas");
-    ustadCanvas.width = 896;
-    ustadCanvas.height = 1200;
-    ustadCtx = ustadCanvas.getContext("2d");
+      snowPos[k * 3] = sx;
+      snowPos[k * 3 + 1] = sy;
+      snowPos[k * 3 + 2] = sz;
 
-    ustadTexture = new THREE.CanvasTexture(ustadCanvas);
-    ustadTexture.anisotropy = 8;
+      snowData.push({
+        x: sx,
+        y: sy,
+        z: sz,
+        fallSpeed: 0.004 + Math.random() * 0.005,
+        swaySpeed: 0.002 + Math.random() * 0.003,
+        swayAmp: 0.002 + Math.random() * 0.003,
+        phase: Math.random() * Math.PI * 2
+      });
+    }
+    snowGeo.setAttribute("position", new THREE.BufferAttribute(snowPos, 3));
 
-    var ustadMat = new THREE.MeshStandardMaterial({
-      map: ustadTexture,
+    var snowMat = new THREE.PointsMaterial({
+      map: softParticleTex,
+      color: 0xffffff,
+      size: 0.06,
       transparent: true,
-      alphaTest: 0.05,
-      roughness: 0.65,
-      metalness: 0.05,
-      side: THREE.DoubleSide
+      opacity: 0.85,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
     });
-
-    var ustadGeo = new THREE.PlaneGeometry(1.65, 2.20);
-    ustadMesh = new THREE.Mesh(ustadGeo, ustadMat);
-    // Üstad masanın arkasındaki koltuğa oturur, elleri masa tablasının üzerinde durur
-    ustadMesh.position.set(0, 1.62, -0.36);
-    deskGroup.add(ustadMesh);
-
-    roomGroup.add(deskGroup);
+    snowParticles = new THREE.Points(snowGeo, snowMat);
+    scene.add(snowParticles);
   }
 
-  /* ── 4. CANLI ÜSTAD RENDER DÖNGÜSÜ (Lip-Sync & Kandil) ─────── */
-  function updateUstadCanvasFrame(){
-    if(!ustadCtx || !ustadImgLoaded) return;
+  function updateAtmosphericParticles(){
+    var now = Date.now();
 
-    var cw = ustadCanvas.width;
-    var ch = ustadCanvas.height;
+    // Çaydanlık Buharı Güncellemesi
+    if(steamGeo && steamParticles){
+      var sPos = steamGeo.attributes.position.array;
+      for(var s = 0; s < steamData.length; s++){
+        var sd = steamData[s];
+        sd.life += sd.speed;
+        if(sd.life >= 1.0){
+          sd.life = 0;
+          sPos[s * 3] = sd.baseX + (Math.random() - 0.5) * 0.05;
+          sPos[s * 3 + 1] = sd.baseY;
+          sPos[s * 3 + 2] = sd.baseZ + (Math.random() - 0.5) * 0.05;
+        } else {
+          sPos[s * 3] += sd.driftX + Math.sin(now * 0.003 + s) * 0.001;
+          sPos[s * 3 + 1] = sd.baseY + sd.life * 0.95;
+          sPos[s * 3 + 2] += (Math.random() - 0.5) * 0.001;
+        }
+      }
+      steamGeo.attributes.position.needsUpdate = true;
+    }
+
+    // Kar Yağışı Güncellemesi
+    if(snowGeo && snowParticles){
+      var snPos = snowGeo.attributes.position.array;
+      for(var k = 0; k < snowData.length; k++){
+        var snd = snowData[k];
+        snd.y -= snd.fallSpeed;
+        snd.x += Math.sin(now * snd.swaySpeed + snd.phase) * snd.swayAmp;
+
+        if(snd.y < 1.4){
+          snd.y = 3.8;
+          snd.x = 1.2 + Math.random() * 3.0;
+        }
+
+        snPos[k * 3] = snd.x;
+        snPos[k * 3 + 1] = snd.y;
+        snPos[k * 3 + 2] = snd.z;
+      }
+      snowGeo.attributes.position.needsUpdate = true;
+    }
+  }
+
+  /* ── 4. CANLI ÜSTAD RENDER DÖNGÜSÜ (Lip-Sync & Nefes) ───────── */
+  function updateCozyRoomCanvas(){
+    if(!roomCtx || !roomImgLoaded) return;
+
+    var cw = roomCanvas.width;
+    var ch = roomCanvas.height;
 
     var mouthOpen = window.__liveMouthOpen || 0;
-    var isBlinking = window.__liveIsBlinking || false;
-    var blinkProgress = window.__liveBlinkProgress || 0;
     var headNod = window.__liveHeadNod || 0;
 
     var now = Date.now();
-    var breathY = Math.sin(now * 0.0025) * 1.5;
-    var nodY = headNod * 2.0;
+    var breathY = Math.sin(now * 0.0022) * 1.0;
+    var nodY = headNod * 1.5;
 
-    ustadCtx.clearRect(0, 0, cw, ch);
-    ustadCtx.drawImage(ustadImg, 0, breathY + nodY, cw, ch);
+    roomCtx.clearRect(0, 0, cw, ch);
+    roomCtx.drawImage(roomImg, 0, 0, cw, ch);
 
-    // Dudak Senkronizasyonu (ustad_seated_clean.png: ağız merkezi x=525, y=482)
-    if(mouthOpen > 0.015){
-      var drop = mouthOpen * 11.0;
+    // Canlı Dudak Senkronu (barla_cozy_room.jpg: ağız merkezi x=840, y=445)
+    if(mouthOpen > 0.012){
+      var drop = mouthOpen * 8.0;
 
       // Ağız içi karanlık boşluğu
-      ustadCtx.save();
-      ustadCtx.beginPath();
-      ustadCtx.ellipse(525, 482 + drop * 0.40 + breathY + nodY, 22, Math.max(1.5, drop * 0.75), 0, 0, Math.PI * 2);
-      ustadCtx.fillStyle = "#140808";
-      ustadCtx.fill();
-      ustadCtx.restore();
+      roomCtx.save();
+      roomCtx.beginPath();
+      roomCtx.ellipse(840, 445 + drop * 0.40 + breathY + nodY, 15, Math.max(1.0, drop * 0.65), 0, 0, Math.PI * 2);
+      roomCtx.fillStyle = "#140808";
+      roomCtx.fill();
+      roomCtx.restore();
 
-      // Alt dudak ve bıyık altı / çene dokusu
-      var sx = 475, sy = 482, sw = 100, sh = 55;
+      // Alt dudak ve sakal ucu dokusu
+      var sx = 815, sy = 445, sw = 50, sh = 35;
       var dx = sx, dy = sy + drop + breathY + nodY, dw = sw, dh = sh;
-      ustadCtx.save();
-      ustadCtx.beginPath();
-      ustadCtx.ellipse(dx + dw / 2, dy + dh * 0.45, dw * 0.52, dh * 0.50, 0, 0, Math.PI * 2);
-      ustadCtx.clip();
-      ustadCtx.drawImage(ustadImg, sx, sy, sw, sh, dx, dy, dw, dh);
-      ustadCtx.restore();
+      roomCtx.save();
+      roomCtx.beginPath();
+      roomCtx.ellipse(dx + dw / 2, dy + dh * 0.45, dw * 0.52, dh * 0.50, 0, 0, Math.PI * 2);
+      roomCtx.clip();
+      roomCtx.drawImage(roomImg, sx, sy, sw, sh, dx, dy, dw, dh);
+      roomCtx.restore();
     }
 
-    ustadTexture.needsUpdate = true;
+    roomTexture.needsUpdate = true;
   }
 
-  /* ── 5. KAMERA & ORBIT ETKİLEŞİMİ ──────────────────────────── */
+  /* ── 5. 360° KAMERA ETKİLEŞİMİ & PRESET GEÇİŞLERİ ──────────── */
   function updateCameraTarget(){
     if(isTransitioningCamera){
-      camTransProgress += 0.035;
+      camTransProgress += 0.04;
       if(camTransProgress >= 1.0){
         camTransProgress = 1.0;
         isTransitioningCamera = false;
       }
     }
 
-    // Yumuşatılmış açı geçişi
-    lon += (targetLon - lon) * 0.08;
-    lat += (targetLat - lat) * 0.08;
-    lat = Math.max(-45, Math.min(45, lat));
+    // Yumuşatılmış açı ve zoom geçişi
+    lon += (targetLon - lon) * 0.09;
+    lat += (targetLat - lat) * 0.09;
+    lat = Math.max(-65, Math.min(65, lat)); // Halıdan tavana geniş açı
+
+    fov += (targetFov - fov) * 0.09;
+    if(camera.fov !== fov){
+      camera.fov = fov;
+      camera.updateProjectionMatrix();
+    }
 
     var phi = THREE.MathUtils.degToRad(90 - lat);
     var theta = THREE.MathUtils.degToRad(lon);
 
-    var cx = 0, cy = 1.6, cz = -0.5; // Oda merkezi göz hizası
+    var cx = 0, cy = 1.55, cz = 0; // Oda merkezindeki göz hizası
     var lookDist = 5.0;
 
     var targetX = cx + lookDist * Math.sin(phi) * Math.cos(theta);
@@ -950,10 +849,10 @@
     currentPreset = presetKey;
     targetLon = p.lon;
     targetLat = p.lat;
+    if(p.fov) targetFov = p.fov;
     isTransitioningCamera = true;
     camTransProgress = 0;
 
-    // Aktif buton görselini güncelle
     var btns = document.querySelectorAll(".br-preset-btn");
     btns.forEach(function(b){
       b.classList.toggle("active", b.getAttribute("data-preset") === presetKey);
@@ -968,7 +867,7 @@
     mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
     mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
 
-    // Sürükleme ile 360° bakış
+    // Sürükleme ile 360° kesintisiz bakış
     if(isDragging){
       var dx = e.clientX - prevMouseX;
       var dy = e.clientY - prevMouseY;
@@ -1033,7 +932,6 @@
     if(tip) tip.classList.remove("active");
   }
 
-  // Raftaki Kitaba Tıklama Olayı (Bölümleri Aç ve Çal)
   function handlePointerClick(e){
     if(!isRoomOpen || isDragging) return;
 
@@ -1051,17 +949,12 @@
     selectedBook = book;
     var u = book.userData;
 
-    // Raftan öne fırlama animasyonu
     book.userData.pullT = 1.0;
     book.userData.spineMat.emissive.setHex(0xd4af37);
 
-    // Sağ taraftaki bölüm çekmecesini bu kitaba göre doldur ve aç
     openShelfChapterDrawer(u.title, u.trackFilter);
-
-    // İlk parçayı çalmaya başla ve kamerayı masaya/Üstad'a yönlendir
     playFirstTrackOfBook(u.trackFilter || u.title);
 
-    // Bildirim
     if(typeof showToast === "function"){
       showToast("📖 " + u.title + " raftan alındı. Sesli okuma başlıyor...");
     }
@@ -1105,6 +998,9 @@
       playBtn.innerHTML = "<span>⏸</span> Duraklat";
       playBtn.classList.add("playing");
     }
+
+    var bar = document.getElementById("brPlayerBar");
+    if(bar) bar.classList.add("active");
   }
 
   // Bu Eserin Ses Dosyalarını Çekmecede Göster
@@ -1177,10 +1073,10 @@
   function animateBarlaRoom(){
     if(!isRoomOpen) return;
 
-    // 1. Kamera hedef açısına yumuşak yaklaşım
+    // 1. Kamera hedef açısına yaklaşım
     updateCameraTarget();
 
-    // 2. Kitapların raftan öne çekilme animasyonu (pull-out)
+    // 2. Kitapların raftan öne çekilme animasyonu
     shelfBooks.forEach(function(b){
       var u = b.userData;
       if(u && u.basePos){
@@ -1190,175 +1086,180 @@
       }
     });
 
-    // 3. Masadaki Kandil Işığı ve Alevi Titreşimi
-    if(lampLight){
+    // 3. Kuzine Soba Ateşinin Gerçekçi Titreşimi
+    if(stoveLight){
       var now = Date.now();
-      var flk = Math.sin(now * 0.009) * 0.18 + Math.sin(now * 0.021) * 0.08 + (Math.random() - 0.5) * 0.04;
-      lampLight.intensity = 1.7 + flk;
-      if(lampFlameMesh){
-        lampFlameMesh.scale.set(1 + flk * 0.4, 1 + flk * 0.6, 1 + flk * 0.4);
-      }
+      var flk = Math.sin(now * 0.012) * 0.28 + Math.sin(now * 0.027) * 0.12 + (Math.random() - 0.5) * 0.08;
+      stoveLight.intensity = 2.2 + flk;
     }
 
-    // 4. Masadaki Canlı Üstad Tuvalini Güncelle
-    updateUstadCanvasFrame();
+    // 4. Çaydanlık Buharı & Kar Yağışı
+    updateAtmosphericParticles();
 
-    // 5. Barla Ses Oynatıcı Çubuğu Canlı Senkronizasyonu
+    // 5. Rahle Başındaki Canlı Üstad Tuvalini Güncelle (Lip-Sync)
+    updateCozyRoomCanvas();
+
+    // 6. Barla Ses Oynatıcı Çubuğu Canlı Senkronizasyonu
     var audioEl = (window.TalkingPortrait && window.TalkingPortrait.getAudioElement) ? 
                   window.TalkingPortrait.getAudioElement() : document.getElementById("risaleAudioSource");
     if(audioEl && !audioEl.paused){
       var cur = audioEl.currentTime || 0;
       var tot = audioEl.duration || 0;
       var fillEl = document.getElementById("brpProgressFill");
-      var curTimeEl = document.getElementById("brpCurrentTime");
-      var totTimeEl = document.getElementById("brpTotalTime");
+      var curEl = document.getElementById("brpCurrentTime");
+      var totEl = document.getElementById("brpTotalTime");
       if(fillEl && tot > 0){
         fillEl.style.width = (cur / tot * 100) + "%";
       }
-      function fmt(sec){
-        if(isNaN(sec) || !isFinite(sec)) return "00:00";
-        var m = Math.floor(sec / 60);
-        var s = Math.floor(sec % 60);
-        return (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s);
-      }
-      if(curTimeEl) curTimeEl.textContent = fmt(cur);
-      if(totTimeEl && tot > 0) totTimeEl.textContent = fmt(tot);
+      if(curEl) curEl.textContent = formatTime(cur);
+      if(totEl && tot > 0) totEl.textContent = formatTime(tot);
 
       var playBtn = document.getElementById("brpPlayBtn");
       if(playBtn && !playBtn.classList.contains("playing")){
-        playBtn.innerHTML = "<span>⏸</span> Duraklat";
         playBtn.classList.add("playing");
+        playBtn.innerHTML = "<span>⏸</span> Duraklat";
       }
     } else {
       var playBtn = document.getElementById("brpPlayBtn");
-      if(playBtn && playBtn.classList.contains("playing")){
-        playBtn.innerHTML = "<span>▶</span> Dinle";
+      if(playBtn && playBtn.classList.contains("playing") && audioEl && audioEl.paused){
         playBtn.classList.remove("playing");
+        playBtn.innerHTML = "<span>▶</span> Dinle";
       }
     }
 
-    // 6. Render
     renderer.render(scene, camera);
     animFrameId = requestAnimationFrame(animateBarlaRoom);
   }
 
-  /* ── 8. ODAYA GİRİŞ & ÇIKIŞ YÖNETİMİ ──────────────────────── */
+  function formatTime(sec){
+    var m = Math.floor(sec / 60);
+    var s = Math.floor(sec % 60);
+    return (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s;
+  }
+
+  /* ── 8. ODAYI AÇMA / KAPATMA & DOM BAĞLANTILARI ────────────── */
   function openBarlaRoom(){
     if(isRoomOpen) return;
     isRoomOpen = true;
 
     containerEl = document.getElementById("barlaRoomContainer");
-    if(containerEl){
-      containerEl.classList.add("open");
+    canvasEl = document.getElementById("barlaRoomCanvas");
+    if(!containerEl || !canvasEl) return;
+
+    containerEl.classList.add("active");
+    containerEl.classList.add("open");
+    document.body.style.overflow = "hidden";
+
+    if(!scene){
+      initThreeScene();
     }
 
-    initThreeScene();
-    setCameraPreset("desk");
-    animateBarlaRoom();
+    onWindowResize();
+    window.addEventListener("resize", onWindowResize);
 
-    // Arka plandaki koridor animasyonunu duraklat (performans tasarrufu)
-    window.__isBarlaRoomActive = true;
+    setCameraPreset("desk");
+    animFrameId = requestAnimationFrame(animateBarlaRoom);
+
+    // Külliyat çekmecesini otomatik hazırla
+    openShelfChapterDrawer("Tüm Külliyat", "");
+
+    if(typeof showToast === "function"){
+      showToast("❄️ 3D Barla Kış Odası açıldı. 360° fare ile inceleyebilirsiniz.");
+    }
   }
 
   function closeBarlaRoom(){
     if(!isRoomOpen) return;
     isRoomOpen = false;
 
-    if(animFrameId) cancelAnimationFrame(animFrameId);
+    if(animFrameId){
+      cancelAnimationFrame(animFrameId);
+      animFrameId = null;
+    }
 
-    containerEl = document.getElementById("barlaRoomContainer");
+    window.removeEventListener("resize", onWindowResize);
+
     if(containerEl){
+      containerEl.classList.remove("active");
       containerEl.classList.remove("open");
     }
+    document.body.style.overflow = "";
+
+    hideShelfBookTooltip();
 
     var drawer = document.getElementById("barlaShelfDrawer");
     if(drawer) drawer.classList.remove("open");
-
-    hideShelfBookTooltip();
-    window.__isBarlaRoomActive = false;
-  }
-
-  /* ── 9. THREE.JS SAHNE BAŞLATMA ───────────────────────────── */
-  function initThreeScene(){
-    canvasEl = document.getElementById("barlaRoomCanvas");
-    if(!canvasEl) return;
-
-    var width = window.innerWidth;
-    var height = window.innerHeight;
-
-    scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0e0906);
-    scene.fog = new THREE.FogExp2(0x0e0906, 0.035);
-
-    camera = new THREE.PerspectiveCamera(fov, width / height, 0.1, 50);
-    camera.position.set(0, 1.6, -0.5);
-
-    renderer = new THREE.WebGLRenderer({
-      canvas: canvasEl,
-      antialias: true,
-      powerPreference: "high-performance"
-    });
-    renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
-    // Ortam Işığı
-    var ambient = new THREE.AmbientLight(0xfff0dd, 0.65);
-    scene.add(ambient);
-
-    // Duvar aydınlatmaları (Rafları ve ciltleri net okumak için)
-    var fillNorth = new THREE.PointLight(0xffdfaa, 0.9, 8);
-    fillNorth.position.set(0, 2.5, -4);
-    scene.add(fillNorth);
-
-    var fillWest = new THREE.PointLight(0xffdfaa, 0.8, 8);
-    fillWest.position.set(-4, 2.5, 0);
-    scene.add(fillWest);
-
-    var fillEast = new THREE.PointLight(0xffdfaa, 0.8, 8);
-    fillEast.position.set(4, 2.5, 0);
-    scene.add(fillEast);
-
-    var fillSouth = new THREE.PointLight(0xffdfaa, 0.7, 8);
-    fillSouth.position.set(0, 2.5, 4);
-    scene.add(fillSouth);
-
-    raycaster = new THREE.Raycaster();
-    mouse = new THREE.Vector2();
-
-    // Odayı ve Dört Duvarı İnşa Et
-    buildBarlaRoom();
-
-    // Etkileşim Dinleyicileri
-    window.addEventListener("resize", onWindowResize);
-
-    canvasEl.addEventListener("mousedown", function(e){
-      isDragging = true;
-      prevMouseX = e.clientX;
-      prevMouseY = e.clientY;
-    });
-
-    window.addEventListener("mouseup", function(){
-      isDragging = false;
-    });
-
-    canvasEl.addEventListener("mousemove", handlePointerMove);
-    canvasEl.addEventListener("click", handlePointerClick);
   }
 
   function onWindowResize(){
-    if(!renderer || !camera || !isRoomOpen) return;
-    var w = window.innerWidth;
-    var h = window.innerHeight;
+    if(!containerEl || !renderer || !camera) return;
+    var w = containerEl.clientWidth;
+    var h = containerEl.clientHeight;
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
     renderer.setSize(w, h);
   }
 
-  /* ── 10. DOM ELEMANLARI & KONSOL BAĞLANTISI ────────────────── */
+  /* ── 9. KULLANICI ETKİLEŞİMİ (360° Sürükleme & Zoom) ────────── */
   function initDOMBindings(){
-    // Preset Butonları
+    containerEl = document.getElementById("barlaRoomContainer");
+    canvasEl = document.getElementById("barlaRoomCanvas");
+    if(!canvasEl) return;
+
+    // Fare Etkileşimleri
+    canvasEl.addEventListener("mousedown", function(e){
+      if(e.button !== 0) return;
+      isDragging = true;
+      prevMouseX = e.clientX;
+      prevMouseY = e.clientY;
+    });
+
+    window.addEventListener("mousemove", handlePointerMove);
+
+    window.addEventListener("mouseup", function(){
+      isDragging = false;
+    });
+
+    canvasEl.addEventListener("click", handlePointerClick);
+
+    // Fare Tekerleği ile 360° Zoom (FOV Kontrolü)
+    canvasEl.addEventListener("wheel", function(e){
+      e.preventDefault();
+      targetFov += e.deltaY * 0.04;
+      targetFov = Math.max(36, Math.min(74, targetFov));
+    }, { passive: false });
+
+    // Dokunmatik Ekran Etkileşimleri (Mobil/Tablet 360°)
+    var touchStartX = 0, touchStartY = 0;
+    canvasEl.addEventListener("touchstart", function(e){
+      if(e.touches.length === 1){
+        isDragging = true;
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        prevMouseX = touchStartX;
+        prevMouseY = touchStartY;
+      }
+    }, { passive: true });
+
+    canvasEl.addEventListener("touchmove", function(e){
+      if(isDragging && e.touches.length === 1){
+        var cx = e.touches[0].clientX;
+        var cy = e.touches[0].clientY;
+        var dx = cx - prevMouseX;
+        var dy = cy - prevMouseY;
+        prevMouseX = cx;
+        prevMouseY = cy;
+
+        targetLon += dx * 0.25;
+        targetLat += dy * 0.20;
+      }
+    }, { passive: true });
+
+    canvasEl.addEventListener("touchend", function(){
+      isDragging = false;
+    }, { passive: true });
+
+    // Kamera Preset Butonları
     var presetBtns = document.querySelectorAll(".br-preset-btn");
     presetBtns.forEach(function(btn){
       btn.addEventListener("click", function(){

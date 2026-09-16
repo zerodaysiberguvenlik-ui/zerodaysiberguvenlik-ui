@@ -1963,7 +1963,8 @@ body.is-admin .admin-badge {
   flex-direction: column;
   overflow: hidden;
 }
-.barla-room-container.open {
+.barla-room-container.open,
+.barla-room-container.active {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
@@ -2992,11 +2993,13 @@ body.is-admin .admin-badge {
 
     <!-- Kamera Duvar Presetleri -->
     <div class="br-preset-toolbar">
-      <button type="button" class="br-preset-btn active" data-preset="desk" title="Çalışma Masası ve Üstad'a Odaklan">🪑 Masa &amp; Üstad</button>
+      <button type="button" class="br-preset-btn active" data-preset="desk" title="Rahle ve Üstad'a Odaklan">📖 Rahle &amp; Üstad</button>
+      <button type="button" class="br-preset-btn" data-preset="stove" title="Kuzine Soba, Çaydanlık ve Kediye Odaklan">🔥 Soba &amp; Kedi</button>
+      <button type="button" class="br-preset-btn" data-preset="window" title="Karlı Barla Köyü Penceresine Odaklan">❄️ Karlı Pencere</button>
       <button type="button" class="br-preset-btn" data-preset="west" title="Sol Duvar: Lem'alar ve Lâhikalar">📚 Sol Duvar (Lem'alar)</button>
-      <button type="button" class="br-preset-btn" data-preset="east" title="Sağ Duvar: Şualar, Asa-yı Musa & Pencere">🪟 Sağ Duvar (Şualar)</button>
-      <button type="button" class="br-preset-btn" data-preset="south" title="Arka Duvar: Tarihçe, Mesnevi & Kapı">🚪 Arka Duvar (Tarihçe)</button>
-      <button type="button" class="br-preset-btn" data-preset="overview" title="Tüm Odaya Kuşbakışı">👁️ Genel Bakış</button>
+      <button type="button" class="br-preset-btn" data-preset="east" title="Sağ Duvar: Şualar ve Asa-yı Musa">📖 Sağ Duvar (Şualar)</button>
+      <button type="button" class="br-preset-btn" data-preset="south" title="Arka Duvar: Tarihçe ve Barla Kapısı">🚪 Arka Duvar</button>
+      <button type="button" class="br-preset-btn" data-preset="overview" title="360° Tüm Odayı Gör">🔄 360° Genel Bakış</button>
     </div>
 
     <!-- Sağ Aksiyonlar -->
