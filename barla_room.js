@@ -60,6 +60,8 @@
   roomImg.src = "barla_cozy_room.jpg?v=5.0";
   roomImg.onload = function(){
     roomImgLoaded = true;
+    roomDrawn = false;
+    updateCozyRoomCanvas();
   };
 
   // Sesli Risale Eserleri ve Duvar Eşleştirmesi (YALNIZCA SESLİ ESERLER)
@@ -765,47 +767,19 @@
     }
   }
 
-  /* ── 4. CANLI ÜSTAD RENDER DÖNGÜSÜ (Lip-Sync & Nefes) ───────── */
+  /* ── 4. RAHLE BAŞINDA ÜSTAD VE KIŞ ODASI TUVALİ ───────────── */
+  var roomDrawn = false;
   function updateCozyRoomCanvas(){
     if(!roomCtx || !roomImgLoaded) return;
+    if(roomDrawn) return;
 
     var cw = roomCanvas.width;
     var ch = roomCanvas.height;
 
-    var mouthOpen = window.__liveMouthOpen || 0;
-    var headNod = window.__liveHeadNod || 0;
-
-    var now = Date.now();
-    var breathY = Math.sin(now * 0.0022) * 1.0;
-    var nodY = headNod * 1.5;
-
     roomCtx.clearRect(0, 0, cw, ch);
     roomCtx.drawImage(roomImg, 0, 0, cw, ch);
-
-    // Canlı Dudak Senkronu (barla_cozy_room.jpg: ağız merkezi x=840, y=445)
-    if(mouthOpen > 0.012){
-      var drop = mouthOpen * 8.0;
-
-      // Ağız içi karanlık boşluğu
-      roomCtx.save();
-      roomCtx.beginPath();
-      roomCtx.ellipse(840, 445 + drop * 0.40 + breathY + nodY, 15, Math.max(1.0, drop * 0.65), 0, 0, Math.PI * 2);
-      roomCtx.fillStyle = "#140808";
-      roomCtx.fill();
-      roomCtx.restore();
-
-      // Alt dudak ve sakal ucu dokusu
-      var sx = 815, sy = 445, sw = 50, sh = 35;
-      var dx = sx, dy = sy + drop + breathY + nodY, dw = sw, dh = sh;
-      roomCtx.save();
-      roomCtx.beginPath();
-      roomCtx.ellipse(dx + dw / 2, dy + dh * 0.45, dw * 0.52, dh * 0.50, 0, 0, Math.PI * 2);
-      roomCtx.clip();
-      roomCtx.drawImage(roomImg, sx, sy, sw, sh, dx, dy, dw, dh);
-      roomCtx.restore();
-    }
-
     roomTexture.needsUpdate = true;
+    roomDrawn = true;
   }
 
   /* ── 5. 360° KAMERA ETKİLEŞİMİ & PRESET GEÇİŞLERİ ──────────── */
@@ -1156,6 +1130,9 @@
 
     onWindowResize();
     window.addEventListener("resize", onWindowResize);
+
+    roomDrawn = false;
+    updateCozyRoomCanvas();
 
     setCameraPreset("desk");
     animFrameId = requestAnimationFrame(animateBarlaRoom);
