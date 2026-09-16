@@ -957,7 +957,7 @@ window.addEventListener("pointermove", function(e){
   // Sesli okuma odası veya modallar açıksa koridor raycast ve tooltipini tamamen sustur
   var tpPlayer = document.getElementById("talkingPortraitPlayer");
   var isPlayerActive = tpPlayer && tpPlayer.classList.contains("open") && !tpPlayer.classList.contains("minimized");
-  var overInteractive = isPlayerActive || e.target.closest("button, input, textarea, a, #talkingPortraitPlayer, #addAudioModal, #book-reader, #pdf-modal, #hikmet-modal, #book-modal, #search-overlay, #fihristDrawer, .fihrist-panel, #adminModal, header");
+  var overInteractive = window.__isBarlaRoomActive || isPlayerActive || e.target.closest("button, input, textarea, a, #barlaRoomContainer, #talkingPortraitPlayer, #addAudioModal, #book-reader, #pdf-modal, #hikmet-modal, #book-modal, #search-overlay, #fihristDrawer, .fihrist-panel, #adminModal, header");
 
   if(overInteractive){
     if(corridorTooltipEl) corridorTooltipEl.classList.remove("active");
@@ -1042,7 +1042,7 @@ window.addEventListener("pointermove", function(e){
 window.addEventListener("click", function(e){
   var tpPlayer = document.getElementById("talkingPortraitPlayer");
   var isPlayerActive = tpPlayer && tpPlayer.classList.contains("open") && !tpPlayer.classList.contains("minimized");
-  var overInteractive = isPlayerActive || e.target.closest("button, input, textarea, a, #talkingPortraitPlayer, #addAudioModal, #book-reader, #pdf-modal, #hikmet-modal, #book-modal, #search-overlay, #fihristDrawer, .fihrist-panel, #adminModal, header");
+  var overInteractive = window.__isBarlaRoomActive || isPlayerActive || e.target.closest("button, input, textarea, a, #barlaRoomContainer, #talkingPortraitPlayer, #addAudioModal, #book-reader, #pdf-modal, #hikmet-modal, #book-modal, #search-overlay, #fihristDrawer, .fihrist-panel, #adminModal, header");
   if(overInteractive) return;
 
   // Takdim animasyonu sırasında herhangi bir yere tıklanırsa hemen okuyucuya geç

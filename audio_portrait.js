@@ -266,6 +266,12 @@
     var breathY = Math.sin(breathPhase) * 1.2;
     var nodY = headNod * 1.8;
 
+    // 3D Barla Odası İçin Canlı Durum Değerlerini Dışarı Aktar
+    window.__liveMouthOpen = mouthOpen;
+    window.__liveHeadNod = headNod;
+    window.__liveIsBlinking = isBlinking;
+    window.__liveBlinkProgress = blinkProgress;
+
     ctx.clearRect(0, 0, cw, ch);
 
     var scaleX = cw / COORDS.w;
@@ -659,9 +665,16 @@
   }
 
   function openPlayer(customTitle, audioUrl){
-    if(playerPanel){
-      playerPanel.classList.add("open");
-      playerPanel.classList.remove("minimized");
+    if(window.BarlaRoom && typeof window.BarlaRoom.open === "function"){
+      window.BarlaRoom.open();
+      if(playerPanel){
+        playerPanel.classList.remove("open");
+      }
+    } else {
+      if(playerPanel){
+        playerPanel.classList.add("open");
+        playerPanel.classList.remove("minimized");
+      }
     }
     initAudioEngine();
     if(audioCtx && audioCtx.state === "suspended"){
@@ -1538,7 +1551,10 @@
     togglePlay: togglePlay,
     playTrack: playTrack,
     openAddModal: openAddAudioModal,
-    init: initDOM
+    init: initDOM,
+    getPlaylist: function(){ return playlist; },
+    getCurrentTrack: function(){ return currentTrack; },
+    getAudioElement: function(){ return audioElement; }
   };
 
   if(document.readyState === "loading"){

@@ -1948,6 +1948,377 @@ body.is-admin .admin-badge {
   gap: 10px;
   margin-top: 24px;
 }
+
+/* ── 🏛️ 3D BÜYÜK BARLA ÇALIŞMA ODASI & DÖRT DUVAR KÜTÜPHANESİ ── */
+.barla-room-container {
+  position: fixed;
+  inset: 0;
+  z-index: 125;
+  background: #0e0906;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.4s ease, visibility 0.4s ease;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.barla-room-container.open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+.barla-room-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+  z-index: 1;
+  cursor: grab;
+}
+.barla-room-canvas:active {
+  cursor: grabbing;
+}
+
+/* Üst Bar */
+.br-header-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  background: linear-gradient(180deg, rgba(14,9,6,0.92) 0%, rgba(14,9,6,0.5) 75%, transparent 100%);
+  pointer-events: auto;
+  border-bottom: 1px solid rgba(212,175,55,0.22);
+}
+.br-header-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.br-crest {
+  font-size: 1.5rem;
+  color: #ffd700;
+  animation: seal-pulse 3s infinite ease-in-out;
+}
+.br-titles {
+  display: flex;
+  flex-direction: column;
+}
+.br-room-name {
+  font-family: "Cinzel", "Cinzel Decorative", Georgia, serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #ffd700;
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 12px rgba(212,175,55,0.4);
+}
+.br-room-sub {
+  font-size: 0.76rem;
+  color: rgba(247,231,206,0.7);
+  letter-spacing: 0.04em;
+}
+
+/* Preset Toolbar */
+.br-preset-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(22,15,10,0.75);
+  padding: 5px 8px;
+  border-radius: 30px;
+  border: 1px solid rgba(212,175,55,0.35);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+}
+.br-preset-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 20px;
+  color: rgba(247,231,206,0.78);
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 0.8rem;
+  padding: 6px 14px;
+  cursor: pointer;
+  transition: all 0.22s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.br-preset-btn:hover {
+  color: #ffd700;
+  background: rgba(212,175,55,0.12);
+  border-color: rgba(212,175,55,0.4);
+}
+.br-preset-btn.active {
+  background: linear-gradient(135deg, #7a1620, #4c0e14);
+  color: #ffd700;
+  border-color: #ffd700;
+  box-shadow: 0 0 12px rgba(212,175,55,0.4);
+  font-weight: 600;
+}
+
+/* Sağ Butonlar */
+.br-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.br-btn-drawer {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(212,175,55,0.14);
+  border: 1px solid rgba(212,175,55,0.45);
+  border-radius: 20px;
+  color: #ffd700;
+  padding: 7px 16px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.br-btn-drawer:hover {
+  background: rgba(212,175,55,0.28);
+  box-shadow: 0 0 14px rgba(212,175,55,0.4);
+  transform: translateY(-1px);
+}
+.br-btn-close {
+  background: transparent;
+  border: 1px solid rgba(212,175,55,0.3);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  color: rgba(247,231,206,0.8);
+  font-size: 1.4rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+.br-btn-close:hover {
+  color: #ffd700;
+  border-color: #ffd700;
+  transform: scale(1.1);
+  background: rgba(212,175,55,0.15);
+}
+
+/* Raftaki Kitap İpucu Kartı (3D Shelf Tooltip) */
+.barla-shelf-tooltip {
+  position: absolute;
+  z-index: 25;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, -100%) scale(0.92);
+  background: radial-gradient(circle at center, rgba(30,20,12,0.96) 0%, rgba(14,9,6,0.98) 100%);
+  border: 1.5px solid rgba(212,175,55,0.8);
+  box-shadow: 0 15px 40px rgba(0,0,0,0.9), 0 0 30px rgba(212,175,55,0.35);
+  border-radius: 10px;
+  padding: 10px 18px;
+  text-align: center;
+  white-space: nowrap;
+  transition: opacity 0.18s ease, transform 0.18s cubic-bezier(0.16,1,0.3,1);
+}
+.barla-shelf-tooltip.active {
+  opacity: 1;
+  transform: translate(-50%, -125%) scale(1);
+}
+.barla-shelf-tooltip .bst-crest {
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  color: #ffd700;
+  font-weight: 700;
+  margin-bottom: 3px;
+}
+.barla-shelf-tooltip .bst-title {
+  font-family: "Cinzel", "Cinzel Decorative", Georgia, serif;
+  font-size: 1.22rem;
+  color: #fff;
+  font-weight: 700;
+  text-shadow: 0 0 10px rgba(212,175,55,0.6);
+}
+.barla-shelf-tooltip .bst-sub {
+  font-size: 0.78rem;
+  color: rgba(247,231,206,0.8);
+  margin-top: 2px;
+}
+.barla-shelf-tooltip .bst-hint {
+  font-size: 0.72rem;
+  font-style: italic;
+  color: #ffd700;
+  margin-top: 5px;
+}
+
+/* Bölüm Çekmecesi (Shelf Chapter Drawer) */
+.barla-shelf-drawer {
+  position: absolute;
+  top: 75px;
+  right: -420px;
+  bottom: 50px;
+  width: 400px;
+  max-width: 90vw;
+  background: linear-gradient(180deg, rgba(26,17,11,0.96) 0%, rgba(14,9,6,0.98) 100%);
+  border: 1px solid rgba(212,175,55,0.5);
+  border-radius: 12px 0 0 12px;
+  box-shadow: -15px 0 45px rgba(0,0,0,0.85), inset 0 0 20px rgba(212,175,55,0.08);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  transition: right 0.35s cubic-bezier(0.16,1,0.3,1);
+  overflow: hidden;
+  backdrop-filter: blur(8px);
+}
+.barla-shelf-drawer.open {
+  right: 0;
+}
+.bsd-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid rgba(212,175,55,0.25);
+  background: rgba(18,12,8,0.75);
+}
+.bsd-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.bsd-crest {
+  font-size: 1.2rem;
+}
+.bsd-title {
+  font-family: "Cinzel", serif;
+  font-size: 1.12rem;
+  color: #ffd700;
+  font-weight: 700;
+}
+.bsd-close-btn {
+  background: transparent;
+  border: none;
+  color: rgba(247,231,206,0.6);
+  font-size: 1.6rem;
+  cursor: pointer;
+  line-height: 1;
+  transition: color 0.2s;
+}
+.bsd-close-btn:hover {
+  color: #ffd700;
+}
+.bsd-search-box {
+  position: relative;
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(212,175,55,0.15);
+}
+.bsd-search-icon {
+  position: absolute;
+  left: 28px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.85rem;
+  color: #d4af37;
+  pointer-events: none;
+}
+.bsd-search-input {
+  width: 100%;
+  padding: 8px 12px 8px 34px;
+  background: rgba(10,7,5,0.7);
+  border: 1px solid rgba(212,175,55,0.3);
+  border-radius: 6px;
+  color: #f7e7ce;
+  font-size: 0.84rem;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.bsd-search-input:focus {
+  border-color: #ffd700;
+  box-shadow: 0 0 10px rgba(212,175,55,0.3);
+}
+.bsd-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.bsd-list::-webkit-scrollbar { width: 5px; }
+.bsd-list::-webkit-scrollbar-thumb { background: rgba(212,175,55,0.4); border-radius: 4px; }
+.bsd-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(20,14,9,0.7);
+  border: 1px solid rgba(212,175,55,0.2);
+  border-radius: 6px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.bsd-item:hover {
+  background: rgba(40,28,18,0.9);
+  border-color: #ffd700;
+  transform: translateX(-3px);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+}
+.bsd-play-icon {
+  background: radial-gradient(circle, #7a1620, #4c0e14);
+  border: 1px solid rgba(212,175,55,0.6);
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  color: #ffd700;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.bsd-meta {
+  flex: 1;
+  min-width: 0;
+}
+.bsd-name {
+  color: #f7e7ce;
+  font-size: 0.85rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bsd-dur {
+  font-size: 0.72rem;
+  color: rgba(212,175,55,0.7);
+  margin-top: 2px;
+}
+.bsd-empty {
+  text-align: center;
+  color: rgba(247,231,206,0.6);
+  padding: 30px 10px;
+  font-style: italic;
+  font-size: 0.82rem;
+}
+
+/* Alt İpucu Şeridi */
+.br-hint-banner {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  padding: 8px 16px;
+  background: linear-gradient(0deg, rgba(14,9,6,0.95) 0%, rgba(14,9,6,0.6) 70%, transparent 100%);
+  text-align: center;
+  font-size: 0.75rem;
+  color: rgba(247,231,206,0.75);
+  pointer-events: none;
+  border-top: 1px solid rgba(212,175,55,0.15);
+}
 </style>
 </head>
 <body>
@@ -2480,6 +2851,68 @@ body.is-admin .admin-badge {
 </div>
 
 </main>
+<!-- 🏛️ 3D BÜYÜK BARLA ÇALIŞMA ODASI & DÖRT DUVAR SESLİ RİSALE KÜTÜPHANESİ -->
+<div id="barlaRoomContainer" class="barla-room-container">
+  <canvas id="barlaRoomCanvas" class="barla-room-canvas"></canvas>
+
+  <!-- Üst Kontrol ve Bakış Açısı Çubuğu -->
+  <div class="br-header-overlay">
+    <div class="br-header-brand">
+      <span class="br-crest">✦</span>
+      <div class="br-titles">
+        <span class="br-room-name">Bediüzzaman Barla Çalışma Odası</span>
+        <span class="br-room-sub">Dört Duvarda Sesli Risale-i Nur Kütüphanesi</span>
+      </div>
+    </div>
+
+    <!-- Kamera Duvar Presetleri -->
+    <div class="br-preset-toolbar">
+      <button type="button" class="br-preset-btn active" data-preset="desk" title="Çalışma Masası ve Üstad'a Odaklan">🪑 Masa &amp; Üstad</button>
+      <button type="button" class="br-preset-btn" data-preset="west" title="Sol Duvar: Lem'alar ve Lâhikalar">📚 Sol Duvar (Lem'alar)</button>
+      <button type="button" class="br-preset-btn" data-preset="east" title="Sağ Duvar: Şualar, Asa-yı Musa & Pencere">🪟 Sağ Duvar (Şualar)</button>
+      <button type="button" class="br-preset-btn" data-preset="south" title="Arka Duvar: Tarihçe, Mesnevi & Kapı">🚪 Arka Duvar (Tarihçe)</button>
+      <button type="button" class="br-preset-btn" data-preset="overview" title="Tüm Odaya Kuşbakışı">👁️ Genel Bakış</button>
+    </div>
+
+    <!-- Sağ Aksiyonlar -->
+    <div class="br-header-actions">
+      <button type="button" id="barlaDrawerToggleBtn" class="br-btn-drawer" title="Külliyat Bölüm Listesi">
+        <span>📜</span> Bölümler
+      </button>
+      <button type="button" id="barlaRoomCloseBtn" class="br-btn-close" title="Koridora Dön">&times;</button>
+    </div>
+  </div>
+
+  <!-- 3D Raftan Kitap Seçme Tooltipi -->
+  <div id="barlaShelfTooltip" class="barla-shelf-tooltip">
+    <div class="bst-crest">✦ SESLİ ESER ✦</div>
+    <div class="bst-title" id="bstTitle">Sözler</div>
+    <div class="bst-sub" id="bstSub">1. Cilt · 117 Sesli Bölüm</div>
+    <div class="bst-hint" id="bstHint">✦ Raftan Al &amp; Dinle ↵</div>
+  </div>
+
+  <!-- Sağdan Kayan Külliyat Bölüm Çekmecesi -->
+  <div id="barlaShelfDrawer" class="barla-shelf-drawer">
+    <div class="bsd-header">
+      <div class="bsd-title-group">
+        <span class="bsd-crest">📖</span>
+        <div class="bsd-title" id="bsdTitle">Sesli Risale Bölümleri</div>
+      </div>
+      <button type="button" id="bsdCloseBtn" class="bsd-close-btn" title="Çekmeceyi Kapat">&times;</button>
+    </div>
+    <div class="bsd-search-box">
+      <span class="bsd-search-icon">🔍</span>
+      <input type="text" id="bsdSearchInput" placeholder="Bölüm veya konu ara..." class="bsd-search-input">
+    </div>
+    <div class="bsd-list" id="bsdList"></div>
+  </div>
+
+  <!-- Alt İpucu Şeridi -->
+  <div class="br-hint-banner">
+    <span>🖱️ Odayı 360° incelemek için fareyi sürükleyin &bull; Raftaki kitaplara tıklayarak doğrudan dinleyin &bull; Masa kandili ve canlı Üstad ile Barla atmosferi</span>
+  </div>
+</div>
+
 <footer>
   <span>Nur Koridoru &copy; 2026</span>
   <span>tasarim kavrami &#8212; Sesli Risale-i Nur deneyimi</span>
@@ -2488,6 +2921,7 @@ body.is-admin .admin-badge {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="books_catalog.js?v=4.0"></script>
 <script src="audio_portrait.js?v=4.0"></script>
+<script src="barla_room.js?v=4.0"></script>
 <script src="nur_main.js?v=4.0"></script>
 </body>
 </html>
