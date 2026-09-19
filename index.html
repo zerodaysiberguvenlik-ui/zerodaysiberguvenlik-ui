@@ -1645,7 +1645,7 @@ body.is-admin .admin-badge {
 .add-audio-modal {
   position: fixed;
   inset: 0;
-  z-index: 130;
+  z-index: 250;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2107,6 +2107,111 @@ body.is-admin .admin-badge {
   border-color: #ffd700;
   transform: scale(1.1);
   background: rgba(212,175,55,0.15);
+}
+.br-btn-add-audio {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, rgba(140, 26, 38, 0.9) 0%, rgba(80, 14, 22, 0.95) 100%);
+  border: 1px solid rgba(212, 175, 55, 0.7);
+  border-radius: 20px;
+  color: #ffd700;
+  padding: 7px 15px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 0 12px rgba(212, 175, 55, 0.25);
+}
+.br-btn-add-audio:hover {
+  background: linear-gradient(135deg, rgba(180, 32, 48, 1) 0%, rgba(110, 18, 28, 1) 100%);
+  box-shadow: 0 0 18px rgba(212, 175, 55, 0.55);
+  transform: translateY(-1px);
+}
+.bsd-add-btn {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(212, 175, 55, 0.08));
+  border: 1px solid rgba(212, 175, 55, 0.6);
+  border-radius: 14px;
+  color: #ffd700;
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 4px 11px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.bsd-add-btn:hover {
+  background: rgba(212, 175, 55, 0.35);
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.45);
+}
+.bsd-add-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(135deg, rgba(122, 22, 32, 0.45), rgba(40, 26, 16, 0.6));
+  border: 1px dashed rgba(212, 175, 55, 0.55);
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: #ffd700;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 6px;
+}
+.bsd-add-banner:hover {
+  background: linear-gradient(135deg, rgba(140, 26, 38, 0.7), rgba(60, 36, 22, 0.8));
+  border-color: #ffd700;
+  box-shadow: 0 0 12px rgba(212, 175, 55, 0.3);
+}
+.bsd-badge-custom {
+  display: inline-block;
+  background: linear-gradient(135deg, #7a1620, #4c0e14);
+  border: 1px solid rgba(212, 175, 55, 0.6);
+  border-radius: 10px;
+  padding: 1px 7px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #ffd700;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+.brp-btn-add {
+  border-radius: 18px;
+  padding: 5px 12px;
+  width: auto;
+  background: rgba(212, 175, 55, 0.18);
+  font-size: 0.76rem;
+  font-weight: 700;
+  border-color: rgba(212, 175, 55, 0.6);
+}
+.brp-btn-add:hover {
+  background: rgba(212, 175, 55, 0.35);
+}
+.aam-tab-btn {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  border-radius: 6px;
+  color: rgba(247, 231, 206, 0.75);
+  padding: 8px 12px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.aam-tab-btn:hover {
+  background: rgba(212, 175, 55, 0.15);
+  color: #ffd700;
+}
+.aam-tab-btn.active {
+  background: linear-gradient(135deg, rgba(122, 22, 32, 0.8), rgba(60, 18, 24, 0.9));
+  border-color: #ffd700;
+  color: #ffd700;
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
 }
 
 /* Raftaki Kitap İpucu Kartı (3D Shelf Tooltip) */
@@ -2901,74 +3006,6 @@ body.is-admin .admin-badge {
   <audio id="risaleAudioSource" preload="metadata" crossorigin="anonymous"></audio>
 </div>
 
-<!-- 🎙️ YENİ SESLİ ESER / MP3 EKLEME MODALI -->
-<div id="addAudioModal" class="add-audio-modal">
-  <div class="add-audio-panel">
-    <button type="button" class="add-audio-close" id="addAudioModalClose" aria-label="Kapat">&times;</button>
-    <div class="aam-crest">✦</div>
-    <div class="aam-kicker">Hazine-i Evrak · Sesli Risale-i Nur</div>
-    <h3 class="aam-title">Yeni Sesli Eser / MP3 Ekle</h3>
-    <p class="aam-desc">Elinizdeki Risale ses kayıtlarını (tek tek veya <strong>aynı anda birden fazla</strong>) kitap adı ve alt başlıklarıyla sisteme ekleyin. Üstad portresi bu kayıtları dudaklarını oynatarak okuyacaktır.</p>
-
-    <form id="addAudioForm" onsubmit="return false;">
-      <div class="aam-group">
-        <label for="audioBookSelect">Ait Olduğu Eser / Kitap (Tüm Seçilenler İçin):</label>
-        <select id="audioBookSelect" class="aam-select"></select>
-      </div>
-
-      <div class="aam-group" id="audioCustomBookWrap" style="display:none;">
-        <label for="audioCustomBookInput">Özel Kitap Adı:</label>
-        <input type="text" id="audioCustomBookInput" class="aam-input" placeholder="Örn: Gençlik Rehberi, Hastalar Risalesi...">
-      </div>
-
-      <div class="aam-group">
-        <label>MP3 Ses Dosyaları veya Klasör Seçimi:</label>
-        <div class="aam-dropzone" id="audioDropzone">
-          <span class="aam-drop-icon">🎵</span>
-          <p id="audioDropText">MP3 Dosyalarını veya <strong>Klasörünüzü</strong> Buraya Sürükleyin</p>
-          <span class="aam-drop-sub">İster tek dosya, ister aynı anda onlarca MP3 veya doğrudan <strong>tüm ses klasörünüzü</strong> sürükleyebilirsiniz</span>
-          <input type="file" id="audioFileInput" accept="audio/mp3,audio/*,audio/mpeg" multiple style="display:none;">
-          <div id="audioFileBadge" class="aam-file-badge" style="display:none;">
-            <span class="aam-badge-name" id="audioBadgeFileName"></span>
-            <span class="aam-badge-size" id="audioBadgeFileSize"></span>
-          </div>
-        </div>
-        <div class="aam-folder-row" style="display:flex; justify-content:center; gap:10px; margin-top:10px;">
-          <button type="button" class="btn secondary" id="audioFolderPickBtn" style="font-size:0.8rem; padding:6px 14px; border:1px solid rgba(212,175,55,0.5); cursor:pointer;">📁 Bilgisayardan Klasör Seç (Tüm Kitaplığı Ekle)</button>
-          <input type="file" id="audioFolderInput" webkitdirectory directory multiple style="display:none;">
-        </div>
-      </div>
-
-      <!-- Tek dosya seçildiğinde kullanılan alt başlık kutusu -->
-      <div class="aam-group" id="audioSingleSubTitleWrap">
-        <label for="audioSubTitleInput">Alt Başlık / Bahis / Bölüm Adı:</label>
-        <input type="text" id="audioSubTitleInput" class="aam-input" placeholder="Örn: 1. Söz · Bismillah, 10. Söz · Haşir Risalesi...">
-      </div>
-
-      <!-- Çoklu dosya seçildiğinde listelenen dinamik liste -->
-      <div id="audioQueueContainer" class="aam-queue-wrap" style="display:none;">
-        <div class="aam-queue-header">
-          <span>✨ Seçilen MP3'ler (<strong id="audioQueueCount">0</strong> Dosya · <span id="audioQueueTotalSize">0 MB</span>)</span>
-          <button type="button" class="aam-queue-clear" id="audioQueueClearBtn">Listeyi Temizle</button>
-        </div>
-        <p class="aam-queue-tip">Aşağıdaki alt başlıklar dosya isimlerinden otomatik üretildi. Dilerseniz değiştirebilirsiniz:</p>
-        <div id="audioQueueList" class="aam-queue-list"></div>
-      </div>
-
-      <!-- Kaydetme esnasındaki ilerleme çubuğu -->
-      <div id="audioSaveProgressWrap" class="aam-progress-wrap">
-        <div class="aam-progress-bar">
-          <div id="audioSaveProgressFill" class="aam-progress-fill"></div>
-        </div>
-        <div id="audioSaveProgressText" class="aam-progress-text">Kaydediliyor...</div>
-      </div>
-
-      <div class="aam-actions">
-        <button type="button" class="btn" id="addAudioModalCancel">Vazgeç</button>
-        <button type="button" class="btn primary" id="audioSaveBtn"><span>✦</span> Kaydet &amp; Kütüphaneye Ekle</button>
-      </div>
-    </form>
-  </div>
 <!-- ✦ SİNEMATİK ÜSTAD TAKDİM BİLDİRİMİ ✦ -->
 <div id="presentationBadge" class="presentation-badge" title="Okumaya hemen geçmek için tıklayın">
   <span class="pb-icon">✦</span>
@@ -3004,6 +3041,9 @@ body.is-admin .admin-badge {
 
     <!-- Sağ Aksiyonlar -->
     <div class="br-header-actions">
+      <button type="button" id="barlaAddAudioBtn" class="br-btn-add-audio" title="Yeni MP3 Ses Dosyası Ekle">
+        <span>➕</span> MP3 Ekle
+      </button>
       <button type="button" id="barlaDrawerToggleBtn" class="br-btn-drawer" title="Külliyat Bölüm Listesi">
         <span>📜</span> Bölümler
       </button>
@@ -3026,7 +3066,10 @@ body.is-admin .admin-badge {
         <span class="bsd-crest">📖</span>
         <div class="bsd-title" id="bsdTitle">Sesli Risale Bölümleri</div>
       </div>
-      <button type="button" id="bsdCloseBtn" class="bsd-close-btn" title="Çekmeceyi Kapat">&times;</button>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <button type="button" id="bsdAddAudioBtn" class="bsd-add-btn" title="Yeni MP3 / Ses Dosyası Ekle">➕ MP3 Ekle</button>
+        <button type="button" id="bsdCloseBtn" class="bsd-close-btn" title="Çekmeceyi Kapat">&times;</button>
+      </div>
     </div>
     <div class="bsd-search-box">
       <span class="bsd-search-icon">🔍</span>
@@ -3045,6 +3088,7 @@ body.is-admin .admin-badge {
       <button type="button" id="brpPrevBtn" class="brp-btn" title="Önceki Bölüm">⏮</button>
       <button type="button" id="brpPlayBtn" class="brp-btn brp-btn-play" title="Oynat / Duraklat">▶ Dinle</button>
       <button type="button" id="brpNextBtn" class="brp-btn" title="Sonraki Bölüm">⏭</button>
+      <button type="button" id="brpAddBtn" class="brp-btn brp-btn-add" title="Yeni MP3 Ekle">➕ MP3</button>
     </div>
     <div class="brp-progress-wrap">
       <div class="brp-progress-track" id="brpProgressTrack" title="İlerletmek için tıklayın">
@@ -3065,6 +3109,93 @@ body.is-admin .admin-badge {
   <!-- Alt İpucu Şeridi -->
   <div class="br-hint-banner">
     <span>🖱️ Odayı 360° incelemek için fareyi sürükleyin &bull; Raftaki kitaplara tıklayarak doğrudan dinleyin &bull; Masa kandili ve canlı Üstad ile Barla atmosferi</span>
+  </div>
+</div>
+
+<!-- 🎙️ YENİ SESLİ ESER / MP3 EKLEME MODALI (Body Seviyesi, Yüksek Z-Index) -->
+<div id="addAudioModal" class="add-audio-modal">
+  <div class="add-audio-panel">
+    <button type="button" class="add-audio-close" id="addAudioModalClose" aria-label="Kapat">&times;</button>
+    <div class="aam-crest">✦</div>
+    <div class="aam-kicker">Hazine-i Evrak · Sesli Risale-i Nur</div>
+    <h3 class="aam-title">Yeni Sesli Eser / MP3 Ekle</h3>
+    <p class="aam-desc">Elinizdeki Risale ses kayıtlarını (dosya/klasör olarak) veya <strong>doğrudan internet MP3 bağlantısını</strong> ekleyebilirsiniz.</p>
+
+    <form id="addAudioForm" onsubmit="return false;">
+      <div class="aam-tabs" style="display:flex; gap:10px; margin-bottom:14px; border-bottom:1px solid rgba(212,175,55,0.3); padding-bottom:10px;">
+        <button type="button" id="aamTabFile" class="aam-tab-btn active">📁 Bilgisayardan MP3 / Klasör Yükle</button>
+        <button type="button" id="aamTabUrl" class="aam-tab-btn">🔗 İnternet MP3 Linki (URL) Ekle</button>
+      </div>
+
+      <div class="aam-group">
+        <label for="audioBookSelect">Ait Olduğu Eser / Kitap:</label>
+        <select id="audioBookSelect" class="aam-select"></select>
+      </div>
+
+      <div class="aam-group" id="audioCustomBookWrap" style="display:none;">
+        <label for="audioCustomBookInput">Özel Kitap Adı:</label>
+        <input type="text" id="audioCustomBookInput" class="aam-input" placeholder="Örn: Gençlik Rehberi, Hastalar Risalesi...">
+      </div>
+
+      <!-- 1. BİLGİSAYARDAN DOSYA YÜKLEME ALANI -->
+      <div id="aamFileSection">
+        <div class="aam-group">
+          <label>MP3 Ses Dosyaları veya Klasör Seçimi:</label>
+          <div class="aam-dropzone" id="audioDropzone">
+            <span class="aam-drop-icon">🎵</span>
+            <p id="audioDropText">MP3 Dosyalarını veya <strong>Klasörünüzü</strong> Buraya Sürükleyin</p>
+            <span class="aam-drop-sub">İster tek dosya, ister aynı anda onlarca MP3 veya doğrudan <strong>tüm ses klasörünüzü</strong> sürükleyebilirsiniz</span>
+            <input type="file" id="audioFileInput" accept="audio/mp3,audio/*,audio/mpeg" multiple style="display:none;">
+            <div id="audioFileBadge" class="aam-file-badge" style="display:none;">
+              <span class="aam-badge-name" id="audioBadgeFileName"></span>
+              <span class="aam-badge-size" id="audioBadgeFileSize"></span>
+            </div>
+          </div>
+          <div class="aam-folder-row" style="display:flex; justify-content:center; gap:10px; margin-top:10px;">
+            <button type="button" class="btn secondary" id="audioFolderPickBtn" style="font-size:0.8rem; padding:6px 14px; border:1px solid rgba(212,175,55,0.5); cursor:pointer;">📁 Bilgisayardan Klasör Seç (Tüm Kitaplığı Ekle)</button>
+            <input type="file" id="audioFolderInput" webkitdirectory directory multiple style="display:none;">
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. İNTERNETTEN DOĞRUDAN MP3 URL GİRİŞİ ALANI -->
+      <div id="aamUrlSection" style="display:none;">
+        <div class="aam-group">
+          <label for="audioUrlInput">MP3 Ses Dosyası Linki (Web URL):</label>
+          <input type="url" id="audioUrlInput" class="aam-input" placeholder="https://ornek.com/sesler/birinci-soz.mp3">
+          <span class="aam-drop-sub" style="margin-top:5px; display:block;">İnternetteki doğrudan erişilebilir herhangi bir .mp3 ses bağlantısını buraya yapıştırabilirsiniz.</span>
+        </div>
+      </div>
+
+      <!-- Tek dosya seçildiğinde kullanılan alt başlık kutusu -->
+      <div class="aam-group" id="audioSingleSubTitleWrap">
+        <label for="audioSubTitleInput">Alt Başlık / Bahis / Bölüm Adı:</label>
+        <input type="text" id="audioSubTitleInput" class="aam-input" placeholder="Örn: 1. Söz · Bismillah, 10. Söz · Haşir Risalesi...">
+      </div>
+
+      <!-- Çoklu dosya seçildiğinde listelenen dinamik liste -->
+      <div id="audioQueueContainer" class="aam-queue-wrap" style="display:none;">
+        <div class="aam-queue-header">
+          <span>✨ Seçilen MP3'ler (<strong id="audioQueueCount">0</strong> Dosya · <span id="audioQueueTotalSize">0 MB</span>)</span>
+          <button type="button" class="aam-queue-clear" id="audioQueueClearBtn">Listeyi Temizle</button>
+        </div>
+        <p class="aam-queue-tip">Aşağıdaki alt başlıklar dosya isimlerinden otomatik üretildi. Dilerseniz değiştirebilirsiniz:</p>
+        <div id="audioQueueList" class="aam-queue-list"></div>
+      </div>
+
+      <!-- Kaydetme esnasındaki ilerleme çubuğu -->
+      <div id="audioSaveProgressWrap" class="aam-progress-wrap">
+        <div class="aam-progress-bar">
+          <div id="audioSaveProgressFill" class="aam-progress-fill"></div>
+        </div>
+        <div id="audioSaveProgressText" class="aam-progress-text">Kaydediliyor...</div>
+      </div>
+
+      <div class="aam-actions">
+        <button type="button" class="btn" id="addAudioModalCancel">Vazgeç</button>
+        <button type="button" class="btn primary" id="audioSaveBtn"><span>✦</span> Kaydet &amp; Kütüphaneye Ekle</button>
+      </div>
+    </form>
   </div>
 </div>
 

@@ -787,10 +787,18 @@
     audioBookSelect.appendChild(grpCustom);
   }
 
-  function openAddAudioModal(){
+  function openAddAudioModal(preselectedBook){
     if(addAudioModal){
       populateBookSelect();
       resetAddAudioForm();
+      if(preselectedBook && audioBookSelect){
+        for(var i = 0; i < audioBookSelect.options.length; i++){
+          if(audioBookSelect.options[i].value === preselectedBook || audioBookSelect.options[i].text.includes(preselectedBook)){
+            audioBookSelect.selectedIndex = i;
+            break;
+          }
+        }
+      }
       addAudioModal.classList.add("open");
       if(audioSubTitleInput) audioSubTitleInput.focus();
     }
@@ -823,6 +831,18 @@
     if(audioQueueList) audioQueueList.innerHTML = "";
     if(audioSaveProgressWrap) audioSaveProgressWrap.style.display = "none";
     if(audioSaveProgressFill) audioSaveProgressFill.style.width = "0%";
+
+    var urlInput = document.getElementById("audioUrlInput");
+    if(urlInput) urlInput.value = "";
+    var tabFile = document.getElementById("aamTabFile");
+    var tabUrl = document.getElementById("aamTabUrl");
+    var secFile = document.getElementById("aamFileSection");
+    var secUrl = document.getElementById("aamUrlSection");
+    if(tabFile) tabFile.classList.add("active");
+    if(tabUrl) tabUrl.classList.remove("active");
+    if(secFile) secFile.style.display = "block";
+    if(secUrl) secUrl.style.display = "none";
+
     if(audioSaveBtn){
       audioSaveBtn.disabled = false;
       audioSaveBtn.innerHTML = "<span>✦</span> Kaydet &amp; Kütüphaneye Ekle";
@@ -1038,8 +1058,61 @@
   }
 
   async function saveNewAudioTrack(){
+    var isUrlMode = document.getElementById("aamTabUrl") && document.getElementById("aamTabUrl").classList.contains("active");
+    var urlInput = document.getElementById("audioUrlInput");
+    var mp3Url = urlInput ? urlInput.value.trim() : "";
+
+    // 1. İNTERNET MP3 BAĞLANTISI (URL) İLE EKLEME
+    if(isUrlMode || (selectedAudioFiles.length === 0 && mp3Url)){
+      if(!mp3Url){
+        if(typeof showToast === "function") showToast("Lütfen geçerli bir MP3 internet bağlantısı (URL) girin.");
+        return;
+      }
+      var chosenBook = audioBookSelect ? audioBookSelect.value : "Sözler";
+      if(chosenBook === "__custom__"){
+        chosenBook = audioCustomBookInput ? audioCustomBookInput.value.trim() : "";
+        if(!chosenBook) chosenBook = "Hususî Eser";
+      }
+      var subTitle = audioSubTitleInput && audioSubTitleInput.value.trim() ? audioSubTitleInput.value.trim() : "Özel MP3 Kaydı";
+      var newTrack = {
+        id: "custom_url_" + Date.now(),
+        bookTitle: chosenBook,
+        subTitle: subTitle,
+        src: mp3Url,
+        audioUrl: mp3Url,
+        duration: "Online MP3",
+        isCustom: true,
+        createdAt: Date.now()
+      };
+
+      if(audioSaveBtn) audioSaveBtn.disabled = true;
+      try {
+        await NurAudioStorage.save(newTrack);
+        playlist.unshift(newTrack);
+        updatePlaylistBadge();
+        renderPlaylist();
+        closeAddAudioModal();
+        if(typeof showToast === "function") showToast("🎙️ '" + chosenBook + " · " + subTitle + "' başarıyla eklendi!");
+        if(window.BarlaRoom && window.BarlaRoom.refreshTracks){
+          window.BarlaRoom.refreshTracks();
+        }
+        if(window.BarlaRoom && window.BarlaRoom.isOpen && window.BarlaRoom.isOpen()){
+          window.BarlaRoom.playTrack(newTrack);
+        } else {
+          playTrack(newTrack);
+        }
+      } catch(err){
+        console.error("URL audio save error:", err);
+        if(typeof showToast === "function") showToast("Ses eklenirken bir hata oluştu.");
+      } finally {
+        if(audioSaveBtn) audioSaveBtn.disabled = false;
+      }
+      return;
+    }
+
+    // 2. BİLGİSAYARDAN DOSYA / KLASÖR İLE EKLEME
     if(selectedAudioFiles.length === 0){
-      if(typeof showToast === "function") showToast("Lütfen en az bir MP3 ses dosyası seçin.");
+      if(typeof showToast === "function") showToast("Lütfen en az bir MP3 ses dosyası seçin veya bir link girin.");
       return;
     }
 
@@ -1081,12 +1154,13 @@
           fileName: item.file.name,
           audioBlob: item.file,
           duration: (item.file.size / (1024 * 1024)).toFixed(1) + " MB",
+          isCustom: true,
           createdAt: Date.now() + i
         };
 
         var saved = await NurAudioStorage.save(newTrack);
         if(saved !== false){
-          playlist.push(newTrack);
+          playlist.unshift(newTrack);
           if(!firstNewTrack) firstNewTrack = newTrack;
           savedCount++;
         }
@@ -1107,8 +1181,16 @@
         }
       }
 
+      if(window.BarlaRoom && window.BarlaRoom.refreshTracks){
+        window.BarlaRoom.refreshTracks();
+      }
+
       if(firstNewTrack){
-        playTrack(firstNewTrack);
+        if(window.BarlaRoom && window.BarlaRoom.isOpen && window.BarlaRoom.isOpen()){
+          window.BarlaRoom.playTrack(firstNewTrack);
+        } else {
+          playTrack(firstNewTrack);
+        }
       }
     }catch(err){
       console.error("Audio batch save error:", err);
@@ -1279,6 +1361,30 @@
             handleAudioFilesPicked(extracted);
           }
         }
+      });
+    }
+
+    // Sekme Değiştirici (Dosya vs Link)
+    var tabFile = document.getElementById("aamTabFile");
+    var tabUrl = document.getElementById("aamTabUrl");
+    var secFile = document.getElementById("aamFileSection");
+    var secUrl = document.getElementById("aamUrlSection");
+    if(tabFile && tabUrl){
+      tabFile.addEventListener("click", function(){
+        tabFile.classList.add("active");
+        tabUrl.classList.remove("active");
+        if(secFile) secFile.style.display = "block";
+        if(secUrl) secUrl.style.display = "none";
+        if(audioSingleSubTitleWrap && selectedAudioFiles.length <= 1) audioSingleSubTitleWrap.style.display = "block";
+      });
+      tabUrl.addEventListener("click", function(){
+        tabUrl.classList.add("active");
+        tabFile.classList.remove("active");
+        if(secFile) secFile.style.display = "none";
+        if(secUrl) secUrl.style.display = "block";
+        if(audioSingleSubTitleWrap) audioSingleSubTitleWrap.style.display = "block";
+        var urlInp = document.getElementById("audioUrlInput");
+        if(urlInp) urlInp.focus();
       });
     }
 
@@ -1514,8 +1620,12 @@
       });
     }
 
-    if((!allTracks || !allTracks.length) && window.DEFAULT_AUDIO_CATALOG && window.DEFAULT_AUDIO_CATALOG.length){
-      allTracks = window.DEFAULT_AUDIO_CATALOG.slice();
+    if(window.DEFAULT_AUDIO_CATALOG && window.DEFAULT_AUDIO_CATALOG.length){
+      window.DEFAULT_AUDIO_CATALOG.forEach(function(dt){
+        if(!allTracks.some(function(t){ return t.id === dt.id; })){
+          allTracks.push(dt);
+        }
+      });
     }
 
     playlist = allTracks;

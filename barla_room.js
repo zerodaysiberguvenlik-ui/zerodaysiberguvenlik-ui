@@ -934,20 +934,27 @@
     }
   }
 
+  var currentDrawerBook = "Tüm Külliyat";
+  var currentDrawerFilter = "";
+
   function getAvailableTracks(){
+    var combined = [];
     if(window.TalkingPortrait && window.TalkingPortrait.getPlaylist){
       var p = window.TalkingPortrait.getPlaylist();
-      if(p && p.length) return p;
+      if(p && p.length){
+        p.forEach(function(t){ combined.push(t); });
+      }
     }
     if(window.DEFAULT_AUDIO_CATALOG && window.DEFAULT_AUDIO_CATALOG.length){
-      return window.DEFAULT_AUDIO_CATALOG;
+      window.DEFAULT_AUDIO_CATALOG.forEach(function(dt){
+        if(!combined.some(function(c){ return c.id === dt.id; })){
+          combined.push(dt);
+        }
+      });
     }
-    if(window.nurPlaylist && window.nurPlaylist.length){
-      return window.nurPlaylist;
-    }
-    if(window.__AUDIO_CATALOG && window.__AUDIO_CATALOG.length){
-      return window.__AUDIO_CATALOG;
-    }
+    if(combined.length) return combined;
+    if(window.nurPlaylist && window.nurPlaylist.length) return window.nurPlaylist;
+    if(window.__AUDIO_CATALOG && window.__AUDIO_CATALOG.length) return window.__AUDIO_CATALOG;
     return [];
   }
 
@@ -979,6 +986,9 @@
 
   // Bu Eserin Ses Dosyalarını Çekmecede Göster
   function openShelfChapterDrawer(bookTitle, trackFilter){
+    currentDrawerBook = bookTitle || "Tüm Külliyat";
+    currentDrawerFilter = trackFilter || "";
+
     var drawer = document.getElementById("barlaShelfDrawer");
     var drawerTitle = document.getElementById("bsdTitle");
     var drawerList = document.getElementById("bsdList");
@@ -1007,16 +1017,31 @@
     }
     drawerList.innerHTML = "";
 
+    // Üstte hızlı MP3 ekleme şeridi
+    var addBanner = document.createElement("div");
+    addBanner.className = "bsd-add-banner";
+    addBanner.innerHTML = "<span>➕</span> <span>Bu esere veya külliyata <strong>yeni MP3 ses dosyası ekle</strong></span>";
+    addBanner.addEventListener("click", function(){
+      if(window.TalkingPortrait && window.TalkingPortrait.openAddModal){
+        window.TalkingPortrait.openAddModal(bookTitle !== "Tüm Külliyat" ? bookTitle : "");
+      }
+    });
+    drawerList.appendChild(addBanner);
+
     if(matchedTracks.length === 0){
-      drawerList.innerHTML = "<div class='bsd-empty'>Bu esere ait ses kaydı bulunamadı.</div>";
+      var emptyDiv = document.createElement("div");
+      emptyDiv.className = "bsd-empty";
+      emptyDiv.textContent = "Bu esere ait ses kaydı bulunamadı.";
+      drawerList.appendChild(emptyDiv);
     } else {
       matchedTracks.forEach(function(track, idx){
         var item = document.createElement("div");
         item.className = "bsd-item";
+        var customBadge = track.isCustom ? "<span class='bsd-badge-custom'>Özel Kayıt</span>" : "";
         item.innerHTML = 
           "<button type='button' class='bsd-play-icon'>▶</button>" +
           "<div class='bsd-meta'>" +
-            "<div class='bsd-name'>" + (track.subTitle || track.title || ("Bölüm " + (idx + 1))) + "</div>" +
+            "<div class='bsd-name'>" + (track.subTitle || track.title || ("Bölüm " + (idx + 1))) + customBadge + "</div>" +
             "<div class='bsd-dur'>" + (track.bookTitle ? "📖 " + track.bookTitle + " &bull; " : "") + (track.duration || "Sesli Kayıt") + "</div>" +
           "</div>";
 
@@ -1029,6 +1054,13 @@
     }
 
     drawer.classList.add("open");
+  }
+
+  function refreshBarlaTracks(){
+    var drawer = document.getElementById("barlaShelfDrawer");
+    if(drawer && drawer.classList.contains("open")){
+      openShelfChapterDrawer(currentDrawerBook || "Tüm Külliyat", currentDrawerFilter || "");
+    }
   }
 
   function playFirstTrackOfBook(bookTitle){
@@ -1303,6 +1335,32 @@
       });
     }
 
+    // Yeni MP3 Ekle Butonları (Header, Çekmece, Oynatıcı Barı)
+    var barlaAddBtn = document.getElementById("barlaAddAudioBtn");
+    if(barlaAddBtn){
+      barlaAddBtn.addEventListener("click", function(){
+        if(window.TalkingPortrait && window.TalkingPortrait.openAddModal){
+          window.TalkingPortrait.openAddModal();
+        }
+      });
+    }
+    var bsdAddBtn = document.getElementById("bsdAddAudioBtn");
+    if(bsdAddBtn){
+      bsdAddBtn.addEventListener("click", function(){
+        if(window.TalkingPortrait && window.TalkingPortrait.openAddModal){
+          window.TalkingPortrait.openAddModal(currentDrawerBook !== "Tüm Külliyat" ? currentDrawerBook : "");
+        }
+      });
+    }
+    var brpAddBtn = document.getElementById("brpAddBtn");
+    if(brpAddBtn){
+      brpAddBtn.addEventListener("click", function(){
+        if(window.TalkingPortrait && window.TalkingPortrait.openAddModal){
+          window.TalkingPortrait.openAddModal();
+        }
+      });
+    }
+
     // Barla Player Çubuğu Düğmeleri
     var brpPlayBtn = document.getElementById("brpPlayBtn");
     if(brpPlayBtn){
@@ -1373,7 +1431,9 @@
     open: openBarlaRoom,
     close: closeBarlaRoom,
     setPreset: setCameraPreset,
-    isOpen: function(){ return isRoomOpen; }
+    isOpen: function(){ return isRoomOpen; },
+    playTrack: playTrackInBarlaRoom,
+    refreshTracks: refreshBarlaTracks
   };
 
   if(document.readyState === "loading"){
