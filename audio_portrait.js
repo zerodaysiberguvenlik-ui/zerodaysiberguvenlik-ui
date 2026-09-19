@@ -164,29 +164,19 @@
     }
   };
 
-  /* ── 3. WEB AUDIO API FREKANS ANALİZ MOTORU ───────────────── */
+  /* ── 3. WEB AUDIO MOTORU & DOĞRUDAN OYNATMA ──────────────── */
   function initAudioEngine(){
     if(isAudioSetup) return;
     try{
-      var AudioContextClass = window.AudioContext || window.webkitAudioContext;
-      if(!AudioContextClass) return;
-      audioCtx = new AudioContextClass();
-      analyser = audioCtx.createAnalyser();
-      analyser.fftSize = 512;
-      analyser.smoothingTimeConstant = 0.65;
-      freqData = new Uint8Array(analyser.frequencyBinCount);
-
       if(audioElement){
-        audioElement.crossOrigin = "anonymous";
+        audioElement.removeAttribute("crossorigin");
+        delete audioElement.crossOrigin;
         audioElement.volume = 1.0;
         audioElement.muted = false;
-        audioSource = audioCtx.createMediaElementSource(audioElement);
-        audioSource.connect(analyser);
-        analyser.connect(audioCtx.destination);
       }
       isAudioSetup = true;
     }catch(e){
-      console.warn("Web Audio API kurulamadı:", e);
+      console.warn("Audio engine init:", e);
     }
   }
 
@@ -480,17 +470,13 @@
     if(!src) return;
 
     if(audioElement){
-      audioElement.crossOrigin = "anonymous";
+      audioElement.removeAttribute("crossorigin");
+      delete audioElement.crossOrigin;
       audioElement.volume = 1.0;
       audioElement.muted = false;
       if(audioElement.src !== src){
         audioElement.src = src;
       }
-    }
-
-    initAudioEngine();
-    if(audioCtx && audioCtx.state === "suspended"){
-      audioCtx.resume();
     }
 
     if(titleEl) titleEl.textContent = track.subTitle || track.title || "Sesli Risale";
@@ -501,16 +487,42 @@
       headerBadge.textContent = "📖 " + (track.bookTitle || "Risale-i Nur") + " · " + (track.subTitle || track.title || "Bölüm");
     }
 
+    // Barla Odası Player Konsolunu Senkronize Et
+    var brpTag = document.getElementById("brpBookTag");
+    var brpTitle = document.getElementById("brpTrackTitle");
+    if(brpTag) brpTag.textContent = "📖 " + (track.bookTitle || "Risale-i Nur");
+    if(brpTitle) brpTitle.textContent = track.subTitle || track.title || "Sesli Risale";
+    var brpPlayBtn = document.getElementById("brpPlayBtn");
+    var brBar = document.getElementById("brPlayerBar");
+    if(brBar) brBar.classList.add("active");
+
     if(audioElement){
-      audioElement.play().then(function(){
-        updatePlayBtnIcon(true);
-        renderPlaylist();
-        if(typeof showToast === "function"){
-          showToast("🎙️ " + (track.bookTitle ? (track.bookTitle + " · ") : "") + (track.subTitle || track.title) + " okunuyor...");
-        }
-      }).catch(function(err){
-        console.warn("Playback error:", err);
-      });
+      var playPromise = audioElement.play();
+      if(playPromise !== undefined){
+        playPromise.then(function(){
+          updatePlayBtnIcon(true);
+          renderPlaylist();
+          if(brpPlayBtn){
+            brpPlayBtn.innerHTML = "<span>⏸</span> Duraklat";
+            brpPlayBtn.classList.add("playing");
+          }
+          if(typeof showToast === "function"){
+            showToast("🎙️ " + (track.bookTitle ? (track.bookTitle + " · ") : "") + (track.subTitle || track.title) + " okunuyor...");
+          }
+        }).catch(function(err){
+          console.warn("Playback blocked/delayed:", err);
+          updatePlayBtnIcon(false);
+          if(brpPlayBtn){
+            brpPlayBtn.innerHTML = "<span>▶</span> Dinle";
+            brpPlayBtn.classList.remove("playing");
+          }
+          if(err && err.name === "NotAllowedError"){
+            if(typeof showToast === "function"){
+              showToast("▶ Sesli okumayı başlatmak için alttaki 'Dinle' butonuna tıklayınız.");
+            }
+          }
+        });
+      }
     }
   }
 
@@ -617,13 +629,10 @@
   /* ── 6. OYNATICI KONTROLLERİ ─────────────────────────────── */
   function togglePlay(){
     if(audioElement){
-      audioElement.crossOrigin = "anonymous";
+      audioElement.removeAttribute("crossorigin");
+      delete audioElement.crossOrigin;
       audioElement.volume = 1.0;
       audioElement.muted = false;
-    }
-    initAudioEngine();
-    if(audioCtx && audioCtx.state === "suspended"){
-      audioCtx.resume();
     }
     if(!audioElement) return;
 
@@ -637,21 +646,35 @@
       }
     }
 
+    var brpPlayBtn = document.getElementById("brpPlayBtn");
+
     if(audioElement.paused){
       audioElement.play().then(function(){
         updatePlayBtnIcon(true);
         renderPlaylist();
+        if(brpPlayBtn){
+          brpPlayBtn.innerHTML = "<span>⏸</span> Duraklat";
+          brpPlayBtn.classList.add("playing");
+        }
       }).catch(function(err){
         console.warn("Play blocked:", err);
         updatePlayBtnIcon(false);
+        if(brpPlayBtn){
+          brpPlayBtn.innerHTML = "<span>▶</span> Dinle";
+          brpPlayBtn.classList.remove("playing");
+        }
         if(typeof showToast === "function"){
-          showToast("⚠️ Ses dosyası açılamadı. D: sürücüsündeki ses dosyalarını veya '+ MP3 Ekle' butonunu kontrol ediniz.");
+          showToast("⚠️ Ses başlatılamadı. Lütfen tekrar tıklayın veya '+ MP3 Ekle' ile kendi kaydınızı ekleyin.");
         }
       });
     } else {
       audioElement.pause();
       updatePlayBtnIcon(false);
       renderPlaylist();
+      if(brpPlayBtn){
+        brpPlayBtn.innerHTML = "<span>▶</span> Dinle";
+        brpPlayBtn.classList.remove("playing");
+      }
     }
   }
 
@@ -1414,6 +1437,11 @@
       audioElement.addEventListener("error", function(){
         updatePlayBtnIcon(false);
         renderPlaylist();
+        var brpPlayBtn = document.getElementById("brpPlayBtn");
+        if(brpPlayBtn){
+          brpPlayBtn.innerHTML = "<span>▶</span> Dinle";
+          brpPlayBtn.classList.remove("playing");
+        }
         console.warn("Audio element error: dosya bulunamadı veya açılamadı.");
       });
     }
@@ -1645,7 +1673,8 @@
         initSrc = currentTrack.audioUrl || currentTrack.src || "";
       }
       if(initSrc && audioElement){
-        audioElement.crossOrigin = "anonymous";
+        audioElement.removeAttribute("crossorigin");
+        delete audioElement.crossOrigin;
         audioElement.volume = 1.0;
         audioElement.muted = false;
         audioElement.src = initSrc;

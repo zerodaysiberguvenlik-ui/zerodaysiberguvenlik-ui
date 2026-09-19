@@ -999,9 +999,15 @@
 
     function normalizeStr(str){
       return (str || "").toLowerCase()
-        .replace(/ğ/g, "g").replace(/ü/g, "u").replace(/ş/g, "s")
-        .replace(/ı/g, "i").replace(/ö/g, "o").replace(/ç/g, "c")
-        .replace(/['’`^]/g, "");
+        .replace(/[âäàá]/g, "a")
+        .replace(/[îïìí]/g, "i")
+        .replace(/[ûüùú]/g, "u")
+        .replace(/ğ/g, "g")
+        .replace(/ş/g, "s")
+        .replace(/ı/g, "i")
+        .replace(/ö/g, "o")
+        .replace(/ç/g, "c")
+        .replace(/['’`^" \-_–—]/g, "");
     }
 
     var isAll = !trackFilter || bookTitle === "Tüm Külliyat" || trackFilter === "";
@@ -1065,13 +1071,28 @@
 
   function playFirstTrackOfBook(bookTitle){
     var allTracks = getAvailableTracks();
-    var q = (bookTitle || "").toLowerCase();
+    function normStr(str){
+      return (str || "").toLowerCase()
+        .replace(/[âäàá]/g, "a")
+        .replace(/[îïìí]/g, "i")
+        .replace(/[ûüùú]/g, "u")
+        .replace(/ğ/g, "g")
+        .replace(/ş/g, "s")
+        .replace(/ı/g, "i")
+        .replace(/ö/g, "o")
+        .replace(/ç/g, "c")
+        .replace(/['’`^" \-_–—]/g, "");
+    }
+    var q = normStr(bookTitle);
     var found = allTracks.find(function(t){
-      return (t.bookTitle || "").toLowerCase().includes(q);
+      var bt = normStr(t.bookTitle || "");
+      return bt.includes(q) || q.includes(bt);
     });
 
     if(found){
       playTrackInBarlaRoom(found);
+    } else if(allTracks.length > 0){
+      playTrackInBarlaRoom(allTracks[0]);
     }
   }
 
@@ -1171,6 +1192,18 @@
 
     // Külliyat çekmecesini otomatik hazırla
     openShelfChapterDrawer("Tüm Külliyat", "");
+
+    // Sesli okumayı otomatik hazırla & senkronize et
+    var tracks = getAvailableTracks();
+    if(tracks && tracks.length){
+      var curTrack = (window.TalkingPortrait && window.TalkingPortrait.getCurrentTrack) ? window.TalkingPortrait.getCurrentTrack() : null;
+      var audioEl = (window.TalkingPortrait && window.TalkingPortrait.getAudioElement) ? window.TalkingPortrait.getAudioElement() : document.getElementById("risaleAudioSource");
+      var trackToPlay = curTrack || tracks[0];
+      updateBarlaPlayerUI(trackToPlay);
+      if(!audioEl || audioEl.paused || !audioEl.src){
+        playTrackInBarlaRoom(trackToPlay);
+      }
+    }
 
     if(typeof showToast === "function"){
       showToast("❄️ 3D Barla Kış Odası açıldı. 360° fare ile inceleyebilirsiniz.");
@@ -1332,6 +1365,15 @@
         e.preventDefault();
         e.stopPropagation();
         openBarlaRoom();
+        var tracks = getAvailableTracks();
+        if(tracks && tracks.length){
+          var curTrack = (window.TalkingPortrait && window.TalkingPortrait.getCurrentTrack) ? window.TalkingPortrait.getCurrentTrack() : null;
+          var audioEl = (window.TalkingPortrait && window.TalkingPortrait.getAudioElement) ? window.TalkingPortrait.getAudioElement() : document.getElementById("risaleAudioSource");
+          var trackToPlay = curTrack || tracks[0];
+          if(!audioEl || audioEl.paused || !audioEl.src){
+            playTrackInBarlaRoom(trackToPlay);
+          }
+        }
       });
     }
 
@@ -1367,6 +1409,15 @@
       brpPlayBtn.addEventListener("click", function(){
         if(window.TalkingPortrait && window.TalkingPortrait.togglePlay){
           window.TalkingPortrait.togglePlay();
+        } else {
+          var audioEl = (window.TalkingPortrait && window.TalkingPortrait.getAudioElement) ? window.TalkingPortrait.getAudioElement() : document.getElementById("risaleAudioSource");
+          if(audioEl){
+            if(audioEl.paused){
+              audioEl.play().catch(function(err){ console.warn(err); });
+            } else {
+              audioEl.pause();
+            }
+          }
         }
       });
     }
